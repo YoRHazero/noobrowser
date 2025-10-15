@@ -1,4 +1,4 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback } from "react";
 import { extend } from "@pixi/react";
 import { Graphics, Container } from "pixi.js";
 import { useGlobeStore } from "@/stores/footprints";
@@ -12,49 +12,74 @@ extend({
 export default function FootprintGraphics({width, height}: {width: number, height: number}) {
     const footprints = useGlobeStore((state) => state.footprints);
     const view = useGlobeStore((state) => state.view);
+    const hoveredFootprintId = useGlobeStore((state) => state.hoveredFootprintId);
+    const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+    const setHoveredFootprintId = useGlobeStore((state) => state.setHoveredFootprintId);
+    const setSelectedFootprintId = useGlobeStore((state) => state.setSelectedFootprintId);
+
+    const colorSetup = {
+        strokeNormal: 0x632652,
+        hoveredFill: 0x333333,
+        strokeSelected: 0xaa0000
+    }
 
     const cx = width / 2;
     const cy = height / 2;
-    const globeRadius = Math.min(width, height) / 2 * 0.9;
+    const globeInitialRadius = Math.min(width, height) / 2 * 0.9;
 
-    const screenPolygons = useMemo(() => {
-        return footprints.map(
-            (fp) => {
-                const projectedVertices = fp.vertices.map(
-                    (v) => (
-                        projectRaDec(v.ra, v.dec, view.yawDeg, view.pitchDeg)
-                    )
-                )
-                // Now we filter out footprints which contain invisible vertices
-                if (projectedVertices.every(v => v.visible)) {
-                    return projectedVertices.map(
-                        (p) => toScreen(p, cx, cy, view.scale, globeRadius)
-                    );
+    // Draw Globe
+    const drawGlobe = useCallback((graphics: Graphics) => {
+        graphics.clear();
+        graphics
+            .circle(cx, cy, globeInitialRadius * view.scale)
+            .stroke({ color: 0x000000, width: 1 });
+    }, [cx, cy, globeInitialRadius, view.scale]);
+
+    const drawFootprint = useCallback((
+        screenVertices: {x: number, y: number}[], 
+        state: 'normal' | 'hovered' | 'selected') => {
+        switch(state) {
+            case 'normal':
+                return (graphics: Graphics) => {
+                    graphics.clear();
+                    graphics
+                        .poly(
+                            screenVertices.map((v) => ({ x: v.x, y: v.y }))
+                        )
+                        .stroke({ color: colorSetup.strokeNormal, width: 1 });
                 }
-            }
-        )
-    }, [footprints, view, cx, cy, globeRadius]);
+            case 'hovered':
+                return (graphics: Graphics) => {
+                    graphics.clear();
+                    graphics
+                        .poly(
+                            screenVertices.map((v) => ({ x: v.x, y: v.y }))
+                        )
+                        .fill({ color: colorSetup.hoveredFill, alpha: 0.3 })
+                        .stroke({ color: colorSetup.strokeNormal, width: 2 });
+                }
+            case 'selected':
+                return (graphics: Graphics) => {
+                    graphics.clear();
+                    graphics
+                        .poly(
+                            screenVertices.map((v) => ({ x: v.x, y: v.y }))
+                        )
+                        .stroke({ color: colorSetup.strokeSelected, width: 2 });
+                }
+            default:
+                throw new Error(`Unknown state: ${state}`);
+        }
+    }, [colorSetup]);
 
-    // Grid Lines
-
-    const draw = useCallback(
-        (graphics: Graphics) => {
-            graphics.clear();
-
-            graphics
-                .circle(cx, cy, globeRadius * view.scale)
-                .stroke({ color: 0x000000, width: 1 })
-            for (const polygon of screenPolygons) {
-                if (!polygon) continue;
-                graphics
-                    .poly(
-                        polygon.map((v) => ({ x: v.x, y: v.y }))
-                    )
-                    .stroke({ color: 0x123454, alpha: 0.3 })
-            }
-        },
-        [screenPolygons]
-    )
+    // Event handling for footprint
+    const onFootprintPointerOver = useCallback((id: string) => {
+        if (hoveredFootprintId !== null) return;
+        setHoveredFootprintId(id);
+    }, [setHoveredFootprintId]);
+    const onFootprintPointerOut = useCallback(() => {
+        setHoveredFootprintId(null);
+    }, [setHoveredFootprintId]);
 
     return (
         <pixiContainer 
@@ -62,7 +87,45 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
             height={height}
             eventMode="static"
         >
-            <pixiGraphics draw={draw} />
+            <pixiGraphics draw={drawGlobe} />
+            {
+                footprints.map((fp) => {
+                    const projectedVertices = fp.vertices.map(
+                        (v) => (
+                            projectRaDec(v.ra, v.dec, view.yawDeg, view.pitchDeg)
+                        )
+                    )
+                    // Skip footprints whose vertices are not fully visible
+                    if (!projectedVertices.every(v => v.visible)) {
+                        return;
+                    }
+
+                    const screenVertices = projectedVertices.map(
+                        (p) => toScreen(p, cx, cy, view.scale, globeInitialRadius)
+                    );
+
+                    const state = 
+                        fp.id === selectedFootprintId ? 'selected' :
+                        fp.id === hoveredFootprintId ? 'hovered' :
+                        'normal';
+
+
+                    return (
+                        <pixiGraphics 
+                            key={fp.id} 
+                            draw={drawFootprint(screenVertices, state)}
+                            onPointerOver={() => onFootprintPointerOver(fp.id)}
+                            onPointerOut={onFootprintPointerOut}
+                            onClick={() => setSelectedFootprintId(
+                                fp.id === selectedFootprintId ? null : fp.id
+                            )}
+                            eventMode="dynamic"
+                        />
+                    )
+                })
+            }
         </pixiContainer>
     )
 }
+
+
