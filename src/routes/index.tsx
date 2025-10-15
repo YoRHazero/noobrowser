@@ -13,7 +13,8 @@ import {
   Image,
 } from '@chakra-ui/react'
 import { useState } from 'react'
-import { useConnectionStore } from '../stores/connection'
+import { useConnectionStore } from '@/stores/connection'
+import { toaster } from '@/components/ui/toaster'
 import logo from '../logo.png'
 
 export const Route = createFileRoute('/')({
@@ -21,82 +22,83 @@ export const Route = createFileRoute('/')({
 })
 
 function App() {
-  const { backendUrl, username, setBackendUrl, setUsername, reset } = useConnectionStore()
-  const [url, setUrl] = useState(backendUrl)
-  const [name, setName] = useState(username)
+    const { backendUrl, username, setBackendUrl, setUsername, reset } = useConnectionStore()
+    const [url, setUrl] = useState(backendUrl)
+    const [name, setName] = useState(username)
 
-  const save = () => {
-    setBackendUrl(url.trim())
-    setUsername(name.trim())
-  }
+    const save = () => {
+      setBackendUrl(url.trim())
+      setUsername(name.trim())
+      toaster.success({ title: 'Settings saved', description: 'Configuration updated successfully.' })
+    }
 
-  const clear = () => {
-    reset()
-    setUrl('')
-    setName('')
-  }
+    const clear = () => {
+      reset()
+      setUrl('')
+      setName('')
+    }
 
-  return (
-    <Box minH="100vh" bg="bg" color="fg">
-      <Center py="12">
-        <Stack gap="8" w="full" maxW="lg" px={{ base: 4, md: 6 }}>
-          <Stack align="center" gap="3">
-            <Image
-              src={logo}
-              alt="Noobrowser logo"
-              boxSize="40"
-              // 纯 CSS 动画，v3 推荐（可选）
-              css={{ animation: 'spin 20s linear infinite' }}
-            />
-            <Heading size="2xl">Noobrowser</Heading>
-            <Text color="fg.muted">A web browser built with React</Text>
-          </Stack>
-
-          <Box
-            bg="bg.panel"
-            borderWidth="1px"
-            rounded="l3"
-            p="6"
-            shadow="sm"
-          >
-            <Stack gap="5">
-              <Field.Root>
-                <Field.Label>Backend URL</Field.Label>
-                <Input
-                  id="backendUrl"
-                  placeholder="http://127.0.0.1:8000"
-                  value={url}
-                  onChange={(e) => setUrl(e.currentTarget.value)}
-                />
-                <Field.HelperText>Example: http://localhost:8000, the address of noobackend</Field.HelperText>
-              </Field.Root>
-
-              <Field.Root>
-                <Field.Label>Username</Field.Label>
-                <Input
-                  id="username"
-                  placeholder="Your username"
-                  value={name}
-                  onChange={(e) => setName(e.currentTarget.value)}
-                />
-              </Field.Root>
-
-              <HStack justify="flex-end">
-                <Button variant="outline" onClick={clear}>
-                  Reset
-                </Button>
-                <Button colorPalette="teal" onClick={save}>
-                  Save
-                </Button>
-              </HStack>
+    return (
+      <Box minH="100vh" bg="bg" color="fg">
+        <Center py="12">
+          <Stack gap="8" w="full" maxW="lg" px={{ base: 4, md: 6 }}>
+            <Stack align="center" gap="3">
+              <Image
+                src={logo}
+                alt="Noobrowser logo"
+                boxSize="40"
+                // 纯 CSS 动画，v3 推荐（可选）
+                css={{ animation: 'spin 20s linear infinite' }}
+              />
+              <Heading size="2xl">Noobrowser</Heading>
+              <Text color="fg.muted">A web browser built with React</Text>
             </Stack>
-          </Box>
 
-          <Text textStyle="sm" color="fg.muted">
-            Current configuration: {backendUrl || 'Not set'} · {username || 'Anonymous'}
-          </Text>
-        </Stack>
-      </Center>
-    </Box>
-  )
+            <Box
+              bg="bg.panel"
+              borderWidth="1px"
+              rounded="l3"
+              p="6"
+              shadow="sm"
+            >
+              <Stack gap="5">
+                <Field.Root>
+                  <Field.Label>Backend URL</Field.Label>
+                  <Input
+                    id="backendUrl"
+                    placeholder="http://127.0.0.1:8000"
+                    value={url}
+                    onChange={(e) => setUrl(e.currentTarget.value)}
+                  />
+                  <Field.HelperText>Example: http://localhost:8000, the address of noobackend</Field.HelperText>
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>Username</Field.Label>
+                  <Input
+                    id="username"
+                    placeholder="Your username"
+                    value={name}
+                    onChange={(e) => setName(e.currentTarget.value)}
+                  />
+                </Field.Root>
+
+                <HStack justify="flex-end">
+                  <Button variant="outline" onClick={clear}>
+                    Reset
+                  </Button>
+                  <Button colorPalette="teal" onClick={save}>
+                    Save
+                  </Button>
+                </HStack>
+              </Stack>
+            </Box>
+
+            <Text textStyle="sm" color="fg.muted">
+              Current configuration: {backendUrl || 'Not set'} · {username || 'Anonymous'}
+            </Text>
+          </Stack>
+        </Center>
+      </Box>
+    )
 }

@@ -11,6 +11,9 @@ function RouteComponent() {
   return (
     <div>
       Hello "/test"! Current configuration: {backendUrl || 'Not set'} · {username || 'Anonymous'}
+      <br />
+      下面是 Pixi.js 的测试组件：
+      <br />
       <MyComponent />
     </div>
   )

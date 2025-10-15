@@ -1,5 +1,6 @@
 import { Box, HStack, Link as CLink } from '@chakra-ui/react'
 import { Link as RouterLink } from '@tanstack/react-router'
+import { ColorModeButton } from './ui/color-mode'
 
 export default function Header() {
   return (
@@ -21,6 +22,7 @@ export default function Header() {
             <RouterLink to="/test">Test</RouterLink>
           </CLink>
         </HStack>
+        <ColorModeButton />
       </HStack>
     </Box>
   )
