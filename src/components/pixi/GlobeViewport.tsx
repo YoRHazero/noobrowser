@@ -1,6 +1,6 @@
 import { Viewport as BaseViewport, type IViewportOptions } from 'pixi-viewport'
 import { useApplication, extend } from '@pixi/react'
-import { Application } from 'pixi.js';
+import { Application, FederatedPointerEvent, FederatedWheelEvent } from 'pixi.js';
 import { useRef, useCallback } from 'react';
 import { useGlobeStore } from '@/stores/footprints';
 
@@ -48,8 +48,8 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
         return Math.max(min, Math.min(max, v));
     }
 
-    const onPointerDown = useCallback((event: any) => {
-        dragging.current = {x: event.data.global.x, y: event.data.global.y};
+    const onPointerDown = useCallback((event: FederatedPointerEvent) => {
+        dragging.current = {x: event.global.x, y: event.global.y};
         if (viewportRef.current) {
             viewportRef.current.cursor = 'grabbing';
         }
@@ -62,11 +62,11 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
         }
     }, []);
 
-    const onPointerMove = useCallback((event: any) => {
+    const onPointerMove = useCallback((event: FederatedPointerEvent) => {
         if (dragging.current) {
-            const dx = event.data.global.x - dragging.current.x;
-            const dy = event.data.global.y - dragging.current.y;
-            dragging.current = {x: event.data.global.x, y: event.data.global.y};
+            const dx = event.global.x - dragging.current.x;
+            const dy = event.global.y - dragging.current.y;
+            dragging.current = {x: event.global.x, y: event.global.y};
 
             const sens = 0.3;
             setView({
@@ -76,7 +76,7 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
         }
     }, [view.pitchDeg, view.yawDeg, setView]);
 
-    const onWheel = useCallback((event: any) => {
+    const onWheel = useCallback((event: FederatedWheelEvent) => {
         const factor = Math.exp(-event.deltaY * 0.0015);
         const next = clamp(view.scale * factor, MinScale, MaxScale);
         setView({scale: next});
@@ -91,6 +91,7 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
             onPointerUp={onPointerUp}
             onPointerMove={onPointerMove}
             onWheel={onWheel}
+            eventMode='static'
         >
             {children}
         </pixiCustomGlobeViewport>

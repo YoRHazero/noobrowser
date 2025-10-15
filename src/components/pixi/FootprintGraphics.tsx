@@ -9,6 +9,7 @@ extend({
   Container,
 });
 
+// Todo: when move the mouse fast, the onPointerOver event may be missed
 export default function FootprintGraphics({width, height}: {width: number, height: number}) {
     const footprints = useGlobeStore((state) => state.footprints);
     const view = useGlobeStore((state) => state.view);
@@ -85,7 +86,6 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
         <pixiContainer 
             width={width} 
             height={height}
-            eventMode="static"
         >
             <pixiGraphics draw={drawGlobe} />
             {
