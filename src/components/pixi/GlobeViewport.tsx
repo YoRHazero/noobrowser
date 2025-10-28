@@ -1,13 +1,10 @@
 import { Viewport as BaseViewport, type IViewportOptions } from 'pixi-viewport'
 import { useApplication, extend } from '@pixi/react'
 import { Application, FederatedPointerEvent, FederatedWheelEvent } from 'pixi.js';
-import { useRef, useCallback } from 'react';
+import { useRef, useCallback, useEffect } from 'react';
 import { useGlobeStore } from '@/stores/footprints';
 
 
-// Todo: fix the bug that the onWheel event cannot be stopped to propagate to the parent element
-// now this is temporarily fixed by using this.wheel() in the constructor, but this will cause the zoom center
-// not to be fixed at the center.
 type ViewportProps = Omit<IViewportOptions, 'events'> 
 class CustomGlobeViewport extends BaseViewport {
     constructor(options: ViewportProps & {app: Application} ) {
@@ -77,11 +74,38 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
     }, [view.pitchDeg, view.yawDeg, setView]);
 
     const onWheel = useCallback((event: FederatedWheelEvent) => {
-        event.stopPropagation();
         const factor = Math.exp(-event.deltaY * 0.0015);
         const next = clamp(view.scale * factor, MinScale, MaxScale);
         setView({scale: next});
     }, [view.scale, setView]);
+
+    useEffect(() => {
+        if (!app) return;
+        let canceled = false;
+        let target: HTMLCanvasElement | null = null;
+        const stopper = (e: WheelEvent) => { e.preventDefault(); };
+
+        const attach = () => {
+            if (canceled) return;
+            const renderer = app?.renderer;
+            if (!renderer) {
+                requestAnimationFrame(attach);
+                return;
+            }
+            
+            const canvas: HTMLCanvasElement = (renderer.canvas ?? renderer.view) as HTMLCanvasElement;
+            canvas.addEventListener('wheel', stopper, {passive: false});
+            target = canvas;
+        }
+        attach();
+
+        return () => {
+            canceled = true;
+            if (target) {
+                target.removeEventListener('wheel', stopper);
+            }
+        };
+    }, [app]);
 
     return (
         app?.renderer && (

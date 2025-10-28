@@ -1,6 +1,6 @@
-import { useCallback } from "react";
+import { useCallback, useRef } from "react";
 import { extend } from "@pixi/react";
-import { Graphics, Container, FederatedPointerEvent } from "pixi.js";
+import { Graphics, Container, RenderLayer, FederatedPointerEvent, Polygon } from "pixi.js";
 import { useGlobeStore } from "@/stores/footprints";
 import { projectRaDec, toScreen } from "@/utils/projection";
 
@@ -9,7 +9,8 @@ extend({
   Container,
 });
 
-// Todo: when move the mouse fast, the onPointerOver event may be missed
+
+
 export default function FootprintGraphics({width, height}: {width: number, height: number}) {
     const footprints = useGlobeStore((state) => state.footprints);
     const view = useGlobeStore((state) => state.view);
@@ -78,17 +79,28 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
 
     // Event handling for footprint
     const onFootprintPointerOver = useCallback(
-    (id: string, event: FederatedPointerEvent) => {
-      if (hoveredFootprintId !== null) return;
-      setHoveredFootprintId(id);
-      setHoveredFootprintMousePosition({ x: event.global.x, y: event.global.y });
-    },
-    [setHoveredFootprintId, setHoveredFootprintMousePosition, hoveredFootprintId],
-  );
-  const onFootprintPointerOut = useCallback(() => {
-    setHoveredFootprintId(null);
-    setHoveredFootprintMousePosition(null);
-  }, [setHoveredFootprintId, setHoveredFootprintMousePosition]);
+        (id: string, e: FederatedPointerEvent) => {
+            setHoveredFootprintId(id);
+            setHoveredFootprintMousePosition({ x: e.global.x, y: e.global.y });
+        },
+        [setHoveredFootprintId, setHoveredFootprintMousePosition]
+    );
+
+    const onFootprintPointerMove = useCallback(
+        (id: string, e: FederatedPointerEvent) => {
+            if (hoveredFootprintId === id) {
+                setHoveredFootprintMousePosition({ x: e.global.x, y: e.global.y });
+            }
+        },
+        [hoveredFootprintId, setHoveredFootprintMousePosition]
+    );
+
+    const onFootprintPointerOut = useCallback(() => {
+        setHoveredFootprintId(null);
+        setHoveredFootprintMousePosition(null);
+        }, 
+        [setHoveredFootprintId, setHoveredFootprintMousePosition]
+    );
 
     return (
         <pixiContainer 
@@ -116,13 +128,17 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
                         fp.id === selectedFootprintId ? 'selected' :
                         fp.id === hoveredFootprintId ? 'hovered' :
                         'normal';
-
+                    
+                    const flat = screenVertices.flatMap(v => [v.x, v.y]);
+                    const hitArea = new Polygon(flat);
 
                     return (
                         <pixiGraphics 
                             key={fp.id} 
                             draw={drawFootprint(screenVertices, state)}
+                            hitArea={hitArea}
                             onPointerOver={(event: FederatedPointerEvent) => onFootprintPointerOver(fp.id, event)}
+                            onPointerMove={(event: FederatedPointerEvent) => onFootprintPointerMove(fp.id, event)}
                             onPointerOut={onFootprintPointerOut}
                             onClick={() => setSelectedFootprintId(
                                 fp.id === selectedFootprintId ? null : fp.id
