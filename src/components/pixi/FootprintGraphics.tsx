@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { extend } from "@pixi/react";
-import { Graphics, Container } from "pixi.js";
+import { Graphics, Container, FederatedPointerEvent } from "pixi.js";
 import { useGlobeStore } from "@/stores/footprints";
 import { projectRaDec, toScreen } from "@/utils/projection";
 
@@ -16,6 +16,9 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
     const hoveredFootprintId = useGlobeStore((state) => state.hoveredFootprintId);
     const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
     const setHoveredFootprintId = useGlobeStore((state) => state.setHoveredFootprintId);
+    const setHoveredFootprintMousePosition = useGlobeStore(
+        (state) => state.setHoveredFootprintMousePosition,
+    );
     const setSelectedFootprintId = useGlobeStore((state) => state.setSelectedFootprintId);
 
     const colorSetup = {
@@ -74,13 +77,18 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
     }, [colorSetup]);
 
     // Event handling for footprint
-    const onFootprintPointerOver = useCallback((id: string) => {
-        if (hoveredFootprintId !== null) return;
-        setHoveredFootprintId(id);
-    }, [setHoveredFootprintId]);
-    const onFootprintPointerOut = useCallback(() => {
-        setHoveredFootprintId(null);
-    }, [setHoveredFootprintId]);
+    const onFootprintPointerOver = useCallback(
+    (id: string, event: FederatedPointerEvent) => {
+      if (hoveredFootprintId !== null) return;
+      setHoveredFootprintId(id);
+      setHoveredFootprintMousePosition({ x: event.global.x, y: event.global.y });
+    },
+    [setHoveredFootprintId, setHoveredFootprintMousePosition, hoveredFootprintId],
+  );
+  const onFootprintPointerOut = useCallback(() => {
+    setHoveredFootprintId(null);
+    setHoveredFootprintMousePosition(null);
+  }, [setHoveredFootprintId, setHoveredFootprintMousePosition]);
 
     return (
         <pixiContainer 
@@ -114,7 +122,7 @@ export default function FootprintGraphics({width, height}: {width: number, heigh
                         <pixiGraphics 
                             key={fp.id} 
                             draw={drawFootprint(screenVertices, state)}
-                            onPointerOver={() => onFootprintPointerOver(fp.id)}
+                            onPointerOver={(event: FederatedPointerEvent) => onFootprintPointerOver(fp.id, event)}
                             onPointerOut={onFootprintPointerOut}
                             onClick={() => setSelectedFootprintId(
                                 fp.id === selectedFootprintId ? null : fp.id

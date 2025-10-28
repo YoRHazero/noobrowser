@@ -21,10 +21,14 @@ interface GlobeState {
   footprints: Footprint[];
   view: ViewState;
   hoveredFootprintId: string | null;
+  hoveredFootprintMousePosition: { x: number; y: number } | null;
   selectedFootprintId: string | null;
   setView: (patch: Partial<ViewState>) => void;
   setFootprints: (footprints: Footprint[]) => void;
   setHoveredFootprintId: (id: string | null) => void;
+  setHoveredFootprintMousePosition: (
+    position: { x: number; y: number } | null,
+  ) => void;
   setSelectedFootprintId: (id: string | null) => void;
 }
 
@@ -32,10 +36,13 @@ export const useGlobeStore = create<GlobeState>()((set) => ({
   footprints: [],
   view: { yawDeg: 0, pitchDeg: 0, scale: 1 },
   hoveredFootprintId: null,
+  hoveredFootprintMousePosition: null,
   selectedFootprintId: null,
   setView: (patch) =>
     set((state) => ({ view: { ...state.view, ...patch } })),
   setFootprints: (footprints) => set({ footprints }),
   setHoveredFootprintId: (id) => set({ hoveredFootprintId: id }),
+  setHoveredFootprintMousePosition: (position) =>
+    set({ hoveredFootprintMousePosition: position }),
   setSelectedFootprintId: (id) => set({ selectedFootprintId: id }),
 }));

@@ -3,6 +3,7 @@ import { Application, extend } from "@pixi/react";
 import { Box } from "@chakra-ui/react";
 import { Container } from "pixi.js";
 import GlobeViewport from './GlobeViewport'
+import FootprintTooltip from "./FootprintTooltip";
 
 extend({
   Container,
@@ -16,6 +17,7 @@ export default function FootprintCanvas( {children}: {children: React.ReactNode}
         width={"800px"}
         height={"600px"}
         border={"1px solid black"}
+        position={"relative"}
         >
             <Application
                 resizeTo={parentRef}
@@ -28,6 +30,7 @@ export default function FootprintCanvas( {children}: {children: React.ReactNode}
                     {children}
                 </GlobeViewport>
             </Application>
+            <FootprintTooltip />
         </Box>
     )
 }

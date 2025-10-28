@@ -17,7 +17,7 @@ class CustomGlobeViewport extends BaseViewport {
             passiveWheel: false,
             ...rest
         })
-        this.wheel().decelerate();
+        this.decelerate();
     }
 }
 
@@ -77,6 +77,7 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
     }, [view.pitchDeg, view.yawDeg, setView]);
 
     const onWheel = useCallback((event: FederatedWheelEvent) => {
+        event.stopPropagation();
         const factor = Math.exp(-event.deltaY * 0.0015);
         const next = clamp(view.scale * factor, MinScale, MaxScale);
         setView({scale: next});
