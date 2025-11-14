@@ -6,6 +6,35 @@
 export function deg2rad(deg: number): number {
   return (deg * Math.PI) / 180;
 }
+/**
+ * Wraps an angle in degrees to the range [-180, 180].
+ * @param deg - Angle in degrees.
+ * @returns The angle wrapped to the range [-180, 180].
+ */
+export function wrapDeg180(deg: number): number {
+    let x = ((deg + 180) % 360 + 360) % 360 - 180;
+    if (x === -180) x = 180;
+    return x;
+}
+/**
+ * Wraps an angle in degrees to the range [0, 360].
+ * @param deg - Angle in degrees.
+ * @returns The angle wrapped to the range [0, 360].
+ */
+export function wrapDeg360(deg: number): number {
+    return ((deg % 360) + 360) % 360;
+}
+
+/**
+ * Clamps a value between a minimum and maximum.
+ * @param value - The value to clamp.
+ * @param min - The minimum allowable value.
+ * @param max - The maximum allowable value.
+ * @returns The clamped value.
+ */
+export function clamp(value: number, min: number, max: number): number {
+    return Math.max(min, Math.min(max, value));
+}
 
 export type Projected = {
     x: number;
@@ -74,4 +103,33 @@ export function toScreen(
         x: cx - p.x * scale * radius,
         y: cy - p.y * scale * radius,
     };
+}
+
+/**
+ * From the current view parameters, computes the RA and Dec at the center (cx, cy) of the viewport.
+ * @param yawDeg 
+ * @param pitchDeg 
+ * @returns The RA and Dec in degrees corresponding to the center of the viewport.
+ */
+export function viewToCenterRaDec(
+    yawDeg: number,
+    pitchDeg: number,
+): { ra: number; dec: number } {
+    const ra = wrapDeg360(yawDeg + 90);
+    const dec = clamp(pitchDeg, -90, 90);
+    return { ra, dec };
+}
+/**
+ * Given a target RA and Dec, computes the view parameters (yaw and pitch) needed to center the viewport on that point.
+ * @param raDeg - Target right ascension in degrees.
+ * @param decDeg - Target declination in degrees.
+ * @returns The yaw and pitch in degrees required to center the view on the specified RA and Dec.
+ */
+export function centerRaDecToView(
+    ra: number,
+    dec: number
+): { yawDeg: number; pitchDeg: number } {
+    const yawDeg = wrapDeg180(ra - 90);
+    const pitchDeg = clamp(dec, -90, 90);
+    return { yawDeg, pitchDeg };
 }

@@ -1,11 +1,15 @@
 // src/routes/index.tsx
 import { createFileRoute } from '@tanstack/react-router'
+import { useQuery } from '@tanstack/react-query'
+import axios from 'axios'
 import {
   Box,
+  Badge,
   Center,
   Heading,
   Text,
   Stack,
+  Spinner,
   Field,
   Input,
   Button,
@@ -27,7 +31,11 @@ function App() {
     const [name, setName] = useState(username)
 
     const save = () => {
-      setBackendUrl(url.trim())
+      let validUrl = url.trim()
+      if (!validUrl.startsWith('http://') && !validUrl.startsWith('https://')) {
+        validUrl = 'http://' + validUrl
+      }
+      setBackendUrl(validUrl)
       setUsername(name.trim())
       toaster.success({ title: 'Settings saved', description: 'Configuration updated successfully.' })
     }
@@ -38,6 +46,20 @@ function App() {
       setName('')
     }
 
+    const queryStatus = useQuery({
+      queryKey: ['backend-status', backendUrl],
+      enabled: !!backendUrl,
+      retry: 0,
+      queryFn: ({ signal }) =>
+        axios
+          .get(backendUrl, {
+            signal,
+            timeout: 3000,
+            validateStatus: () => true,
+          })
+          .then((res) => ({ status: res.status, data: res.data })),
+    })
+
     return (
       <Box minH="100vh" bg="bg" color="fg">
         <Center py="12">
@@ -47,7 +69,6 @@ function App() {
                 src={logo}
                 alt="Noobrowser logo"
                 boxSize="40"
-                // 纯 CSS 动画，v3 推荐（可选）
                 css={{ animation: 'spin 20s linear infinite' }}
               />
               <Heading size="2xl">Noobrowser</Heading>
@@ -97,6 +118,23 @@ function App() {
             <Text textStyle="sm" color="fg.muted">
               Current configuration: {backendUrl || 'Not set'} · {username || 'Anonymous'}
             </Text>
+            <HStack>
+              <Text fontWeight="semibold">Backend status:</Text>
+
+              {!backendUrl && <Badge variant="subtle">Not configured</Badge>}
+
+              {backendUrl && queryStatus.isPending && (
+                <HStack gap="2">
+                  <Spinner boxSize="4" /> <Badge variant="subtle">Checking…</Badge>
+                </HStack>
+              )}
+
+              {backendUrl && queryStatus.isError && <Badge colorPalette="red">Disconnected</Badge>}
+
+              {backendUrl && queryStatus.isSuccess && (
+                <Badge colorPalette="green">Connected</Badge>
+              )}
+            </HStack>
           </Stack>
         </Center>
       </Box>

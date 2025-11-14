@@ -19,6 +19,10 @@ export default function Header() {
           </CLink>
 
           <CLink asChild fontWeight="semibold">
+            <RouterLink to="/inspector">Inspector</RouterLink>
+          </CLink>
+
+          <CLink asChild fontWeight="semibold">
             <RouterLink to="/test">Test</RouterLink>
           </CLink>
         </HStack>

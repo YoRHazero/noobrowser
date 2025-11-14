@@ -3,6 +3,7 @@ import { useApplication, extend } from '@pixi/react'
 import { Application, FederatedPointerEvent, FederatedWheelEvent } from 'pixi.js';
 import { useRef, useCallback, useEffect } from 'react';
 import { useGlobeStore } from '@/stores/footprints';
+import { wrapDeg180, clamp } from '@/utils/projection';
 
 
 type ViewportProps = Omit<IViewportOptions, 'events'> 
@@ -36,15 +37,6 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
     const MinScale = 0.1;
     const MaxScale = 1000;
 
-    const wrapDeg = (deg: number) => {
-        let x = ((deg + 180) % 360 + 360) % 360 - 180;
-        if (x === -180) x = 180;
-        return x;
-    }
-    const clamp = (v: number, min: number, max: number) => {
-        return Math.max(min, Math.min(max, v));
-    }
-
     const onPointerDown = useCallback((event: FederatedPointerEvent) => {
         dragging.current = {x: event.global.x, y: event.global.y};
         if (viewportRef.current) {
@@ -67,7 +59,7 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
 
             const sens = 0.3;
             setView({
-                yawDeg: wrapDeg(view.yawDeg + dx * sens / view.scale),
+                yawDeg: wrapDeg180(view.yawDeg + dx * sens / view.scale),
                 pitchDeg: clamp(view.pitchDeg + dy * sens / view.scale, -89, 89),
             });
         }

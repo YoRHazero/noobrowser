@@ -1,10 +1,8 @@
 import  { useGlobeStore } from '@/stores/footprints'
 import { useEffect } from 'react'
 
-import FootprintGraphics from './FootprintGraphics'
-import FootprintCanvas from './FootprintCanvas'
 
-
+import Footprint from './Footprint';
 
 
 const MyComponent = () => {
@@ -36,9 +34,7 @@ const MyComponent = () => {
   }, []);
 
   return (
-    <FootprintCanvas>
-        <FootprintGraphics width={800} height={600} />
-    </FootprintCanvas>
+    <Footprint />
   )
 }
 export default MyComponent
