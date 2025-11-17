@@ -16,7 +16,7 @@ import {
   HStack,
   Image,
 } from '@chakra-ui/react'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useConnectionStore } from '@/stores/connection'
 import { toaster } from '@/components/ui/toaster'
 import logo from '../logo.png'
@@ -26,7 +26,7 @@ export const Route = createFileRoute('/')({
 })
 
 function App() {
-    const { backendUrl, username, setBackendUrl, setUsername, reset } = useConnectionStore()
+    const { backendUrl, username, isConnected, setIsConnected, setBackendUrl, setUsername, reset } = useConnectionStore()
     const [url, setUrl] = useState(backendUrl)
     const [name, setName] = useState(username)
 
@@ -59,6 +59,14 @@ function App() {
           })
           .then((res) => ({ status: res.status, data: res.data })),
     })
+
+    useEffect(() => {
+      if (queryStatus.isSuccess) {
+        setIsConnected(true)
+      } else {
+        setIsConnected(false)
+      }
+    }, [queryStatus.isSuccess])
 
     return (
       <Box minH="100vh" bg="bg" color="fg">
@@ -116,7 +124,7 @@ function App() {
             </Box>
 
             <Text textStyle="sm" color="fg.muted">
-              Current configuration: {backendUrl || 'Not set'} · {username || 'Anonymous'}
+              Current configuration: {username || 'Anonymous'}@{backendUrl || 'Not set'}
             </Text>
             <HStack>
               <Text fontWeight="semibold">Backend status:</Text>

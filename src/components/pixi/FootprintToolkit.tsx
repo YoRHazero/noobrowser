@@ -33,7 +33,7 @@ export default function FootprintToolkit() {
 
     const onGoTo = useCallback(() => {
         const { yawDeg, pitchDeg } = centerRaDecToView(raInput, decInput);
-        setView({ yawDeg, pitchDeg });
+        setView({ yawDeg, pitchDeg, scale: 200 });
         setRaDirty(false);
         setDecDirty(false);
     }, [raInput, decInput, setView]);

@@ -2,17 +2,16 @@ import { useEffect, useRef } from "react";
 import { Application, extend } from "@pixi/react";
 import { Box } from "@chakra-ui/react";
 import { Container, RenderLayer } from "pixi.js";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { useGlobeStore } from "@/stores/footprints";
-import { useConnectionStore } from "@/stores/connection";
 import GlobeViewport from './GlobeViewport'
 import FootprintTooltip from "./FootprintTooltip";
 import FootprintGraphics from "./FootprintGraphics";
 import GlobeBackground from "./GlobeBackground";
 import FootprintToolkit from "./FootprintToolkit";
+import { ExpandableBox } from "@/components/ui/custom-component";
+import { useQueryAxiosGet } from "@/hook/connection-hook";
 
 extend({
   Container,
@@ -35,18 +34,14 @@ export default function FootprintCanvas() {
     });
 
     // Footprint Query
-    const backendUrl = useConnectionStore((state) => state.backendUrl);
     const setFootprints = useGlobeStore((state) => state.setFootprints);
-    const footprintQuery = useQuery({
+    const footprintQuery = useQueryAxiosGet({
         queryKey: ['grism_footprints'],
-        queryFn: () => axios.get(
-            backendUrl + '/overview/grism_footprints',
-        ),
-        enabled: !!backendUrl,
+        path: '/overview/grism_footprints',
     });
     useEffect(() => {
         if (!footprintQuery.isSuccess) return;
-        const footprintData = footprintQuery.data.data;
+        const footprintData = footprintQuery.data;
         const footprints = footprintData.map((fp: any) => ({
             id: fp.id,
             vertices: fp.footprint.vertices.map((v: number[]) => ({ ra: v[0], dec: v[1] })),
@@ -79,13 +74,13 @@ export default function FootprintCanvas() {
                     <FootprintTooltip />
                 </GlobeViewport>
             </Application>
-            <Box
+            <ExpandableBox
                 position="absolute"
                 top="8px"
-                right="8px"
+                left="8px"
             >
                 <FootprintToolkit />
-            </Box>
+            </ExpandableBox>
         </Box>
     )
 }

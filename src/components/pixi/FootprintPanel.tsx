@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import {
     Badge,
     Box,
@@ -10,9 +10,6 @@ import {
     createListCollection
 } from "@chakra-ui/react";
 import { useGlobeStore, type Footprint } from "@/stores/footprints";
-import { useConnectionStore } from "@/stores/connection";
-import { useQuery } from "@tanstack/react-query";
-import axios from "axios";
 import { centerRaDecToView } from "@/utils/projection";
 
 type Rows = {
@@ -89,10 +86,10 @@ export default function FootprintPanel() {
                         {/* info */}
                         <HStack px={3} pb={2} wrap='wrap' gap={3}>
                             <Text fontSize="sm" color="fg.muted">
-                                RA: {Number.isFinite(center?.ra) ? center.ra.toFixed(4) : "--"}°
+                                RA: {Number.isFinite(center?.ra) ? center.ra.toFixed(5) : "--"}°
                             </Text>
                             <Text fontSize="sm" color="fg.muted">
-                                Dec: {Number.isFinite(center?.dec) ? center.dec.toFixed(4) : "--"}°
+                                Dec: {Number.isFinite(center?.dec) ? center.dec.toFixed(5) : "--"}°
                             </Text>
                         </HStack>
 
@@ -139,7 +136,7 @@ export default function FootprintPanel() {
                         </Box>
 
                         {/* button area */}
-                        <HStack p={3} pt={1} gap={2}>
+                        <HStack p={3} pt={1} gap={2} justify="flex-end">
                             <Button
                                 size="sm"
                                 onClick={(e) => {
@@ -151,13 +148,6 @@ export default function FootprintPanel() {
                                 }}
                             >
                                 Goto
-                            </Button>
-                            <Button
-                                size="sm"
-                                variant="outline"
-                                onClick={() => {}}
-                            >
-                                Retrieve
                             </Button>
                         </HStack>
                     </Box>
