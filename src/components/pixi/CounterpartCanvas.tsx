@@ -26,7 +26,7 @@ export default function CounterpartCanvas() {
         >
             <Application
                 resizeTo={parentRef}
-                backgroundColor={0xffffff}
+                backgroundColor={0x111111}
                 resolution={1}
                 antialias={true}
                 autoDensity={true}

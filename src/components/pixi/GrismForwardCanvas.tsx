@@ -1,22 +1,14 @@
+import { Application } from "@pixi/react";
 import { useRef } from "react";
-import { Application, extend } from "@pixi/react";
+import Viewport from "./Viewport";
 import { Box } from "@chakra-ui/react";
-import { Container, RenderLayer } from "pixi.js";
 
-import type { RenderLayerInstance } from "@/types/pixi-react";
-import CutoutImage from "./CutoutImage";
-extend({
-    Container,
-    RenderLayer,
-});
-export default function CutoutCanvas() {
+export default function GrismForwardCanvas() {
     const parentRef = useRef<HTMLDivElement | null>(null);
     return (
         <Box
             ref={parentRef}
-            width={"600px"}
-            height={"600px"}
-            border={"1px solid black"}
+            height={"120px"}
         >
             <Application
                 resizeTo={parentRef}
@@ -25,7 +17,9 @@ export default function CutoutCanvas() {
                 antialias={true}
                 autoDensity={true}
             >
-                <CutoutImage />
+                <Viewport passiveWheel={false}>
+                    {/* Grism Forward Layers go here */}
+                </Viewport>
             </Application>
         </Box>
     )

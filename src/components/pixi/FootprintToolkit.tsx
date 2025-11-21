@@ -7,12 +7,17 @@ import {
 } from '@chakra-ui/react';
 
 import { useGlobeStore } from '@/stores/footprints';
+import { useShallow } from 'zustand/react/shallow';
 import { centerRaDecToView, viewToCenterRaDec } from '@/utils/projection';
 import { useCallback, useEffect, useMemo, useState } from 'react';
 
 export default function FootprintToolkit() {
-    const view = useGlobeStore((state) => state.view);
-    const setView = useGlobeStore((state) => state.setView);
+    const { view, setView } = useGlobeStore(
+        useShallow((state) => ({
+            view: state.view,
+            setView: state.setView,
+        }))
+    );
 
     const center = useMemo(() => viewToCenterRaDec(view.yawDeg, view.pitchDeg), [view.yawDeg, view.pitchDeg]);
 
@@ -48,7 +53,6 @@ export default function FootprintToolkit() {
         <Box display="inline-flex" flexDirection="column" gap="8px">
             <HStack
                 gap={2}
-                bg="white"
                 p="6px 10px"
                 rounded="md"
                 boxShadow="sm"

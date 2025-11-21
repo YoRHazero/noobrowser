@@ -9,32 +9,17 @@ import {
     Button,
 } from "@chakra-ui/react";
 import { createListCollection } from "@chakra-ui/react";
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, } from "react";
 import { toaster } from "@/components/ui/toaster";
 import { useCounterpartStore } from "@/stores/image";
 import { useGlobeStore } from "@/stores/footprints";
 import { clamp } from "@/utils/projection";
-import { PercentageInput } from "@/components/ui/custom-component";
-import { useQueryAxiosGet, useCounterpartFootprint, useCounterpartImage } from "@/hook/connection-hook";
-/*
-                <Stack gap={3}>
-                    <Heading size="sm" as='h3'>Cutout Parameters</Heading>
-                    <HStack gap={4}>
-                        <PercentageInput
-                            label="Pmin (%)"
-                            value={cutoutParams.cutoutPmin}
-                            onValueChange={handleCutoutPminChange}
-                            width={numberInputWidth}
-                        />
-                        <PercentageInput
-                            label="Pmax (%)"
-                            value={cutoutParams.cutoutPmax}
-                            onValueChange={handleCutoutPmaxChange}
-                            width={numberInputWidth}
-                        />
-                    </HStack>
-                </Stack>
-*/
+import { NormPercentageInput } from "@/components/ui/custom-component";
+import { 
+    useQueryAxiosGet, 
+    useCounterpartFootprint, 
+    useCounterpartImage,
+} from "@/hook/connection-hook";
 
 function RGBSelector(
     {
@@ -135,14 +120,20 @@ export default function CounterpartPanel() {
     useEffect(() => {
         if (isFootprintError && footprintError) {
             const message = footprintError?.message ?? "Unknown error";
-            toaster.error({ title: "Failed to retrieve counterpart", description: message } );
+            queueMicrotask(() => {
+                toaster.error({ title: "Failed to retrieve counterpart", description: message } );
+            });
         }
         if (isImageError && imageError) {
             const message = imageError?.message ?? "Unknown error";
-            toaster.error({ title: "Failed to retrieve counterpart image", description: message } );
+            queueMicrotask(() => {
+                toaster.error({ title: "Failed to retrieve counterpart image", description: message } );
+            });
         }
         if (isImageSuccess) {
-            toaster.success({ title: "The image is successfully retrieved" });
+            queueMicrotask(() => {
+                toaster.success({ title: "The image is successfully retrieved" });
+            });
         }
     }, [isFootprintError, footprintError, isImageError, imageError, isImageSuccess]);
 
@@ -158,18 +149,6 @@ export default function CounterpartPanel() {
         setNormParams({ ...normParams, pmax: clampedValue });
     };
 
-    /* cutout parameters 
-    const handleCutoutPminChange = (next: number) => {
-        const maxAllowedCutoutPmin = cutoutParams.cutoutPmax - 5;
-        const clampedValue = clamp(next, 0, maxAllowedCutoutPmin);
-        setCutoutParams({ ...cutoutParams, cutoutPmin: clampedValue });
-    };
-    const handleCutoutPmaxChange = (next: number) => {
-        const minAllowedCutoutPmax = cutoutParams.cutoutPmin + 5;
-        const clampedValue = clamp(next, minAllowedCutoutPmax, 100);
-        setCutoutParams({ ...cutoutParams, cutoutPmax: clampedValue });
-    };
-    */
 
     return (
         <Box p={5} >
@@ -199,29 +178,29 @@ export default function CounterpartPanel() {
             {/* Normalization parameters */}
                 <Stack gap={3}>
                     <Heading size="sm" as='h3' >
-                        Normalization Parameters
+                        Normalization
                     </Heading>
-                    <HStack gap={4}>
-                        <PercentageInput
+                    <HStack gap={4} align={"flex-end"}>
+                        <NormPercentageInput
                             label="Pmin (%)"
                             value={normParams.pmin}
                             onValueChange={handleNormPminChange}
                             width={numberInputWidth}
                         />
-                        <PercentageInput
+                        <NormPercentageInput
                             label="Pmax (%)"
                             value={normParams.pmax}
                             onValueChange={handleNormPmaxChange}
                             width={numberInputWidth}
-                        />
+                        />  
                     </HStack>
                 </Stack>
                 <Separator my={3} />
-                {/* retrieve button */}
                 <HStack gap={3}>
                     <Button
                         size="sm"
-                        variant="surface"
+                        variant="solid"
+                        mb={0.5}
                         onClick={() => {
                             if (!selectedFootprintId) {
                                 toaster.error({ title: "No footprint selected", description: "Please select a footprint first." });
@@ -235,8 +214,8 @@ export default function CounterpartPanel() {
                             refetchImage();
                         }}
                     >
-                        Retrieve
-                    </Button>
+                        Retrieve Counterpart
+                    </Button> 
                 </HStack>
             </Stack>
 

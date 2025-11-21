@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { use, useMemo } from "react";
 import {
     Badge,
     Box,
@@ -10,6 +10,7 @@ import {
     createListCollection
 } from "@chakra-ui/react";
 import { useGlobeStore, type Footprint } from "@/stores/footprints";
+import { useShallow } from "zustand/react/shallow";
 import { centerRaDecToView } from "@/utils/projection";
 
 type Rows = {
@@ -21,11 +22,21 @@ type Rows = {
 }
 
 export default function FootprintPanel() {
-    const footprints = useGlobeStore((state) => state.footprints);
-    const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
-    const setSelectedFootprintId = useGlobeStore((state) => state.setSelectedFootprintId);
-    const setFootprintMeta = useGlobeStore((state) => state.setFootprintMeta);
-    const setView = useGlobeStore((state) => state.setView);
+    const {
+        footprints,
+        selectedFootprintId,
+        setSelectedFootprintId,
+        setFootprintMeta,
+        setView,
+    } = useGlobeStore(
+        useShallow((state) => ({
+            footprints: state.footprints,
+            selectedFootprintId: state.selectedFootprintId,
+            setSelectedFootprintId: state.setSelectedFootprintId,
+            setFootprintMeta: state.setFootprintMeta,
+            setView: state.setView,
+        }))
+    )
 
     const rows = useMemo<Rows[]>(() => {
         return footprints.map((fp) => {
@@ -47,8 +58,6 @@ export default function FootprintPanel() {
     const toggleSelect = (id: string) => {
         setSelectedFootprintId(selectedFootprintId === id ? null : id);
     };
-
-
 
     if (footprints.length === 0) {
         return (

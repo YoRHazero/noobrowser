@@ -59,7 +59,7 @@ export default function FootprintCanvas() {
         >
             <Application
                 resizeTo={parentRef}
-                backgroundColor={0xffffff}
+                backgroundColor={0xaaaaaa}
                 resolution={1}
                 antialias={true}
                 autoDensity={true}

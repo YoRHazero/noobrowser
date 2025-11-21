@@ -7,6 +7,7 @@ import {
     NumberInput,
     Stack,
     IconButton, 
+    Slider
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuPlus } from "react-icons/lu";
@@ -80,21 +81,25 @@ function ExpandableBox(props: ExpandableBoxProps) {
     )
 }
 
-function PercentageInput(
+function NormPercentageInput(
     {
         label,
         value,
         onValueChange,
         width,
+        orientation = "vertical",
     }: {
         label: string;
         value: number;
         onValueChange: (value: number) => void;
         width: string;
+        orientation?: "horizontal" | "vertical";
     }
 ) {
     return (
-        <Field.Root>
+        <Field.Root
+            orientation={orientation}
+        >
             <Field.Label>{label}</Field.Label>
             <NumberInput.Root
                 value={value.toString()}
@@ -118,5 +123,4 @@ function PercentageInput(
         </Field.Root>
     );
 }
-
-export { ExpandableBox, PercentageInput };
+export { ExpandableBox, NormPercentageInput };

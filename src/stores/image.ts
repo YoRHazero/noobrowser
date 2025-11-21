@@ -1,4 +1,5 @@
 import { create } from 'zustand';
+import { persist, createJSONStorage } from 'zustand/middleware';
 
 export type CutoutParams = {
     cutoutPmin: number;
@@ -45,3 +46,59 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
     setCutoutParams: (patch) => set((state) => ({ cutoutParams: { ...state.cutoutParams, ...patch } })),
     setShowCutout: (show) => set({ showCutout: show }),
 }));
+
+interface GrismState {
+    apertureSize: number;
+    forwardWaveRange: { min: number; max: number };
+    collapseWindow: {
+        waveMin: number;
+        waveMax: number;
+        spatialMin: number;
+        spatialMax: number;
+    };
+    emissionLines: Record<string, number>;
+    setApertureSize: (size: number) => void;
+    setForwardWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
+    setCollapseWindow: (patch: Partial<GrismState['collapseWindow']>) => void;
+    setEmissionLines: (lines: Record<string, number>) => void;
+    addEmissionLine: (name: string, wavelength: number) => void;
+}
+
+export const useGrismStore = create<GrismState>()(
+    persist(
+        (set) => ({
+            apertureSize: 100,
+            forwardWaveRange: { min: 3.8, max: 5.0 },
+            collapseWindow: {
+                waveMin: 3.8,
+                waveMax: 5.0,
+                spatialMin: 0,
+                spatialMax: 100,
+            },
+
+            emissionLines: {    // units in microns
+                "Ha": 0.6563, 
+                "Hb": 0.4861,
+                "[OIII]": 0.5007,
+                "Pab": 1.2818,
+            },
+            setApertureSize: (size) => set({ apertureSize: size }),
+            setForwardWaveRange: (patch) => set((state) => ({
+                forwardWaveRange: { ...state.forwardWaveRange, ...patch }
+            })),
+            setCollapseWindow: (patch) => set((state) => ({
+                collapseWindow: { ...state.collapseWindow, ...patch }
+            })),
+            setEmissionLines: (lines) => set({ emissionLines: lines }),
+            addEmissionLine: (name, wavelength) => set((state) => ({
+                emissionLines: { ...state.emissionLines, [name]: wavelength }
+            })),
+
+        }),
+        {
+            name: 'emission-lines-storage',
+            storage: createJSONStorage(() => localStorage),
+            partialize: (state) => ({ emissionLines: state.emissionLines }),
+        }
+    )
+)

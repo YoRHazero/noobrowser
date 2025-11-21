@@ -2,7 +2,7 @@ import { useEffect, useCallback, useRef, useMemo, useState } from "react";
 import { extend } from "@pixi/react";
 import { Assets, Sprite, Container, FederatedPointerEvent, Texture } from "pixi.js";
 import type { RenderLayerInstance } from "@/types/pixi-react";
-
+import { useShallow } from "zustand/react/shallow";
 import { useCounterpartStore } from "@/stores/image";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartFootprint, useCounterpartImage } from "@/hook/connection-hook";
@@ -17,13 +17,21 @@ export default function CounterpartImageLayer(
     { layerRef }:
     { layerRef: React.RefObject<RenderLayerInstance | null> }
 ) {
+    const {
+        counterpartPosition,
+        setCounterpartPosition,
+        normParams,
+        filterRGB,
+    } = useCounterpartStore(
+        useShallow((state) => ({
+            counterpartPosition: state.counterpartPosition,
+            setCounterpartPosition: state.setCounterpartPosition,
+            normParams: state.normParams,
+            filterRGB: state.filterRGB,
+        }))
+    );
     const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
-    const filterRGB = useCounterpartStore((state) => state.filterRGB);
     const filterRed = filterRGB.r;
-    const normParams = useCounterpartStore((state) => state.normParams);
-    const counterpartPosition = useCounterpartStore((state) => state.counterpartPosition);
-    const setCounterpartPosition = useCounterpartStore((state) => state.setCounterpartPosition);
-
     /* Determine counterpart position */
     const { data: footprintData, isSuccess: isFootprintSuccess } = useCounterpartFootprint(
         selectedFootprintId
