@@ -118,12 +118,12 @@ function CutoutPosition() {
         setIsDirty(false);
     };
 
-    const { refetch: refetchCutout, isFetching: isFetchingCutout } = useCounterpartCutout(
+    const { refetch: refetchCutout, isFetching: isFetchingCutout } = useCounterpartCutout({
         selectedFootprintId,
-        filterRGB.r,
+        filter: filterRGB.r,
         cutoutParams,
-        false
-    );
+        enabled: false
+    });
     const onRetrieveCutout = () => {
         if (!selectedFootprintId || !filterRGB.r) {
             toaster.error({ title: "Cannot retrieve cutout", description: "Please select a footprint and filter first." });
@@ -139,13 +139,11 @@ function CutoutPosition() {
     const {
         data: worldCoordinates,
         isSuccess: isWorldCoordinatesSuccess,
-    } = useWorldCoordinates(
+    } = useWorldCoordinates({
         selectedFootprintId,
-        null,
-        null,
         cutoutParams,
-        true
-    );
+        enabled: true,
+    });
 
     const handleFieldChange =
         (key: keyof CutoutParams) =>

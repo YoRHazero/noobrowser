@@ -1,12 +1,23 @@
 import { clamp } from "./projection";
 import { Texture } from "pixi.js";
-
+/**
+ * Sorts a 2D array into a flat sorted array.
+ * @param arr - The 2D array to sort.
+ * @returns A flat sorted array.
+ */
 export function sort2DArray(arr: number[][]): number[] {
   const flat = arr.flat();
   flat.sort((a, b) => a - b);
   return flat;
 }
 
+/**
+ * Computes the percentile value(s) from a sorted array.
+ * @param sortedArr - The sorted array of numbers.
+ * @param p - The percentile(s) to compute (0-100). Can be a single number or an array of numbers.
+ * @param excludeZero - Whether to exclude zero values from the computation.
+ * @returns The percentile value(s).
+ */
 export function percentileFromSortedArray(
   sortedArr: number[],
   p: number | number[],
@@ -38,11 +49,19 @@ export function percentileFromSortedArray(
   return Array.isArray(p) ? results : results[0];
 }
 
+/** Normalizes a 2D array based on percentile values.
+ * @param arr - The 2D array to normalize.
+ * @param pmin - The minimum percentile (0-100).
+ * @param pmax - The maximum percentile (0-100).
+ * @param sortedArray - An optional pre-sorted flat array for performance.
+ * @param excludeZero - Whether to exclude zero values from the normalization.
+ * @returns The normalized 2D array with values between 0 and 1.
+ */
 export function normalize2D(
   arr: number[][],
   pmin: number,
   pmax: number,
-  sortedArray: number[] | null = null,
+  sortedArray: number[] = [],
   excludeZero: boolean = true,
 ): number[][] {
   const sorted = sortedArray ?? sort2DArray(arr);
@@ -64,6 +83,10 @@ export function normalize2D(
   return normalized;
 }
 
+/** Scales a 2D array of normalized values (0-1) to byte values (0-255).
+ * @param arr - The 2D array to scale.
+ * @returns A flat Uint8ClampedArray of byte values.
+ */
 export function scaleToByte(arr: number[][]): Uint8ClampedArray {
   const flat = arr.flat();
   const byteArray = new Uint8ClampedArray(flat.length);
@@ -73,6 +96,12 @@ export function scaleToByte(arr: number[][]): Uint8ClampedArray {
   return byteArray;
 }
 
+/** Creates a PIXI Texture from grayscale byte data.
+ * @param gray - The grayscale byte data.
+ * @param width - The width of the texture.
+ * @param height - The height of the texture.
+ * @returns A PIXI Texture.
+ */
 export function textureFromGrayscaleData(
   gray: Uint8ClampedArray,
   width: number,
@@ -98,15 +127,39 @@ export function textureFromGrayscaleData(
   return Texture.from(canvas);
 }
 
-export function textureFromNormData(
-  data: number[][],
-  width: number,
-  height: number,
-  pmin: number,
-  pmax: number,
-  sortedArray: number[] | null = null,
-  excludeZero: boolean = true,
-): Texture {
+/** Creates a PIXI Texture from 2D data array with normalization and scaling.
+ * @param data - The 2D data array.
+ * @param pmin - The minimum percentile for normalization (0-100).
+ * @param pmax - The maximum percentile for normalization (0-100).
+ * @param width - The width of the texture. If null, uses data width.
+ * @param height - The height of the texture. If null, uses data height.
+ * @param sortedArray - An optional pre-sorted flat array for performance.
+ * @param excludeZero - Whether to exclude zero values from normalization.
+ * @returns A PIXI Texture.
+ */
+export default function textureFromData({
+  data,
+  pmin,
+  pmax,
+  width = null,
+  height = null,
+  sortedArray = [],
+  excludeZero = true,
+} : {
+  data: number[][];
+  pmin: number;
+  pmax: number;
+  width?: number | null;
+  height?: number | null;
+  sortedArray?: number[];
+  excludeZero?: boolean;
+}): Texture {
+  if (!width) {
+    width = data[0].length;
+  }
+  if (!height) {
+    height = data.length;
+  }
   const normalizedData = normalize2D(data, pmin, pmax, sortedArray, excludeZero);
   const byteData = scaleToByte(normalizedData);
   return textureFromGrayscaleData(byteData, width, height);

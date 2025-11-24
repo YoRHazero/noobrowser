@@ -7,7 +7,8 @@ import { useRef, useEffect, useState } from "react";
 import { useCounterpartStore } from "@/stores/image";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartCutout } from "@/hook/connection-hook";
-import { textureFromNormData, sort2DArray } from "@/utils/plot";
+import { sort2DArray } from "@/utils/plot";
+import textureFromData from "@/utils/plot";
 
 extend({
     Sprite,
@@ -18,12 +19,12 @@ export default function CutoutImage() {
     const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
     const selectedFootprintId = useGlobeStore((s) => s.selectedFootprintId);
     const filterRGB = useCounterpartStore((s) => s.filterRGB);
-    const { data: cutoutData } = useCounterpartCutout(
+    const { data: cutoutData } = useCounterpartCutout({
         selectedFootprintId,
-        filterRGB.r,
+        filter: filterRGB.r,
         cutoutParams,
-        false
-    );
+        enabled: false,
+    });
     const [sortedCutoutData, setSortedCutoutData] = useState<number[] | null>(null);
     // Sort cutout data when it changes
     useEffect(() => {
@@ -37,15 +38,16 @@ export default function CutoutImage() {
 
     const [cutoutTexture, setCutoutTexture] = useState<Texture>(Texture.EMPTY);
     useEffect(() => {
-        if (!cutoutData && !sortedCutoutData) return;
-        const texture = textureFromNormData(
-            cutoutData.cutout_data,
-            cutoutParams.width,
-            cutoutParams.height,
-            cutoutParams.cutoutPmin,
-            cutoutParams.cutoutPmax,
-            sortedCutoutData,
-        );
+        if (!cutoutData || !sortedCutoutData) return;
+        const texture = textureFromData({
+            data: cutoutData.cutout_data,
+            width: cutoutParams.width,
+            height: cutoutParams.height,
+            pmin: cutoutParams.cutoutPmin,
+            pmax: cutoutParams.cutoutPmax,
+            sortedArray: sortedCutoutData,
+            excludeZero: true,
+        });
         setCutoutTexture((prev) => {
             if (prev && !prev.destroyed) {
                 prev.destroy(true);

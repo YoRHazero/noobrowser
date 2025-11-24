@@ -17,7 +17,7 @@ export default function Grism() {
                     value={item.value}
                 >
                     <Accordion.ItemTrigger>
-                        <Span>{item.title}</Span>
+                        <Span fontSize={"large"}>{item.title}</Span>
                         <Accordion.ItemIndicator />
                     </Accordion.ItemTrigger>
                     <Accordion.ItemContent>

@@ -49,6 +49,7 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 
 interface GrismState {
     apertureSize: number;
+    grismNorm: { pmin: number; pmax: number };
     forwardWaveRange: { min: number; max: number };
     collapseWindow: {
         waveMin: number;
@@ -58,6 +59,7 @@ interface GrismState {
     };
     emissionLines: Record<string, number>;
     setApertureSize: (size: number) => void;
+    setGrismNorm: (patch: Partial<{ pmin: number; pmax: number }>) => void;
     setForwardWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
     setCollapseWindow: (patch: Partial<GrismState['collapseWindow']>) => void;
     setEmissionLines: (lines: Record<string, number>) => void;
@@ -68,6 +70,7 @@ export const useGrismStore = create<GrismState>()(
     persist(
         (set) => ({
             apertureSize: 100,
+            grismNorm: { pmin: 1, pmax: 99 },
             forwardWaveRange: { min: 3.8, max: 5.0 },
             collapseWindow: {
                 waveMin: 3.8,
@@ -83,6 +86,7 @@ export const useGrismStore = create<GrismState>()(
                 "Pab": 1.2818,
             },
             setApertureSize: (size) => set({ apertureSize: size }),
+            setGrismNorm: (patch) => set((state) => ({ grismNorm: { ...state.grismNorm, ...patch } })),
             setForwardWaveRange: (patch) => set((state) => ({
                 forwardWaveRange: { ...state.forwardWaveRange, ...patch }
             })),

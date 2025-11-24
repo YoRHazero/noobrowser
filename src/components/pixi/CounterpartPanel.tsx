@@ -106,17 +106,18 @@ export default function CounterpartPanel() {
         refetch: refetchFootprint, 
         isError: isFootprintError,
         error: footprintError,
-    } = useCounterpartFootprint(selectedFootprintId);
+    } = useCounterpartFootprint({selectedFootprintId});
     const { 
         refetch: refetchImage,
+        isFetching: isImageFetching,
         isSuccess: isImageSuccess,
         isError: isImageError,
         error: imageError,
-    } = useCounterpartImage(
+    } = useCounterpartImage({
         selectedFootprintId,
-        filterRGB.r,
+        filter: filterRGB.r,
         normParams,
-    );
+    });
     useEffect(() => {
         if (isFootprintError && footprintError) {
             const message = footprintError?.message ?? "Unknown error";
@@ -201,6 +202,7 @@ export default function CounterpartPanel() {
                         size="sm"
                         variant="solid"
                         mb={0.5}
+                        loading={isImageFetching}
                         onClick={() => {
                             if (!selectedFootprintId) {
                                 toaster.error({ title: "No footprint selected", description: "Please select a footprint first." });

@@ -3,22 +3,25 @@ import { useRef } from "react";
 import Viewport from "./Viewport";
 import { Box } from "@chakra-ui/react";
 
+import GrismForwardImage from "./GrismForwardImage";
 export default function GrismForwardCanvas() {
     const parentRef = useRef<HTMLDivElement | null>(null);
     return (
         <Box
             ref={parentRef}
             height={"120px"}
+            maxW={"1400px"}
+            border={"1px solid black"}
         >
             <Application
                 resizeTo={parentRef}
-                backgroundColor={0x111111}
+                backgroundColor={0xffffff}
                 resolution={1}
                 antialias={true}
                 autoDensity={true}
             >
                 <Viewport passiveWheel={false}>
-                    {/* Grism Forward Layers go here */}
+                    <GrismForwardImage />
                 </Viewport>
             </Application>
         </Box>

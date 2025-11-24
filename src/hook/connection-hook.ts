@@ -1,57 +1,98 @@
-import { useQuery, useQueries } from "@tanstack/react-query";
+import { 
+    useQuery, 
+    useQueries,
+    keepPreviousData,
+    type UseQueryOptions,
+    type UseQueryResult, 
+} from "@tanstack/react-query";
 import axios from "axios";
 import { useConnectionStore } from "@/stores/connection";
+import { useGlobeStore } from "@/stores/footprints";
 
-
-type QueryAxiosParams = {
+type QueryAxiosParams<T = any> = {
     queryKey: Array<any>;
     path: string;
     enabled?: boolean;
-    AxiosGetParams?: Record<string, any>;
+    axiosGetParams?: Record<string, any>;
     returnType?: 'response' | 'data';
+    queryOptions?: Omit<UseQueryOptions<T>, 'queryKey' | 'queryFn' | 'enabled'>;
 }
-
-export function useQueryAxiosGet(params: QueryAxiosParams) {
-    const { queryKey, path, AxiosGetParams = {}, returnType = 'data' } = params;
+/**
+ * Hook to perform axios GET request with react-query
+ * @param params QueryAxiosParams<T>
+ * @param params.queryKey Query key for react-query
+ * @param params.path API endpoint path
+ * @param params.enabled Whether the query is enabled
+ * @param params.axiosGetParams Parameters to pass to axios.get
+ * @param params.returnType 'response' to return full response, 'data' to return response data (default: 'data')
+ * @param params.queryOptions Additional react-query options
+ * @returns useQuery result
+ */
+export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
+    const { 
+        queryKey, 
+        path, 
+        axiosGetParams = {}, 
+        returnType = 'data',
+        queryOptions = {}
+    } = params;
     const isConnected = useConnectionStore((state) => state.isConnected);
     let enabled = (params.enabled ?? true) && isConnected;
-    if (!!AxiosGetParams?.params) {
-        const paramsHasNull = Object.values(AxiosGetParams.params).some(v => v === null || v === undefined);
+    if (!!axiosGetParams?.params) {
+        const paramsHasNull = Object.values(axiosGetParams.params).some(v => v === null || v === undefined);
         enabled = enabled && !paramsHasNull;
     }
 
     const backendUrl = useConnectionStore((state) => state.backendUrl);
     
-    const queryFn = () => {
+    const queryFn = async () => {
         if (returnType === 'response') {
             return axios.get(
                 backendUrl + path,
-                AxiosGetParams
+                axiosGetParams
             );
         }  
         if (returnType === 'data') {
             return axios.get(
                 backendUrl + path,
-                AxiosGetParams
+                axiosGetParams
             ).then(res => res.data);
         }
         throw new Error(`Invalid returnType: ${returnType}`);
     }
+
     const query = useQuery({
         queryKey,
         enabled,
         queryFn,
+        ...queryOptions,
     });
+    
     return query;
 }
 
-export function useWorldCoordinates(
-    selectedFootprintId: string | null,
-    x: number | null = null,
-    y: number | null = null,
-    cutoutParams: Record<string, number> | null = null,
-    enabled: boolean = false,
-) {
+type WorldCoordinates = {
+    group_id: number;
+    x: number;
+    y: number;
+    ra: number;
+    dec: number;
+    ra_hms: string;
+    dec_dms: string;
+}
+export function useWorldCoordinates({
+    selectedFootprintId,
+    x = null,
+    y = null,
+    cutoutParams = null,
+    enabled = false,
+}: {
+    selectedFootprintId: string | null;
+    x?: number | null;
+    y?: number | null;
+    cutoutParams?: Record<string, number> | null;
+    enabled?: boolean;
+}) {
     if ((x === null || y === null) && cutoutParams === null) {
         throw new Error("Either (x, y) or cutoutParams must be provided");
     }
@@ -59,11 +100,11 @@ export function useWorldCoordinates(
         x = cutoutParams.x0 + cutoutParams.width / 2;
         y = cutoutParams.y0 + cutoutParams.height / 2;
     }
-    const query = useQueryAxiosGet({
+    const query = useQueryAxiosGet<WorldCoordinates>({
         queryKey: ["world_coordinates", selectedFootprintId, x, y],
         enabled: enabled,
         path: "/wfss/world_coordinates/",
-        AxiosGetParams: {
+        axiosGetParams: {
             params: {
                 group_id: selectedFootprintId,
                 x: x,
@@ -74,17 +115,29 @@ export function useWorldCoordinates(
     return query;
 }
 
-export function usePixelCoordinates(
-    selectedFootprintId: string | null,
-    ra: number,
-    dec: number,
-    enabled: boolean = false,
-) {
-    const query = useQueryAxiosGet({
+type PixelCoordinates = {
+    group_id: number;
+    ra: number;
+    dec: number;
+    x: number;
+    y: number;
+}
+export function usePixelCoordinates({
+    selectedFootprintId,
+    ra,
+    dec,
+    enabled = false,
+}: {
+    selectedFootprintId: string | null;
+    ra: number;
+    dec: number;
+    enabled?: boolean;
+}) {
+    const query = useQueryAxiosGet<PixelCoordinates>({
         queryKey: ["pixel_coordinates", selectedFootprintId, ra, dec],
         enabled: enabled,
         path: "/wfss/pixel_coordinates/",
-        AxiosGetParams: {
+        axiosGetParams: {
             params: {
                 group_id: selectedFootprintId,
                 ra: ra,
@@ -95,47 +148,73 @@ export function usePixelCoordinates(
     return query;
 }
 
-
-export function useCounterpartFootprint(
-    selectedFootprintId: string | null,
-    enabled: boolean = false,
-) {
-    const backendUrl = useConnectionStore((state) => state.backendUrl);
-    const query = useQuery({
+type CounterpartFootprint = {
+    group_id: number;
+    footprint: {
+        vertices: Array<[number, number]>;
+        vertex_marker: Array<[number, number]>;
+        center: [number, number];
+        area: number;
+        radius: number;
+    }
+}
+export function useCounterpartFootprint({
+    selectedFootprintId,
+    enabled = false,
+}: {
+    selectedFootprintId: string | null;
+    enabled?: boolean;
+}) {
+    const query = useQueryAxiosGet<CounterpartFootprint>({
         queryKey: ["counterpart_footprint", selectedFootprintId],
+        path: `/image/counterpart_footprint/${selectedFootprintId}`,
         enabled: enabled,
-        queryFn: () => axios.get(
-            backendUrl + `/image/counterpart_footprint/${selectedFootprintId}`,
-        ).then(res => res.data),
+    });
+
+    return query;
+}
+
+export function useCounterpartImage({
+    selectedFootprintId,
+    filter,
+    normParams,
+    enabled = false,
+}: {
+    selectedFootprintId: string | null;
+    filter: string;
+    normParams: Record<string, number>;
+    enabled?: boolean;
+}) {
+    const query = useQueryAxiosGet<Blob>({
+        queryKey: ["counterpart_image", selectedFootprintId, filter, normParams],
+        path: `/image/counterpart_image/${selectedFootprintId}`,
+        axiosGetParams: {
+            params: { filter: filter, ...normParams },
+            responseType: 'blob',
+        },
+        enabled: enabled,
     });
     return query;
 }
 
-export function useCounterpartImage(
-    selectedFootprintId: string | null,
-    filter: string,
-    normParams: Record<string, number>,
-    enabled: boolean = false,
-) {
-    const backendUrl = useConnectionStore((state) => state.backendUrl);
-    const query = useQuery({
-        queryKey: ["counterpart_image", selectedFootprintId, filter, normParams],
-        enabled: enabled,
-        queryFn: () => axios.get(
-            backendUrl + `/image/counterpart_image/${selectedFootprintId}`,
-            { params: { filter: filter, ...normParams }, responseType: 'blob' }
-        ).then(res => res.data)
-    });
-    return query;
+type CounterpartCutout = {
+    cutout_shape: [number, number];
+    cutout_data: number[][];
+    filter: string;
+    group_id: number;
 }
-export function useCounterpartCutout(
-    selectedFootprintId: string | null,
-    filter: string,
-    cutoutParams: Record<string, number>,
-    enabled: boolean = false,
-) {
-    const backendUrl = useConnectionStore((state) => state.backendUrl);
-    const query = useQuery({
+export function useCounterpartCutout({
+    selectedFootprintId,
+    filter,
+    cutoutParams,
+    enabled = false,
+}: {
+    selectedFootprintId: string | null;
+    filter: string;
+    cutoutParams: Record<string, number>;
+    enabled?: boolean;
+}) {
+    const query = useQueryAxiosGet<CounterpartCutout>({
         queryKey: [
             "counterpart_cutout",
             selectedFootprintId,
@@ -143,47 +222,108 @@ export function useCounterpartCutout(
             cutoutParams.width,
             cutoutParams.height,
         ],
-        enabled: enabled,
-        queryFn: () => axios.get(
-            backendUrl + `/image/counterpart_cutout/${selectedFootprintId}`,
-            { params: {
+        path: `/image/counterpart_cutout/${selectedFootprintId}`,
+        axiosGetParams: {
+            params: {
                 filter: filter,
                 x0: cutoutParams.x0,
                 y0: cutoutParams.y0,
                 width: cutoutParams.width,
                 height: cutoutParams.height,
-            }}).then(res => res.data)
-    });
+            }
+        },
+        enabled: enabled,
+        queryOptions: {
+            placeholderData: keepPreviousData,
+        }
+    })
     return query;
 }
 
-export function useGrismOffsets(
-    selectedFootprintId: string | null,
-    basename: string,
-    enabled: boolean = false,
-) {
-    const backendUrl = useConnectionStore((state) => state.backendUrl);
-    const query = useQuery({
-        queryKey: ["grism_offsets", selectedFootprintId, basename],
-        enabled: enabled && selectedFootprintId !== null,
-        queryFn: () => axios.get(
-            backendUrl + `/wfss/grism_offsets/${selectedFootprintId}`,
-            { params: { basename } }
-        ).then(res => res.data)
-    });
-    return query;
+type GrismOffset = {
+    group_id: number;
+    basename: string;
+    dx: number;
+    dy: number;
+    description: string;
 }
-
-export function useGrismData({
-    basenameList,
+export function useGrismOffsets({
+    selectedFootprintId,
+    basenameList = [],
     enabled = false,
 }: {
-    basenameList: string[];
+    selectedFootprintId: string | null;
+    basenameList?: string[];
     enabled?: boolean;
 }) {
+    const footprints = useGlobeStore((state) => state.footprints);
+    const backendUrl = useConnectionStore((state) => state.backendUrl);
+    let targetBasenameList: string[];
+    if (!basenameList || basenameList.length === 0) {
+        const footprint = footprints.find(f => f.id === selectedFootprintId);
+        targetBasenameList = footprint?.meta?.included_files??[];
+    } else {
+        targetBasenameList = basenameList;
+    }
+    const results = useQueries({
+        queries: targetBasenameList.map((basename) => ({
+            queryKey: ["grism_offset", basename],
+            enabled: enabled,
+            queryFn: async () => {
+                const response = await axios.get(
+                    backendUrl + "/wfss/grism_offset/",
+                    { 
+                        params: { basename },
+                    }
+                );
+                return response.data as GrismOffset;
+            }
+        })),
+        combine: (results) => {
+            return results.reduce((acc, result, index) => {
+                const basename = basenameList[index];
+                acc[basename] = result;
+                return acc;
+            }, {} as Record<string, UseQueryResult<GrismOffset>>);
+        }
+    })
+    return results;
+}
+
+type GrismData = {
+    buffer: ArrayBuffer;
+    width: number;
+    height: number;
+}
+export function useGrismData({
+    selectedFootprintId = null,
+    basenameList = [],
+    enabled = false,
+}: {
+    selectedFootprintId?: string | null;
+    basenameList?: string[];
+    enabled?: boolean;
+}) {
+    if (basenameList.length === 0 && !selectedFootprintId) {
+        return {};
+    }
+    const footprints = useGlobeStore((state) => state.footprints);
+    
+    let targetBasenameList: string[];
+    if (basenameList.length === 0) {
+        if (!!selectedFootprintId) {
+            const footprint = footprints.find(f => f.id === selectedFootprintId);
+            targetBasenameList = footprint?.meta?.included_files??[];
+        } else {
+            targetBasenameList = [];
+        }
+    } else {
+        targetBasenameList = basenameList;
+    } 
+
     const backendUrl = useConnectionStore((state) => state.backendUrl);
     const results = useQueries({
-        queries: basenameList.map((basename) => ({
+        queries: targetBasenameList.map((basename) => ({
             queryKey: ["grism_data", basename],
             enabled: enabled,
             queryFn: async () => {
@@ -198,23 +338,53 @@ export function useGrismData({
                 const headers = response.headers;
                 const height = Number(headers["x-data-height"]);
                 const width = Number(headers["x-data-width"]);
-                return { buffer, width, height };
+                return { buffer, width, height } as GrismData;
             }
         })),
+        combine: (results) => {
+            return results.reduce((acc, result, index) => {
+                const basename = targetBasenameList[index];
+                acc[basename] = result;
+                return acc;
+            }, {} as Record<string, UseQueryResult<GrismData>>);
+        }
     })
     return results;
 }
 
+type GrismErr = {
+    buffer: ArrayBuffer;
+    width: number;
+    height: number;
+}
 export function useGrismErr({
-    basenameList,
+    selectedFootprintId = null,
+    basenameList = [],
     enabled = false,
 }: {
-    basenameList: string[];
+    selectedFootprintId?: string | null;
+    basenameList?: string[];
     enabled?: boolean;
 }) {
+    if (basenameList.length === 0 && !selectedFootprintId) {
+        return {};
+    }
+    const footprints = useGlobeStore((state) => state.footprints);
+    
+    let targetBasenameList: string[];
+    if (basenameList.length === 0) {
+        if (!!selectedFootprintId) {
+            const footprint = footprints.find(f => f.id === selectedFootprintId);
+            targetBasenameList = footprint?.meta?.included_files??[];
+        } else {
+            targetBasenameList = [];
+        }
+    } else {
+        targetBasenameList = basenameList;
+    } 
     const backendUrl = useConnectionStore((state) => state.backendUrl);
     const results = useQueries({
-        queries: basenameList.map((basename) => ({
+        queries: targetBasenameList.map((basename) => ({
             queryKey: ["grism_err", basename],
             enabled: enabled,
             queryFn: async () => {
@@ -229,13 +399,26 @@ export function useGrismErr({
                 const headers = response.headers;
                 const height = Number(headers["x-data-height"]);
                 const width = Number(headers["x-data-width"]);
-                return { buffer, width, height };
+                return { buffer, width, height } as GrismErr;
             }
         })),
+        combine: (results) => {
+            return results.reduce((acc, result, index) => {
+                const basename = basenameList[index];
+                acc[basename] = result;
+                return acc;
+            }, {} as Record<string, UseQueryResult<GrismErr>>);
+        }
     })
     return results;
 }
 
+type ExtractedSpectrum = {
+    covered: boolean;
+    wavelength: number[];
+    spectrum_2d: number[][];
+    error_2d: number[][];
+}   
 export function useExtractSpectrum({
     selectedFootprintId,
     waveMin,
@@ -268,11 +451,11 @@ export function useExtractSpectrum({
     if (apertureSize === null && cutoutParams !== null) {
         apertureSize = cutoutParams.height;
     }
-    const query = useQueryAxiosGet({
+    const query = useQueryAxiosGet<ExtractedSpectrum>({
         queryKey: ["extract_spectrum", selectedFootprintId, x, y, apertureSize],
         path: "/wfss/extract_spectrum/",
         enabled: enabled,
-        AxiosGetParams: {
+        axiosGetParams: {
             params: {
                 group_id: selectedFootprintId,
                 wavelength_min: waveMin,
@@ -282,6 +465,9 @@ export function useExtractSpectrum({
                 aperture_size: apertureSize,
             }
         },
+        queryOptions: {
+            placeholderData: keepPreviousData,
+        }
     });
     return query;
 }

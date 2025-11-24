@@ -33,9 +33,9 @@ export default function CounterpartImageLayer(
     const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
     const filterRed = filterRGB.r;
     /* Determine counterpart position */
-    const { data: footprintData, isSuccess: isFootprintSuccess } = useCounterpartFootprint(
+    const { data: footprintData, isSuccess: isFootprintSuccess } = useCounterpartFootprint({
         selectedFootprintId
-    );
+    });
     useEffect(() => {
         if (!isFootprintSuccess) return;
         const vertex_marker: Array<[number, number]> = footprintData.footprint.vertex_marker;
@@ -48,11 +48,11 @@ export default function CounterpartImageLayer(
     }, [footprintData, isFootprintSuccess]);
 
     /* Load counterpart image */
-    const counterpartImageQuery = useCounterpartImage(
+    const counterpartImageQuery = useCounterpartImage({
         selectedFootprintId,
-        filterRed,
+        filter: filterRed,
         normParams,
-    );
+    });
     const [counterpartTexture, setCounterpartTexture] = useState<Texture>(Texture.EMPTY);
     useEffect(() => {
         if (!counterpartImageQuery.isSuccess) return;
