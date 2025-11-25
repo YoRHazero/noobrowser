@@ -23,12 +23,12 @@ type Rows = {
 }
 
 export default function FootprintPanel() {
+    const { animateToView } = useGlobeAnimation();
     const {
         footprints,
         selectedFootprintId,
         setSelectedFootprintId,
         setFootprintMeta,
-        setView,
     } = useGlobeStore(
         useShallow((state) => ({
             footprints: state.footprints,
@@ -67,7 +67,7 @@ export default function FootprintPanel() {
             </Box>
         )
     }
-    const { animateToView } = useGlobeAnimation();
+    
     return (
         <Stack gap={3} p={3}>
             {rows.map(({ fp, center, included_files, current, collection }) => {

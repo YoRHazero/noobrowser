@@ -1,5 +1,6 @@
 import { useApplication, useTick, extend } from '@pixi/react';
 import { FederatedPointerEvent, FederatedWheelEvent, Container } from 'pixi.js';
+import { useShallow } from 'zustand/react/shallow';
 import { useRef, useCallback, useEffect } from 'react';
 import { useGlobeStore } from '@/stores/footprints';
 import { useGlobeAnimation } from '@/hook/animation-hook';
@@ -17,8 +18,13 @@ const ZOOM_SENSITIVITY = 0.0015;
 export default function GlobeViewport( {children}: {children: React.ReactNode} ) {
     const {app} = useApplication();
 
-    const view = useGlobeStore((state) => state.view);
-    const setView = useGlobeStore((state) => state.setView);
+    const { view, setView } = useGlobeStore(
+        useShallow((state) => ({
+            view: state.view,
+            setView: state.setView,
+        }))
+    );
+    const { stopAnimation } = useGlobeAnimation();
     const viewRef = useRef(view);
 
     useEffect(() => {
@@ -50,7 +56,7 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
         velocity.current.vx *= FRICTION;
         velocity.current.vy *= FRICTION;
     })
-    const { stopAnimation } = useGlobeAnimation();
+    
 
     const onPointerDown = useCallback((event: FederatedPointerEvent) => {
         event.stopPropagation();
@@ -104,18 +110,21 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
     }, [setView, stopAnimation]);
 
     useEffect(() => {
-        if (!app || !app.canvas) return;
+        if (!app?.renderer || !app.canvas) return;
         const canvas = app.canvas as HTMLCanvasElement;
         const stopper = (e: WheelEvent) => e.preventDefault();
         canvas.addEventListener('wheel', stopper, { passive: false });
         return () => {
             canvas.removeEventListener('wheel', stopper);
         };
-    }, [app]);
-
+    }, [app, app?.canvas]);
+    
+    if (!app || !app.renderer || !app.canvas) {
+        return null;
+    }
     return (
         <pixiContainer
-            hitArea={app?.screen}
+            hitArea={app.screen}
             eventMode='static'
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
