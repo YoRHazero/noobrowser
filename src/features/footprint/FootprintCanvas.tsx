@@ -5,10 +5,12 @@ import { Container, RenderLayer } from "pixi.js";
 
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { useGlobeStore } from "@/stores/footprints";
-import GlobeViewport from '../../components/pixi/GlobeViewport'
-import FootprintTooltip from "./FootprintTooltip";
+import GlobeViewport from '@/components/pixi/GlobeViewport'
+import FootprintTooltip from "@/features/footprint/FootprintTooltip";
 import FootprintGraphics from "./FootprintGraphics";
-import GlobeBackground from "../../components/pixi/GlobeBackground";
+import GlobeGrid from "@/components/pixi/GlobeGrid";
+import FootprintManager from "./FootprintManager";
+import GlobeBackground from "@/components/pixi/GlobeBackground";
 import { useQueryAxiosGet } from "@/hook/connection-hook";
 
 extend({
@@ -62,12 +64,13 @@ export default function FootprintCanvas() {
                 autoDensity={true}
             >
                 <GlobeViewport>
-                    <pixiRenderLayer ref={backgroundRef} />
-                    <pixiRenderLayer ref={worldLayerRef} />
-                    <FootprintGraphics 
+                    <pixiRenderLayer ref={backgroundRef} sortableChildren={true} />
+                    <pixiRenderLayer ref={worldLayerRef} sortableChildren={true} />
+                    <FootprintManager 
                         layerRef={worldLayerRef} 
                     />
-                    <GlobeBackground layerRef={worldLayerRef} />
+                    <GlobeGrid layerRef={backgroundRef} />
+                    <GlobeBackground layerRef={backgroundRef} />
                     <FootprintTooltip />
                 </GlobeViewport>
             </Application>

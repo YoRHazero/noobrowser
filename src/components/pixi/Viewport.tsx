@@ -6,7 +6,7 @@ import { Application } from "pixi.js";
 
 type ViewportProps = Omit<IViewportOptions, "events">;
 
-class ViewportWrapper extends BaseViewport {
+export class ViewportWrapper extends BaseViewport {
   constructor(options: ViewportProps & { app: Application }) {
     const { app, ...rest } = options;
     super({

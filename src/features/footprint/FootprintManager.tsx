@@ -1,6 +1,11 @@
 import { Container, Graphics, Polygon, FederatedPointerEvent } from "pixi.js";
 import { projectRaDec, toScreen } from "@/utils/projection";
-import type { Footprint } from "@/stores/footprints"; 
+import { useGlobeStore, type Footprint } from "@/stores/footprints"; 
+import { useEffect, useRef } from "react";
+import { extend, useTick, useApplication } from "@pixi/react";
+import type { RenderLayerInstance } from "@/types/pixi-react";
+import { useShallow } from "zustand/react/shallow";
+
 
 const COLORS = {
     strokeNormal: 0x632652,
@@ -8,7 +13,7 @@ const COLORS = {
     strokeSelected: 0xaa0000
 };
 
-export class FootprintManager extends Container {
+class FootprintContainer extends Container {
     private footprints: Footprint[] = [];
     private graphicsMap: Map<string, Graphics> = new Map();
 
@@ -108,16 +113,95 @@ export class FootprintManager extends Container {
             if (isSelected) {
                 graphics
                     .stroke({ color: COLORS.strokeSelected, width: 2 })
-                graphics.zIndex = 2;
+                graphics.zIndex = 3;
             } else if (isHovered) {
                 graphics
-                    .fill({ color: COLORS.hoveredFill, alpha: 0.2 });
-                graphics.zIndex = 1;
+                    .fill({ color: COLORS.hoveredFill, alpha: 0.2 })
+                    .stroke({ color: COLORS.strokeNormal, width: 1 });
+                graphics.zIndex = 2;
             } else {
                 graphics
                     .stroke({ color: COLORS.strokeNormal, width: 1 });
-                graphics.zIndex = 0;
+                graphics.zIndex = 1;
             }
         });
     }
+}
+
+extend({ FootprintContainer });
+
+export default function FootprintManager({ layerRef }: { layerRef: React.RefObject<RenderLayerInstance | null> }) {
+    const { app } = useApplication();
+    const {
+        footprints,
+        globeBackground,
+        hoveredFootprintId,
+        selectedFootprintId,
+        setHoveredFootprintId,
+        setHoveredFootprintMousePosition,
+        setSelectedFootprintId,
+    } = useGlobeStore(
+        useShallow((state) => ({
+            footprints: state.footprints,
+            globeBackground: state.globeBackground,
+            hoveredFootprintId: state.hoveredFootprintId,
+            selectedFootprintId: state.selectedFootprintId,
+            setHoveredFootprintId: state.setHoveredFootprintId,
+            setHoveredFootprintMousePosition: state.setHoveredFootprintMousePosition,
+            setSelectedFootprintId: state.setSelectedFootprintId,
+        }))
+    );
+    
+    const footprintManagerRef = useRef<FootprintContainer | null>(null);
+
+    useEffect(() => {
+        const layer = layerRef.current;
+        const node = footprintManagerRef.current;
+        if (!layer || !node) return;
+        layer.attach(node);
+        return () => {
+            layer.detach(node);
+        };
+    }, [layerRef, footprintManagerRef]);
+
+    useEffect(() => {
+        if (!footprintManagerRef.current) return;
+        footprintManagerRef.current.setFootprints(footprints);
+    }, [footprints]);
+    useEffect(() => {
+        if (!footprintManagerRef.current) return;
+
+        footprintManagerRef.current.onFootprintHover = (id, pos) => {
+            setHoveredFootprintId(id);
+            setHoveredFootprintMousePosition(pos || null);
+        };
+        footprintManagerRef.current.onFootprintSelect = (id) => {
+            const currentSelectedId = useGlobeStore.getState().selectedFootprintId;
+            setSelectedFootprintId(currentSelectedId === id ? null : id);
+        };
+    }, [setHoveredFootprintId, setHoveredFootprintMousePosition, setSelectedFootprintId]);
+
+    // sync the id states
+    useEffect(() => {
+        if (!footprintManagerRef.current) return;
+        footprintManagerRef.current.updateInteractiveState(hoveredFootprintId, selectedFootprintId);
+    }, [hoveredFootprintId, selectedFootprintId]);
+
+    const viewRef = useRef(useGlobeStore.getState().view);
+    useEffect(() => useGlobeStore.subscribe(state => {
+        viewRef.current = state.view;
+    }), []);
+
+    useTick(() => {
+        if (footprintManagerRef.current && app) {
+            footprintManagerRef.current.renderFrame(
+                viewRef.current,
+                globeBackground
+            );
+        }
+    });
+
+    return (
+        <pixiFootprintContainer ref={footprintManagerRef} />
+    );
 }

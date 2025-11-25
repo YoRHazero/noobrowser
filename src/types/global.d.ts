@@ -1,9 +1,12 @@
-import { type Viewport } from "@/components/pixi/Viewport";
 import { type PixiReactElementProps } from "@pixi/react";
 import { type Application } from "pixi.js";
 import { PropsWithChildren } from "react";
-import { FootprintManager } from "@/features/footprint/FootprintManager";
-
+/*
+import { ViewportWrapper } from "@/components/pixi/Viewport";
+import { FootprintContainer } from "@/features/footprint/FootprintManager";
+import { GraticuleGraphics} from "@/components/pixi/GlobeGrid";
+import { GlobeBackgroundGraphics } from "@/components/pixi/GlobeBackground";
+*/
 declare global {
   namespace React {
     namespace JSX {
@@ -12,7 +15,11 @@ declare global {
           app: Application;
         };
 
-        pixiFootprintManager: PixiReactElementProps<FootprintManager>;
+        pixiFootprintContainer: PixiReactElementProps<FootprintContainer>;
+
+        pixiGraticuleGraphics: PixiReactElementProps<GraticuleGraphics>;
+
+        pixiGlobeBackgroundGraphics: PixiReactElementProps<GlobeBackgroundGraphics>;
       }
     }
   }
