@@ -3,7 +3,6 @@ import { extend } from "@pixi/react";
 import { 
     Sprite,
     Texture,
-    Assets,
 } from "pixi.js";
 import {
     useGlobeStore
@@ -23,11 +22,13 @@ export default function GrismForwardImage() {
         forwardWaveRange,
         apertureSize,
         grismNorm,
+        setCollapseWindow,
     } = useGrismStore(
         useShallow((state) => ({
             apertureSize: state.apertureSize,
             forwardWaveRange: state.forwardWaveRange,
             grismNorm: state.grismNorm,
+            setCollapseWindow: state.setCollapseWindow,
         }))
     );
     const {data: extractSpectrumData} = useExtractSpectrum({
@@ -50,6 +51,13 @@ export default function GrismForwardImage() {
             return;
         }
         const sorted = sort2DArray(extractSpectrumData.spectrum_2d);
+        const wavelength = extractSpectrumData.wavelength;
+        setCollapseWindow({
+            waveMin: wavelength[0],
+            waveMax: wavelength[wavelength.length - 1],
+            spatialMin: 0,
+            spatialMax: extractSpectrumData.spectrum_2d.length - 1,
+        });
         setSortedSpec2D(sorted);
     }, [extractSpectrumData]);
 
@@ -92,9 +100,4 @@ export default function GrismForwardImage() {
             />
         )
     );
-
-
-
-
-
 }

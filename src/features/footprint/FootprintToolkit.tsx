@@ -5,22 +5,15 @@ import {
     Text,
     NumberInput,
 } from '@chakra-ui/react';
-import gsap from 'gsap';
 
 import { useGlobeStore } from '@/stores/footprints';
-import { useShallow } from 'zustand/react/shallow';
 import { centerRaDecToView, viewToCenterRaDec } from '@/utils/projection';
-import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { useGlobeAnimation } from '@/hook/animation-hook';
 
 export default function FootprintToolkit() {
-    const { view, setView } = useGlobeStore(
-        useShallow((state) => ({
-            view: state.view,
-            setView: state.setView,
-        }))
-    );
-
+    const view = useGlobeStore((state) => state.view);
+    const { animateToView } = useGlobeAnimation();
     const center = useMemo(() => viewToCenterRaDec(view.yawDeg, view.pitchDeg), [view.yawDeg, view.pitchDeg]);
 
     const [raInput, setRaInput] = useState<number>(center.ra);
@@ -29,30 +22,24 @@ export default function FootprintToolkit() {
     // whether the input fields have been modified since last sync
     const [raDirty, setRaDirty] = useState(false);
     const [decDirty, setDecDirty] = useState(false);
-    useEffect(() => {
-        if (!raDirty) {
-            setRaInput(center.ra);
-        }
-        if (!decDirty) {
-            setDecInput(center.dec);
-        }
-    }, [center.ra, center.dec, raDirty, decDirty]);
-
-    const { animateToView } = useGlobeAnimation();
 
     const onGoTo = useCallback(() => {
-        const { yawDeg, pitchDeg } = centerRaDecToView(raInput, decInput);
+        const targetRa = raDirty ? raInput : center.ra;
+        const targetDec = decDirty ? decInput : center.dec;
+        const { yawDeg, pitchDeg } = centerRaDecToView(targetRa, targetDec);
         animateToView(yawDeg, pitchDeg, 200);
         setRaDirty(false);
         setDecDirty(false);
-    }, [raInput, decInput, animateToView]);
+    }, [raInput, decInput, raDirty, decDirty, center.ra, center.dec, animateToView]);
+
 
     const onReset = useCallback(() => {
         animateToView(0, 0, 1);
         setRaDirty(false);
         setDecDirty(false);
     }, [animateToView]);
-
+    const displayRa = raDirty ? raInput : center.ra;
+    const displayDec = decDirty ? decInput : center.dec;
     return (
         <Box display="inline-flex" flexDirection="column" gap="8px">
             <HStack
@@ -66,7 +53,7 @@ export default function FootprintToolkit() {
                     <NumberInput.Root
                         size="sm"
                         maxW="120px"
-                        value={String(raInput)}
+                        value={String(displayRa)}
                         onValueChange={({ valueAsNumber }) => {
                             setRaInput(Number.isNaN(valueAsNumber) ? 0 : valueAsNumber);
                             setRaDirty(true);
@@ -80,7 +67,7 @@ export default function FootprintToolkit() {
                     <NumberInput.Root
                         size="sm"
                         maxW="120px"
-                        value={String(decInput)}
+                        value={String(displayDec)}
                         onValueChange={({ valueAsNumber }) => {
                             setDecInput(Number.isNaN(valueAsNumber) ? 0 : valueAsNumber);
                             setDecDirty(true);

@@ -7,7 +7,6 @@ import {
     NumberInput,
     Stack,
     IconButton, 
-    Slider
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { LuPlus } from "react-icons/lu";

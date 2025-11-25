@@ -1,4 +1,4 @@
-import { useRef, useEffect, useCallback, use } from "react";
+import { useRef, useEffect } from "react";
 import { Graphics } from "pixi.js";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { useGlobeStore } from "@/stores/footprints";

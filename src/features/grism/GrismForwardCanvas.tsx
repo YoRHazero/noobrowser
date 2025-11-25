@@ -2,6 +2,7 @@ import { Application } from "@pixi/react";
 import { useRef } from "react";
 import Viewport from "@/components/pixi/Viewport";
 import { Box } from "@chakra-ui/react";
+import { ViewportWrapper } from "@/components/pixi/Viewport";
 
 import GrismForwardImage from "@/features/grism/GrismForwardImage";
 export default function GrismForwardCanvas() {

@@ -1,5 +1,5 @@
 import { Graphics } from "pixi.js";
-import { extend, useTick, useApplication } from "@pixi/react";
+import { extend, useTick } from "@pixi/react";
 import { projectRaDec, toScreen } from "@/utils/projection";
 import { useRef, useEffect } from "react";
 import { useGlobeStore } from "@/stores/footprints";

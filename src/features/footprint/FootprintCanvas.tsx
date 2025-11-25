@@ -7,7 +7,6 @@ import type { RenderLayerInstance } from "@/types/pixi-react";
 import { useGlobeStore } from "@/stores/footprints";
 import GlobeViewport from '@/components/pixi/GlobeViewport'
 import FootprintTooltip from "@/features/footprint/FootprintTooltip";
-import FootprintGraphics from "./FootprintGraphics";
 import GlobeGrid from "@/components/pixi/GlobeGrid";
 import FootprintManager from "./FootprintManager";
 import GlobeBackground from "@/components/pixi/GlobeBackground";

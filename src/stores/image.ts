@@ -49,6 +49,7 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 
 interface GrismState {
     apertureSize: number;
+    zRedshift: number;
     grismNorm: { pmin: number; pmax: number };
     forwardWaveRange: { min: number; max: number };
     collapseWindow: {
@@ -58,18 +59,22 @@ interface GrismState {
         spatialMax: number;
     };
     emissionLines: Record<string, number>;
+    selectedEmissionLines: Record<string, number>;
     setApertureSize: (size: number) => void;
+    setZRedshift: (z: number) => void;
     setGrismNorm: (patch: Partial<{ pmin: number; pmax: number }>) => void;
     setForwardWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
     setCollapseWindow: (patch: Partial<GrismState['collapseWindow']>) => void;
     setEmissionLines: (lines: Record<string, number>) => void;
     addEmissionLine: (name: string, wavelength: number) => void;
+    setSelectedEmissionLines: (lines: Record<string, number>) => void;
 }
 
 export const useGrismStore = create<GrismState>()(
     persist(
         (set) => ({
             apertureSize: 100,
+            zRedshift: 0.0,
             grismNorm: { pmin: 1, pmax: 99 },
             forwardWaveRange: { min: 3.8, max: 5.0 },
             collapseWindow: {
@@ -85,7 +90,9 @@ export const useGrismStore = create<GrismState>()(
                 "[OIII]": 0.5007,
                 "Pab": 1.2818,
             },
+            selectedEmissionLines: {},
             setApertureSize: (size) => set({ apertureSize: size }),
+            setZRedshift: (z) => set({ zRedshift: z }),
             setGrismNorm: (patch) => set((state) => ({ grismNorm: { ...state.grismNorm, ...patch } })),
             setForwardWaveRange: (patch) => set((state) => ({
                 forwardWaveRange: { ...state.forwardWaveRange, ...patch }
@@ -93,16 +100,30 @@ export const useGrismStore = create<GrismState>()(
             setCollapseWindow: (patch) => set((state) => ({
                 collapseWindow: { ...state.collapseWindow, ...patch }
             })),
-            setEmissionLines: (lines) => set({ emissionLines: lines }),
-            addEmissionLine: (name, wavelength) => set((state) => ({
-                emissionLines: { ...state.emissionLines, [name]: wavelength }
-            })),
-
+            setEmissionLines: (lines) => {
+                const sortedLines = Object.fromEntries(
+                    Object.entries(lines).sort((a, b) => a[1] - b[1])
+                );
+                set({ emissionLines: sortedLines });
+            },
+            addEmissionLine: (name, wavelength) => {
+                set((state) => {
+                    const updatedLines = { ...state.emissionLines, [name]: wavelength };
+                    const sortedLines = Object.fromEntries(
+                        Object.entries(updatedLines).sort((a, b) => a[1] - b[1])
+                    );
+                    return { emissionLines: sortedLines };
+                });
+            },
+            setSelectedEmissionLines: (lines) => set({ selectedEmissionLines: lines }),
         }),
         {
             name: 'emission-lines-storage',
             storage: createJSONStorage(() => localStorage),
-            partialize: (state) => ({ emissionLines: state.emissionLines }),
+            partialize: (state) => ({ 
+                emissionLines: state.emissionLines,
+                selectedEmissionLines: state.selectedEmissionLines
+            }),
         }
     )
 )
