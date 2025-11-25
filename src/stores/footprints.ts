@@ -1,4 +1,5 @@
 import { create } from "zustand";
+import { clamp, wrapDeg360 } from "@/utils/projection";
 
 export type RaDec = {
   ra: number;
@@ -58,7 +59,16 @@ export const useGlobeStore = create<GlobeState>()((set) => ({
   hoveredFootprintMousePosition: null,
   selectedFootprintId: null,
   setView: (patch) =>
-    set((state) => ({ view: { ...state.view, ...patch } })),
+    set((state) => {
+      let newYaw = patch.yawDeg ?? state.view.yawDeg;
+      newYaw = wrapDeg360(newYaw);
+      
+      let newPitch = patch.pitchDeg ?? state.view.pitchDeg;
+      newPitch = clamp(newPitch, -90, 90);
+      return {
+        view: { ...state.view, ...patch, yawDeg: newYaw, pitchDeg: newPitch },
+      }
+    }),
   setGlobeBackground: (background) => set({ globeBackground: background }),
   setGlobeGrid: (patch) =>
     set((state) => ({ globeGrid: { ...state.globeGrid, ...patch } })),

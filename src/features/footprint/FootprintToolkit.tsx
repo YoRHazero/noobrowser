@@ -5,11 +5,13 @@ import {
     Text,
     NumberInput,
 } from '@chakra-ui/react';
+import gsap from 'gsap';
 
 import { useGlobeStore } from '@/stores/footprints';
 import { useShallow } from 'zustand/react/shallow';
 import { centerRaDecToView, viewToCenterRaDec } from '@/utils/projection';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState, useRef } from 'react';
+import { useGlobeAnimation } from '@/hook/animation-hook';
 
 export default function FootprintToolkit() {
     const { view, setView } = useGlobeStore(
@@ -36,18 +38,20 @@ export default function FootprintToolkit() {
         }
     }, [center.ra, center.dec, raDirty, decDirty]);
 
+    const { animateToView } = useGlobeAnimation();
+
     const onGoTo = useCallback(() => {
         const { yawDeg, pitchDeg } = centerRaDecToView(raInput, decInput);
-        setView({ yawDeg, pitchDeg, scale: 200 });
+        animateToView(yawDeg, pitchDeg, 200);
         setRaDirty(false);
         setDecDirty(false);
-    }, [raInput, decInput, setView]);
+    }, [raInput, decInput, animateToView]);
 
     const onReset = useCallback(() => {
-        setView({ yawDeg: 0, pitchDeg: 0, scale: 1 });
+        animateToView(0, 0, 1);
         setRaDirty(false);
         setDecDirty(false);
-    }, [setView]);
+    }, [animateToView]);
 
     return (
         <Box display="inline-flex" flexDirection="column" gap="8px">

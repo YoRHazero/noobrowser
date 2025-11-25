@@ -137,6 +137,7 @@ export default function CutoutLayer(
             onPointerDown={onDragStart}
             onPointerUp={onDragEnd}
             onPointerMove={onDragMove}
+            onGlobalPointerMove={onDragMove}
             onPointerUpOutside={onDragEnd}
             anchor={0}
             cursor="move"

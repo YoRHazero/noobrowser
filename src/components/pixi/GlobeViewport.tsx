@@ -1,117 +1,129 @@
-import { Viewport as BaseViewport, type IViewportOptions } from 'pixi-viewport'
-import { useApplication, extend } from '@pixi/react'
-import { Application, FederatedPointerEvent, FederatedWheelEvent } from 'pixi.js';
+import { useApplication, useTick, extend } from '@pixi/react';
+import { FederatedPointerEvent, FederatedWheelEvent, Container } from 'pixi.js';
 import { useRef, useCallback, useEffect } from 'react';
 import { useGlobeStore } from '@/stores/footprints';
+import { useGlobeAnimation } from '@/hook/animation-hook';
 import { wrapDeg180, clamp } from '@/utils/projection';
 
+extend({ Container });
 
-type ViewportProps = Omit<IViewportOptions, 'events'> 
-class CustomGlobeViewport extends BaseViewport {
-    constructor(options: ViewportProps & {app: Application} ) {
-        const {app, ...rest} = options;
-        super({
-            events: app.renderer.events,
-            passiveWheel: false,
-            ...rest
-        })
-        this.decelerate();
-    }
-}
-
-extend({
-    CustomGlobeViewport
-})
-
-
+const FRICTION = 0.90;
+const STOP_THRESHOLD = 0.01;
+const MIN_SCALE = 0.1;
+const MAX_SCALE = 1000;
+const SENSITIVITY = 1;
+const ZOOM_SENSITIVITY = 0.0015;
 
 export default function GlobeViewport( {children}: {children: React.ReactNode} ) {
     const {app} = useApplication();
 
     const view = useGlobeStore((state) => state.view);
     const setView = useGlobeStore((state) => state.setView);
-
-    const dragging = useRef<{x: number, y: number} | null>(null);
-    const viewportRef = useRef<CustomGlobeViewport | null>(null);
-
-    const MinScale = 0.1;
-    const MaxScale = 1000;
-
-    const onPointerDown = useCallback((event: FederatedPointerEvent) => {
-        dragging.current = {x: event.global.x, y: event.global.y};
-        if (viewportRef.current) {
-            viewportRef.current.cursor = 'grabbing';
-        }
-    }, []);
-
-    const onPointerUp = useCallback(() => {
-        dragging.current = null;
-        if (viewportRef.current) {
-            viewportRef.current.cursor = 'grab';
-        }
-    }, []);
-
-    const onPointerMove = useCallback((event: FederatedPointerEvent) => {
-        if (dragging.current) {
-            const dx = event.global.x - dragging.current.x;
-            const dy = event.global.y - dragging.current.y;
-            dragging.current = {x: event.global.x, y: event.global.y};
-
-            const sens = 0.3;
-            setView({
-                yawDeg: wrapDeg180(view.yawDeg + dx * sens / view.scale),
-                pitchDeg: clamp(view.pitchDeg + dy * sens / view.scale, -89, 89),
-            });
-        }
-    }, [view.pitchDeg, view.yawDeg, setView]);
-
-    const onWheel = useCallback((event: FederatedWheelEvent) => {
-        const factor = Math.exp(-event.deltaY * 0.0015);
-        const next = clamp(view.scale * factor, MinScale, MaxScale);
-        setView({scale: next});
-    }, [view.scale, setView]);
+    const viewRef = useRef(view);
 
     useEffect(() => {
-        if (!app) return;
-        let canceled = false;
-        let target: HTMLCanvasElement | null = null;
-        const stopper = (e: WheelEvent) => { e.preventDefault(); };
+        const unsubscribe = useGlobeStore.subscribe((state) => {
+            viewRef.current = state.view;
+        });
+        return unsubscribe;
+    }, []);
 
-        const attach = () => {
-            if (canceled) return;
-            const renderer = app?.renderer;
-            if (!renderer) {
-                requestAnimationFrame(attach);
-                return;
-            }
-            
-            const canvas: HTMLCanvasElement = (renderer.canvas ?? renderer.view) as HTMLCanvasElement;
-            canvas.addEventListener('wheel', stopper, {passive: false});
-            target = canvas;
+    const isDragging = useRef(false);
+    const lastMousePos = useRef<{x: number, y: number} | null>(null);
+    const velocity = useRef<{vx: number, vy: number}>({vx: 0, vy: 0});
+
+    useTick((ticker) => {
+        if (isDragging.current) return;
+
+        if (Math.abs(velocity.current.vx) < STOP_THRESHOLD && Math.abs(velocity.current.vy) < STOP_THRESHOLD) return;
+
+        const delta = ticker.deltaTime;
+        const currentScale = viewRef.current.scale;
+        const deltaYaw = (velocity.current.vx / currentScale) * delta;
+        const deltaPitch = (velocity.current.vy / currentScale) * delta;
+
+        const newYaw = wrapDeg180(viewRef.current.yawDeg - deltaYaw);
+        const newPitch = clamp(viewRef.current.pitchDeg - deltaPitch, -89.5, 89.5);
+
+        setView({ yawDeg: newYaw, pitchDeg: newPitch });
+
+        velocity.current.vx *= FRICTION;
+        velocity.current.vy *= FRICTION;
+    })
+    const { stopAnimation } = useGlobeAnimation();
+
+    const onPointerDown = useCallback((event: FederatedPointerEvent) => {
+        event.stopPropagation();
+        stopAnimation();
+        isDragging.current = true;
+        lastMousePos.current = { x: event.global.x, y: event.global.y };
+        velocity.current = { vx: 0, vy: 0 };
+
+        if (app?.renderer) {
+            app.renderer.events.cursorStyles.default = 'grabbing';
+            app.renderer.events.setCursor('grabbing');
         }
-        attach();
+    }, [app, stopAnimation]);
 
+    const onPointerUp = useCallback(() => {
+        isDragging.current = false;
+        lastMousePos.current = null;
+
+        if (app?.renderer) {
+            app.renderer.events.cursorStyles.default = 'default';
+            app.renderer.events.setCursor('default');
+        }
+    }, [app]);
+
+    const onGlobalPointerMove = useCallback((event: FederatedPointerEvent) => {
+        if (!isDragging.current || !lastMousePos.current) return;
+
+        const currentX = event.global.x;
+        const currentY = event.global.y;
+
+        const dx = currentX - lastMousePos.current.x;
+        const dy = currentY - lastMousePos.current.y;
+
+        lastMousePos.current = { x: currentX, y: currentY };
+
+        const currentScale = viewRef.current.scale;
+        setView({
+            yawDeg: wrapDeg180(viewRef.current.yawDeg + dx * SENSITIVITY / currentScale),
+            pitchDeg: clamp(viewRef.current.pitchDeg + dy * SENSITIVITY / currentScale, -89.5, 89.5)
+        });
+
+        velocity.current = { vx: -dx * SENSITIVITY, vy: -dy * SENSITIVITY };
+    }, [setView]);
+
+    const onWheel = useCallback((event: FederatedWheelEvent) => {
+        stopAnimation();
+        velocity.current = { vx: 0, vy: 0 };
+        const factor = Math.exp(-ZOOM_SENSITIVITY * event.deltaY);
+        const nextScale = clamp(viewRef.current.scale * factor, MIN_SCALE, MAX_SCALE);
+        setView({ scale: nextScale });
+    }, [setView, stopAnimation]);
+
+    useEffect(() => {
+        if (!app || !app.canvas) return;
+        const canvas = app.canvas as HTMLCanvasElement;
+        const stopper = (e: WheelEvent) => e.preventDefault();
+        canvas.addEventListener('wheel', stopper, { passive: false });
         return () => {
-            canceled = true;
-            if (target) {
-                target.removeEventListener('wheel', stopper);
-            }
+            canvas.removeEventListener('wheel', stopper);
         };
     }, [app]);
 
     return (
-        app?.renderer && (
-        <pixiCustomGlobeViewport
-            app={app}
-            ref={viewportRef}
+        <pixiContainer
+            hitArea={app?.screen}
+            eventMode='static'
             onPointerDown={onPointerDown}
             onPointerUp={onPointerUp}
-            onPointerMove={onPointerMove}
+            onPointerUpOutside={onPointerUp}
+            onGlobalPointerMove={onGlobalPointerMove}
             onWheel={onWheel}
-            eventMode='static'
         >
             {children}
-        </pixiCustomGlobeViewport>
-        )
+        </pixiContainer>
     );
 }

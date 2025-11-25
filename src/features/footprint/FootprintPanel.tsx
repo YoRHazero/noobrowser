@@ -12,6 +12,7 @@ import {
 import { useGlobeStore, type Footprint } from "@/stores/footprints";
 import { useShallow } from "zustand/react/shallow";
 import { centerRaDecToView } from "@/utils/projection";
+import { useGlobeAnimation } from "@/hook/animation-hook";
 
 type Rows = {
     fp: Footprint;
@@ -66,6 +67,7 @@ export default function FootprintPanel() {
             </Box>
         )
     }
+    const { animateToView } = useGlobeAnimation();
     return (
         <Stack gap={3} p={3}>
             {rows.map(({ fp, center, included_files, current, collection }) => {
@@ -152,7 +154,7 @@ export default function FootprintPanel() {
                                     e.stopPropagation();
                                     if (center) {
                                         const { yawDeg, pitchDeg } = centerRaDecToView(center.ra, center.dec);
-                                        setView({ yawDeg, pitchDeg, scale: 200 });
+                                        animateToView(yawDeg, pitchDeg, 200);
                                     }
                                 }}
                             >
