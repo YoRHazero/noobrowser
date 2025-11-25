@@ -1,11 +1,10 @@
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { 
     FederatedPointerEvent,
     Sprite,
     Graphics,
     Texture,
-    Rectangle
 } from "pixi.js";
 import { extend, useApplication } from "@pixi/react";
 import type { RenderLayerInstance } from "@/types/pixi-react";

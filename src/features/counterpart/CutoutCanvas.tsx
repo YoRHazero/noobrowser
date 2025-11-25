@@ -4,7 +4,7 @@ import { Box } from "@chakra-ui/react";
 import { Container, RenderLayer } from "pixi.js";
 
 import type { RenderLayerInstance } from "@/types/pixi-react";
-import CutoutImage from "./CutoutImage";
+import CutoutImage from "@/features/counterpart/CutoutImage";
 extend({
     Container,
     RenderLayer,
@@ -20,7 +20,7 @@ export default function CutoutCanvas() {
         >
             <Application
                 resizeTo={parentRef}
-                backgroundColor={0x111111}
+                backgroundColor={0xffffff}
                 resolution={1}
                 antialias={true}
                 autoDensity={true}

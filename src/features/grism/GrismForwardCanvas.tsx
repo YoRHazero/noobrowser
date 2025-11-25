@@ -1,9 +1,9 @@
 import { Application } from "@pixi/react";
 import { useRef } from "react";
-import Viewport from "./Viewport";
+import Viewport from "@/components/pixi/Viewport";
 import { Box } from "@chakra-ui/react";
 
-import GrismForwardImage from "./GrismForwardImage";
+import GrismForwardImage from "@/features/grism/GrismForwardImage";
 export default function GrismForwardCanvas() {
     const parentRef = useRef<HTMLDivElement | null>(null);
     return (

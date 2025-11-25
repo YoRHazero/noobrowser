@@ -3,9 +3,9 @@ import { Application, extend } from "@pixi/react";
 import { Box } from "@chakra-ui/react";
 import { Container, RenderLayer, Graphics } from "pixi.js";
 
-import Viewport from "./Viewport";
-import CounterpartImageLayer from "./CounterpartImageLayer";
-import CutoutLayer from "./CutoutLayer";
+import Viewport from "@/components/pixi/Viewport";
+import CounterpartImageLayer from "@/features/counterpart/CounterpartImageLayer";
+import CutoutLayer from "@/features/counterpart/CutoutLayer";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 extend({
     Container,

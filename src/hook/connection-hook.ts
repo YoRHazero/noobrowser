@@ -96,19 +96,17 @@ export function useWorldCoordinates({
     if ((x === null || y === null) && cutoutParams === null) {
         throw new Error("Either (x, y) or cutoutParams must be provided");
     }
-    if (x === null && y === null && cutoutParams !== null) {
-        x = cutoutParams.x0 + cutoutParams.width / 2;
-        y = cutoutParams.y0 + cutoutParams.height / 2;
-    }
+    const queryX = x ?? (cutoutParams ? cutoutParams.x0 + cutoutParams.width / 2 : null);
+    const queryY = y ?? (cutoutParams ? cutoutParams.y0 + cutoutParams.height / 2 : null);
     const query = useQueryAxiosGet<WorldCoordinates>({
-        queryKey: ["world_coordinates", selectedFootprintId, x, y],
+        queryKey: ["world_coordinates", selectedFootprintId, queryX, queryY],
         enabled: enabled,
         path: "/wfss/world_coordinates/",
         axiosGetParams: {
             params: {
                 group_id: selectedFootprintId,
-                x: x,
-                y: y,
+                x: queryX,
+                y: queryY,
             }
         }
     });
@@ -281,7 +279,7 @@ export function useGrismOffsets({
         })),
         combine: (results) => {
             return results.reduce((acc, result, index) => {
-                const basename = basenameList[index];
+                const basename = targetBasenameList[index];
                 acc[basename] = result;
                 return acc;
             }, {} as Record<string, UseQueryResult<GrismOffset>>);
@@ -304,9 +302,6 @@ export function useGrismData({
     basenameList?: string[];
     enabled?: boolean;
 }) {
-    if (basenameList.length === 0 && !selectedFootprintId) {
-        return {};
-    }
     const footprints = useGlobeStore((state) => state.footprints);
     
     let targetBasenameList: string[];
@@ -366,9 +361,6 @@ export function useGrismErr({
     basenameList?: string[];
     enabled?: boolean;
 }) {
-    if (basenameList.length === 0 && !selectedFootprintId) {
-        return {};
-    }
     const footprints = useGlobeStore((state) => state.footprints);
     
     let targetBasenameList: string[];
@@ -404,7 +396,7 @@ export function useGrismErr({
         })),
         combine: (results) => {
             return results.reduce((acc, result, index) => {
-                const basename = basenameList[index];
+                const basename = targetBasenameList[index];
                 acc[basename] = result;
                 return acc;
             }, {} as Record<string, UseQueryResult<GrismErr>>);
@@ -441,18 +433,14 @@ export function useExtractSpectrum({
     if ((x === null || y === null) && cutoutParams === null) {
         throw new Error("Either (x, y) or cutoutParams must be provided");
     }
-    if (x === null && y === null && cutoutParams !== null) {
-        x = cutoutParams.x0 + cutoutParams.width / 2;
-        y = cutoutParams.y0 + cutoutParams.height / 2;
-    }
     if (apertureSize === null && cutoutParams === null) {
         throw new Error("Either apertureSize or cutoutParams must be provided");
     }
-    if (apertureSize === null && cutoutParams !== null) {
-        apertureSize = cutoutParams.height;
-    }
+    const queryX = x ?? (cutoutParams ? cutoutParams.x0 + cutoutParams.width / 2 : null);
+    const queryY = y ?? (cutoutParams ? cutoutParams.y0 + cutoutParams.height / 2 : null);
+    const aperture = apertureSize ?? (cutoutParams ? Math.max(cutoutParams.width, cutoutParams.height) : null);
     const query = useQueryAxiosGet<ExtractedSpectrum>({
-        queryKey: ["extract_spectrum", selectedFootprintId, x, y, apertureSize],
+        queryKey: ["extract_spectrum", selectedFootprintId, queryX, queryY, aperture],
         path: "/wfss/extract_spectrum/",
         enabled: enabled,
         axiosGetParams: {
@@ -460,9 +448,9 @@ export function useExtractSpectrum({
                 group_id: selectedFootprintId,
                 wavelength_min: waveMin,
                 wavelength_max: waveMax,
-                x: x,
-                y: y,
-                aperture_size: apertureSize,
+                x: queryX,
+                y: queryY,
+                aperture_size: aperture,
             }
         },
         queryOptions: {

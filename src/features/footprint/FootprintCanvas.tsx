@@ -5,12 +5,10 @@ import { Container, RenderLayer } from "pixi.js";
 
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { useGlobeStore } from "@/stores/footprints";
-import GlobeViewport from './GlobeViewport'
+import GlobeViewport from '../../components/pixi/GlobeViewport'
 import FootprintTooltip from "./FootprintTooltip";
 import FootprintGraphics from "./FootprintGraphics";
-import GlobeBackground from "./GlobeBackground";
-import FootprintToolkit from "./FootprintToolkit";
-import { ExpandableBox } from "@/components/ui/custom-component";
+import GlobeBackground from "../../components/pixi/GlobeBackground";
 import { useQueryAxiosGet } from "@/hook/connection-hook";
 
 extend({
@@ -55,11 +53,10 @@ export default function FootprintCanvas() {
             width={"800px"}
             height={"600px"}
             border={"1px solid black"}
-            position={"relative"}
         >
             <Application
                 resizeTo={parentRef}
-                backgroundColor={0xaaaaaa}
+                backgroundColor={0xdddddd}
                 resolution={1}
                 antialias={true}
                 autoDensity={true}
@@ -74,13 +71,6 @@ export default function FootprintCanvas() {
                     <FootprintTooltip />
                 </GlobeViewport>
             </Application>
-            <ExpandableBox
-                position="absolute"
-                top="8px"
-                left="8px"
-            >
-                <FootprintToolkit />
-            </ExpandableBox>
         </Box>
     )
 }

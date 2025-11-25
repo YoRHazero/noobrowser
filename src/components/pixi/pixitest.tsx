@@ -2,7 +2,7 @@ import  { useGlobeStore } from '@/stores/footprints'
 import { useEffect } from 'react'
 
 
-import Footprint from './Footprint';
+import Footprint from '@/features/Footprint';
 
 
 const MyComponent = () => {

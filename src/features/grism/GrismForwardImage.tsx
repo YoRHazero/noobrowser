@@ -55,7 +55,7 @@ export default function GrismForwardImage() {
 
     const [grismTexture, setGrismTexture] = useState<Texture>(Texture.EMPTY);
     useEffect(() => {
-        if (!extractSpectrumData && !sortedSpec2D) return;
+        if (!extractSpectrumData || !sortedSpec2D) return;
         const texture = textureFromData({
             data: extractSpectrumData.spectrum_2d,
             pmin: grismNorm.pmin,
@@ -69,7 +69,7 @@ export default function GrismForwardImage() {
             }
             return texture;
         });
-    }, [extractSpectrumData, grismNorm.pmin, grismNorm.pmax]);
+    }, [extractSpectrumData, sortedSpec2D, grismNorm.pmin, grismNorm.pmax]);
     // Cleanup on unmount
     useEffect(() => {
         return () => {

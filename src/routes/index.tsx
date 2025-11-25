@@ -19,7 +19,7 @@ import {
 import { useState, useEffect } from 'react'
 import { useConnectionStore } from '@/stores/connection'
 import { toaster } from '@/components/ui/toaster'
-import logo from '../logo.png'
+import logo from '@/logo.png'
 
 export const Route = createFileRoute('/')({
   component: App,

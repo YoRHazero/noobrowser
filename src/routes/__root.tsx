@@ -2,7 +2,7 @@ import { Outlet, createRootRouteWithContext } from '@tanstack/react-router'
 import { TanStackRouterDevtoolsPanel } from '@tanstack/react-router-devtools'
 import { TanstackDevtools } from '@tanstack/react-devtools'
 
-import Header from '@/components/Header'
+import Header from '@/components/layout/Header'
 import { Toaster } from '@/components/ui/toaster'
 
 import TanStackQueryDevtools from '@/integrations/tanstack-query/devtools'

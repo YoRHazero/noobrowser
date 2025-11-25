@@ -54,7 +54,7 @@ export default function CutoutImage() {
             }
             return texture;
         });
-    }, [cutoutData, cutoutParams.width, cutoutParams.height, cutoutParams.cutoutPmin, cutoutParams.cutoutPmax]);
+    }, [cutoutData, sortedCutoutData, cutoutParams.width, cutoutParams.height, cutoutParams.cutoutPmin, cutoutParams.cutoutPmax]);
     // Cleanup on unmount
     useEffect(() => {
         return () => {

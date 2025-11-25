@@ -1,9 +1,9 @@
 import { createFileRoute } from '@tanstack/react-router'
 import { VStack } from '@chakra-ui/react'
-import Footprint from '@/components/pixi/Footprint'
-import Counterpart from '@/components/pixi/Counterpart'
-import Title from '@/components/Title'
-import Grism from '@/components/pixi/Grism'
+import Footprint from '@/features/Footprint'
+import Counterpart from '@/features/Counterpart'
+import Title from '@/components/layout/Title'
+import Grism from '@/features/Grism'
 
 export const Route = createFileRoute('/inspector')({
   component: RouteComponent,

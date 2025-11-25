@@ -2,11 +2,11 @@ import {
     HStack,
     Box,
 } from "@chakra-ui/react";
-import CounterpartCanvas from "./CounterpartCanvas";
-import CounterpartPanel from "./CounterpartPanel";
-import CutoutCanvas from "./CutoutCanvas";
-import CutoutPanel from "./CutoutPanel";
-import { ExpandableBox } from "../ui/custom-component";
+import CounterpartCanvas from "@/features/counterpart/CounterpartCanvas";
+import CounterpartPanel from "@/features/counterpart/CounterpartPanel";
+import CutoutCanvas from "@/features/counterpart/CutoutCanvas";
+import CutoutPanel from "@/features/counterpart/CutoutPanel";
+import { ExpandableBox } from "@/components/ui/custom-component";
 export default function Counterpart() {
     return (
         <HStack align="start" gap={20} width="max-content" height="100%" wrap="nowrap" >

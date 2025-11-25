@@ -2,7 +2,7 @@ import {
     Accordion,
     Span
 } from "@chakra-ui/react";
-import GrismForwardCanvas from "./GrismForwardCanvas";
+import GrismForwardCanvas from "@/features/grism/GrismForwardCanvas";
 
 export default function Grism() {
     const items = [
@@ -10,7 +10,7 @@ export default function Grism() {
         { value: 'backward', title : 'Grism Backward', item: <div>Backward View</div> },
     ]
     return (
-        <Accordion.Root multiple defaultValue={[]} lazyMount={true} >
+        <Accordion.Root multiple defaultValue={['forward', 'backward']} >
             {items.map((item, index) => (
                 <Accordion.Item 
                     key={index}
