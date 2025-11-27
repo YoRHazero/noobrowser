@@ -8,12 +8,12 @@ import {
     HStack,
     Input,
     NumberInput,
-    SegmentGroup,
     Separator,
     Stack,
     Text,
+    CheckboxCard,
 } from "@chakra-ui/react";
-import { LuX } from "react-icons/lu";
+import { LuTrash2 } from "react-icons/lu";
 import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 
@@ -23,14 +23,27 @@ import { useGlobeStore } from "@/stores/footprints";
 import { useExtractSpectrum } from "@/hook/connection-hook";
 import { clamp } from "@/utils/projection";
 import { InfoTip } from "@/components/ui/toggle-tip";
-
-const ANGSTROM_PER_MICRON = 1e4;
-
-type WaveUnit = "µm" | "Å";
+import GrismWavelengthControl from "@/features/grism/GrismWavelengthControl";
+import { useFitStore } from "@/stores/fit";
+import {
+    ANGSTROM_PER_MICRON,
+    formatWavelength,
+    toDisplayWavelength,
+    fromDisplayWavelength,
+} from "@/utils/wavelength";
 
 export default function GrismForwardPanel() {
     return (
-        <Box display="inline-flex" flexDirection="column" gap={4} p={4} width={"450px"} border="1px solid" borderRadius="md" bg="bg.surface">
+        <Box
+            display="inline-flex"
+            flexDirection="column"
+            gap={4}
+            p={4}
+            width={"450px"}
+            border="1px solid"
+            borderRadius="md"
+            bg="bg.surface"
+        >
             <Stack gap={3}>
                 <RedshiftControls />
                 <Separator />
@@ -54,7 +67,6 @@ function RedshiftControls() {
         })),
     );
 
-    // Local config used only in this panel
     const [maxRedshift, setMaxRedshift] = useState(12);
     const [redshiftStep, setRedshiftStep] = useState(0.001);
 
@@ -138,23 +150,29 @@ function RedshiftControls() {
 function ExtractionControls() {
     const {
         waveUnit,
-        setWaveUnit,
         collapseWindow,
         setCollapseWindow,
         forwardWaveRange,
         apertureSize,
         slice1DWaveRange,
         setSlice1DWaveRange,
+        zRedshift,
     } = useGrismStore(
         useShallow((state) => ({
             waveUnit: state.waveUnit,
-            setWaveUnit: state.setWaveUnit,
             collapseWindow: state.collapseWindow,
             setCollapseWindow: state.setCollapseWindow,
             forwardWaveRange: state.forwardWaveRange,
             apertureSize: state.apertureSize,
             slice1DWaveRange: state.slice1DWaveRange,
             setSlice1DWaveRange: state.setSlice1DWaveRange,
+            zRedshift: state.zRedshift,
+        })),
+    );
+
+    const { waveFrame } = useFitStore(
+        useShallow((state) => ({
+            waveFrame: state.waveFrame,
         })),
     );
 
@@ -213,11 +231,6 @@ function ExtractionControls() {
     );
     const spatialSliderValue: number[] = [spatialMinValue, spatialMaxValue];
 
-    const formatWave = (vUm: number) =>
-        waveUnit === "µm"
-            ? `${vUm.toFixed(4)} μm`
-            : `${Math.round(vUm * ANGSTROM_PER_MICRON)} Å`;
-
     /* ----------------------------- slice1D range ---------------------------- */
 
     const [sliceInput, setSliceInput] = useState<{ min: string; max: string }>({
@@ -225,22 +238,31 @@ function ExtractionControls() {
         max: "",
     });
 
-    // Sync local slice input from store and wave unit.
     useEffect(() => {
-        const minDisplay =
-            waveUnit === "µm"
-                ? slice1DWaveRange.min
-                : slice1DWaveRange.min * ANGSTROM_PER_MICRON;
-        const maxDisplay =
-            waveUnit === "µm"
-                ? slice1DWaveRange.max
-                : slice1DWaveRange.max * ANGSTROM_PER_MICRON;
+        const minDisplay = toDisplayWavelength(
+            slice1DWaveRange.min,
+            waveUnit,
+            waveFrame,
+            zRedshift,
+        );
+        const maxDisplay = toDisplayWavelength(
+            slice1DWaveRange.max,
+            waveUnit,
+            waveFrame,
+            zRedshift,
+        );
 
         setSliceInput({
             min: Number.isFinite(minDisplay) ? String(minDisplay) : "",
             max: Number.isFinite(maxDisplay) ? String(maxDisplay) : "",
         });
-    }, [slice1DWaveRange.min, slice1DWaveRange.max, waveUnit]);
+    }, [
+        slice1DWaveRange.min,
+        slice1DWaveRange.max,
+        waveUnit,
+        waveFrame,
+        zRedshift,
+    ]);
 
     const sliceStep = waveUnit === "µm" ? 0.0001 : 1;
     const slicePlaceholderMin =
@@ -256,17 +278,19 @@ function ExtractionControls() {
             return;
         }
 
-        // Convert from display unit to µm
-        let minUm =
-            waveUnit === "µm"
-                ? parsedMin
-                : parsedMin / ANGSTROM_PER_MICRON;
-        let maxUm =
-            waveUnit === "µm"
-                ? parsedMax
-                : parsedMax / ANGSTROM_PER_MICRON;
+        let minUm = fromDisplayWavelength(
+            parsedMin,
+            waveUnit,
+            waveFrame,
+            zRedshift,
+        );
+        let maxUm = fromDisplayWavelength(
+            parsedMax,
+            waveUnit,
+            waveFrame,
+            zRedshift,
+        );
 
-        // Ensure min <= max
         if (minUm > maxUm) {
             const tmp = minUm;
             minUm = maxUm;
@@ -282,7 +306,6 @@ function ExtractionControls() {
             collapseWindow.waveMax,
         );
 
-        // Clamp inside collapseWindow
         minUm = clamp(minUm, windowMin, windowMax);
         maxUm = clamp(maxUm, minUm, windowMax);
 
@@ -298,24 +321,12 @@ function ExtractionControls() {
                     </Heading>
                     <InfoTip content="Run spectrum extraction first so that wavelength and spectrum_2d are available. The controls will be enabled after data is loaded." />
                 </HStack>
-
-                {/* Global wavelength unit segmented control */}
-                <SegmentGroup.Root
-                    size="xs"
-                    value={waveUnit}
-                    onValueChange={(e) => {
-                        const next = e.value as WaveUnit | null;
-                        if (next === "µm" || next === "Å") {
-                            setWaveUnit(next);
-                        }
-                    }}
-                >
-                    <SegmentGroup.Items items={["µm", "Å"]} />
-                    <SegmentGroup.Indicator />
-                </SegmentGroup.Root>
             </HStack>
 
-            {/* Wavelength window (µm / Å) */}
+            {/* Frame + Unit control */}
+            <GrismWavelengthControl />
+
+            {/* Wavelength window */}
             <Stack gap={2}>
                 <Text textStyle="sm" color="fg.muted">
                     Wavelength window
@@ -324,7 +335,6 @@ function ExtractionControls() {
                 <Slider
                     min={waveRangeMin}
                     max={waveRangeMax}
-                    // 1 Å step in µm
                     step={0.0001}
                     value={waveSliderValue}
                     disabled={!hasSpectrum}
@@ -345,7 +355,6 @@ function ExtractionControls() {
                             waveRangeMax,
                         );
 
-                        // Always store in µm
                         setCollapseWindow({
                             waveMin: safeMin,
                             waveMax: safeMax,
@@ -354,12 +363,26 @@ function ExtractionControls() {
                 />
 
                 <HStack justify="space-between">
-                    <Text textStyle="xs">{formatWave(waveMinValue)}</Text>
-                    <Text textStyle="xs">{formatWave(waveMaxValue)}</Text>
+                    <Text textStyle="xs">
+                        {formatWavelength(
+                            waveMinValue,
+                            waveUnit,
+                            waveFrame,
+                            zRedshift,
+                        )}
+                    </Text>
+                    <Text textStyle="xs">
+                        {formatWavelength(
+                            waveMaxValue,
+                            waveUnit,
+                            waveFrame,
+                            zRedshift,
+                        )}
+                    </Text>
                 </HStack>
             </Stack>
 
-            {/* Spatial window (integer rows) */}
+            {/* Spatial window */}
             <Stack gap={2}>
                 <Text textStyle="sm" color="fg.muted">
                     Spatial window (rows, px)
@@ -393,15 +416,27 @@ function ExtractionControls() {
                 </HStack>
             </Stack>
 
-            {/* 1D slice range (within collapseWindow) */}
+            {/* 1D slice range */}
             <Stack gap={2}>
                 <HStack justify="space-between" align="center">
                     <Text textStyle="sm" color="fg.muted">
                         1D slice wavelength range
                     </Text>
                     <Text textStyle="xs" color="fg.muted">
-                        current: {formatWave(slice1DWaveRange.min)} –{" "}
-                        {formatWave(slice1DWaveRange.max)}
+                        current:{" "}
+                        {formatWavelength(
+                            slice1DWaveRange.min,
+                            waveUnit,
+                            waveFrame,
+                            zRedshift,
+                        )}{" "}
+                        –{" "}
+                        {formatWavelength(
+                            slice1DWaveRange.max,
+                            waveUnit,
+                            waveFrame,
+                            zRedshift,
+                        )}
                     </Text>
                 </HStack>
 
@@ -460,6 +495,7 @@ function ExtractionControls() {
 function EmissionLinesManager() {
     const {
         waveUnit,
+        zRedshift,
         emissionLines,
         selectedEmissionLines,
         addEmissionLine,
@@ -468,6 +504,7 @@ function EmissionLinesManager() {
     } = useGrismStore(
         useShallow((state) => ({
             waveUnit: state.waveUnit,
+            zRedshift: state.zRedshift,
             emissionLines: state.emissionLines,
             selectedEmissionLines: state.selectedEmissionLines,
             addEmissionLine: state.addEmissionLine,
@@ -479,7 +516,6 @@ function EmissionLinesManager() {
     const [name, setName] = useState("");
     const [wavelength, setWavelength] = useState("");
 
-    // Sort lines by wavelength ascending for UI presentation
     const sortedEntries = useMemo(
         () => Object.entries(emissionLines).sort(([, a], [, b]) => a - b),
         [emissionLines],
@@ -489,7 +525,6 @@ function EmissionLinesManager() {
         Object.keys(selectedEmissionLines),
     );
 
-    // Keep local selection in sync with store updates
     useEffect(() => {
         setSelectedNames(Object.keys(selectedEmissionLines));
     }, [selectedEmissionLines]);
@@ -506,7 +541,7 @@ function EmissionLinesManager() {
         const raw = parseFloat(wavelength);
         if (!Number.isFinite(raw)) return;
 
-        // Convert to µm before storing
+        // 输入被视为 rest frame，在当前单位下；存储为 µm。
         const wlUm =
             waveUnit === "µm" ? raw : raw / ANGSTROM_PER_MICRON;
 
@@ -515,12 +550,11 @@ function EmissionLinesManager() {
         setWavelength("");
     };
 
-    const toggleSelect = (lineName: string) => {
+    const updateSelection = (lineName: string, shouldSelect: boolean) => {
         setSelectedNames((prev) => {
-            const exists = prev.includes(lineName);
-            const next = exists
-                ? prev.filter((n) => n !== lineName)
-                : [...prev, lineName];
+            const next = shouldSelect
+                ? Array.from(new Set([...prev, lineName]))
+                : prev.filter((n) => n !== lineName);
 
             const nextRecord: Record<string, number> = {};
             next.forEach((n) => {
@@ -537,14 +571,22 @@ function EmissionLinesManager() {
 
     const handleRemove = (lineName: string) => {
         removeEmissionLine(lineName);
-        // selectedEmissionLines will be updated in the store;
-        // useEffect will sync selectedNames from it.
+        // store 会同步 selectedEmissionLines，useEffect 会刷新 selectedNames
     };
 
-    const formatLineWave = (wlUm: number) =>
+    const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
+
+    const formatRest = (wlUm: number) =>
         waveUnit === "µm"
             ? `${wlUm.toFixed(4)} μm`
             : `${(wlUm * ANGSTROM_PER_MICRON).toFixed(1)} Å`;
+
+    const formatObs = (wlUm: number) => {
+        const obsUm = wlUm * zFactor;
+        return waveUnit === "µm"
+            ? `${obsUm.toFixed(4)} μm`
+            : `${(obsUm * ANGSTROM_PER_MICRON).toFixed(1)} Å`;
+    };
 
     return (
         <Stack gap={3}>
@@ -552,7 +594,7 @@ function EmissionLinesManager() {
                 Emission Lines
             </Heading>
 
-            {/* Add new emission line (input follows unit, store always µm) */}
+            {/* Add new emission line */}
             <HStack gap={4} align="center" justify="space-between">
                 <HStack gap={2} align="center">
                     <Text textStyle="sm" fontWeight="semibold">
@@ -592,7 +634,7 @@ function EmissionLinesManager() {
                 </Button>
             </HStack>
 
-            {/* Emission line list with multi-select + delete */}
+            {/* Emission line list - 使用 CheckboxCard 作为多选卡片 */}
             <Stack
                 gap={1}
                 maxH="180px"
@@ -611,40 +653,50 @@ function EmissionLinesManager() {
                     sortedEntries.map(([lineName, wl]) => {
                         const isSelected = selectedNames.includes(lineName);
                         return (
-                            <Button
+                            <HStack
                                 key={lineName}
-                                size="xs"
-                                variant={isSelected ? "solid" : "surface"}
-                                colorPalette={isSelected ? "teal" : "gray"}
-                                justifyContent="space-between"
-                                onClick={() => toggleSelect(lineName)}
+                                align="center"
+                                gap={2}
+                                w="full"
                             >
-                                <HStack
-                                    justify="space-between"
-                                    w="full"
-                                    align="center"
+                                <CheckboxCard.Root
+                                    size="sm"
+                                    value={lineName}
+                                    flex="1"
+                                    checked={isSelected}
+                                    colorPalette="teal"
+                                    onCheckedChange={({ checked }) => {
+                                        const shouldSelect = checked === true;
+                                        updateSelection(lineName, shouldSelect);
+                                    }}
                                 >
-                                    <Text textStyle="xs" fontWeight="medium">
-                                        {lineName}
-                                    </Text>
-                                    <HStack gap={1} align="center">
-                                        <Text textStyle="xs" color="fg.muted">
-                                            {formatLineWave(wl)}
-                                        </Text>
-                                        <IconButton
-                                            aria-label="Remove emission line"
-                                            size="xs"
-                                            variant="ghost"
-                                            onClick={(event) => {
-                                                event.stopPropagation();
-                                                handleRemove(lineName);
-                                            }}
-                                        >
-                                            <LuX />
-                                        </IconButton>
-                                    </HStack>
-                                </HStack>
-                            </Button>
+                                    <CheckboxCard.HiddenInput />
+                                    <CheckboxCard.Control>
+                                        <CheckboxCard.Content>
+                                            <CheckboxCard.Label>
+                                                {lineName}
+                                            </CheckboxCard.Label>
+                                            <CheckboxCard.Description>
+                                                <Text textStyle="xs">
+                                                    rest: {formatRest(wl)} · obs:{" "}
+                                                    {formatObs(wl)}
+                                                </Text>
+                                            </CheckboxCard.Description>
+                                        </CheckboxCard.Content>
+                                        <CheckboxCard.Indicator />
+                                    </CheckboxCard.Control>
+                                </CheckboxCard.Root>
+
+                                {/* 删除按钮与 CheckboxCard 同级，避免 button 嵌套 button */}
+                                <IconButton
+                                    aria-label="Remove emission line"
+                                    size="xs"
+                                    variant="ghost"
+                                    onClick={() => handleRemove(lineName)}
+                                >
+                                    <LuTrash2 />
+                                </IconButton>
+                            </HStack>
                         );
                     })
                 )}

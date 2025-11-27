@@ -17,6 +17,8 @@ export type CounterpartPosition = {
     height: number;
 };
 
+export type WaveUnit = 'µm' | 'Å';
+
 interface CounterpartState {
     availableFilters: string[];
     filterRGB: { r: string; g: string; b: string };
@@ -48,7 +50,7 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 }));
 
 interface GrismState {
-    waveUnit: 'µm' | 'Å';
+    waveUnit: WaveUnit;
     apertureSize: number;
     zRedshift: number;
     grismNorm: { pmin: number; pmax: number };
@@ -62,7 +64,7 @@ interface GrismState {
     };
     emissionLines: Record<string, number>;
     selectedEmissionLines: Record<string, number>;
-    setWaveUnit: (unit: 'µm' | 'Å') => void;
+    setWaveUnit: (unit: WaveUnit) => void;
     setApertureSize: (size: number) => void;
     setZRedshift: (z: number) => void;
     setGrismNorm: (patch: Partial<{ pmin: number; pmax: number }>) => void;

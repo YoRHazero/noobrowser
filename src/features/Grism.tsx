@@ -7,7 +7,7 @@ import GrismForward from "@/features/grism/GrismForward";
 export default function Grism() {
     const items = [
         { value: 'forward', title : 'Grism Forward', item: <GrismForward /> },
-        { value: 'backward', title : 'Grism Backward', item: <div>Backward View</div> },
+        { value: 'backward', title : 'Grism Backward', item: <div>Grism Forward Fit</div> },
     ]
     return (
         <Accordion.Root multiple defaultValue={['forward', 'backward']} >
