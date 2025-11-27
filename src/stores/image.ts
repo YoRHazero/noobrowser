@@ -48,10 +48,12 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 }));
 
 interface GrismState {
+    waveUnit: 'µm' | 'Å';
     apertureSize: number;
     zRedshift: number;
     grismNorm: { pmin: number; pmax: number };
     forwardWaveRange: { min: number; max: number };
+    slice1DWaveRange: { min: number; max: number };
     collapseWindow: {
         waveMin: number;
         waveMax: number;
@@ -60,23 +62,28 @@ interface GrismState {
     };
     emissionLines: Record<string, number>;
     selectedEmissionLines: Record<string, number>;
+    setWaveUnit: (unit: 'µm' | 'Å') => void;
     setApertureSize: (size: number) => void;
     setZRedshift: (z: number) => void;
     setGrismNorm: (patch: Partial<{ pmin: number; pmax: number }>) => void;
     setForwardWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
+    setSlice1DWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
     setCollapseWindow: (patch: Partial<GrismState['collapseWindow']>) => void;
     setEmissionLines: (lines: Record<string, number>) => void;
     addEmissionLine: (name: string, wavelength: number) => void;
+    removeEmissionLine: (name: string) => void;
     setSelectedEmissionLines: (lines: Record<string, number>) => void;
 }
 
 export const useGrismStore = create<GrismState>()(
     persist(
         (set) => ({
+            waveUnit: 'µm',
             apertureSize: 100,
             zRedshift: 0.0,
             grismNorm: { pmin: 1, pmax: 99 },
             forwardWaveRange: { min: 3.8, max: 5.0 },
+            slice1DWaveRange: { min: 3.8, max: 5.0 },
             collapseWindow: {
                 waveMin: 3.8,
                 waveMax: 5.0,
@@ -85,17 +92,21 @@ export const useGrismStore = create<GrismState>()(
             },
 
             emissionLines: {    // units in microns
-                "Ha": 0.6563, 
-                "Hb": 0.4861,
-                "[OIII]": 0.5007,
-                "Pab": 1.2818,
+                "H⍺": 0.6563, 
+                "Hβ": 0.4861,
+                "[OIII]λ5007": 0.5007,
+                "Paβ": 1.2818,
             },
             selectedEmissionLines: {},
+            setWaveUnit: (unit) => set({ waveUnit: unit }),
             setApertureSize: (size) => set({ apertureSize: size }),
             setZRedshift: (z) => set({ zRedshift: z }),
             setGrismNorm: (patch) => set((state) => ({ grismNorm: { ...state.grismNorm, ...patch } })),
             setForwardWaveRange: (patch) => set((state) => ({
                 forwardWaveRange: { ...state.forwardWaveRange, ...patch }
+            })),
+            setSlice1DWaveRange: (patch) => set((state) => ({
+                slice1DWaveRange: { ...state.slice1DWaveRange, ...patch }
             })),
             setCollapseWindow: (patch) => set((state) => ({
                 collapseWindow: { ...state.collapseWindow, ...patch }
@@ -113,6 +124,14 @@ export const useGrismStore = create<GrismState>()(
                         Object.entries(updatedLines).sort((a, b) => a[1] - b[1])
                     );
                     return { emissionLines: sortedLines };
+                });
+            },
+            removeEmissionLine: (name) => {
+                set((state) => {
+                    const updatedLines = { ...state.emissionLines };
+                    delete updatedLines[name];
+                    const {[name]: _, ...restSelectedLines} = state.selectedEmissionLines;
+                    return { emissionLines: updatedLines, selectedEmissionLines: restSelectedLines };
                 });
             },
             setSelectedEmissionLines: (lines) => set({ selectedEmissionLines: lines }),
