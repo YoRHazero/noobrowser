@@ -118,3 +118,36 @@ export function formatWavelength(
     }
     return `${Math.round(v)} Å`;
 }
+
+export function findNearestWavelengthIndex(
+    wavelengthArray: number[],
+    targetWavelength: number,
+): {index: number, wavelength: number} | null {
+    const n = wavelengthArray.length;
+    if (n === 0) return null;
+
+    let left = 0;
+    let right = n - 1;
+    
+    while (left < right) {
+        const mid = (left + right) >> 1;
+        if (wavelengthArray[mid] < targetWavelength) {
+            left = mid + 1;
+        } else {
+            right = mid;
+        }
+    }
+
+    let nearestIndex = left;
+    let nearestValue = wavelengthArray[nearestIndex];
+
+    if (nearestIndex > 0) {
+        const prevValue = wavelengthArray[nearestIndex - 1];
+        if (Math.abs(prevValue - targetWavelength) <= Math.abs(nearestValue - targetWavelength)) {
+            nearestIndex = nearestIndex - 1;
+            nearestValue = prevValue;
+        }
+    }
+    
+    return {index: nearestIndex, wavelength: nearestValue};
+}

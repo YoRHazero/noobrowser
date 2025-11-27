@@ -19,6 +19,13 @@ export type CounterpartPosition = {
 
 export type WaveUnit = 'µm' | 'Å';
 
+export type CollapseWindow = {
+    waveMin: number;
+    waveMax: number;
+    spatialMin: number;
+    spatialMax: number;
+}
+
 interface CounterpartState {
     availableFilters: string[];
     filterRGB: { r: string; g: string; b: string };
@@ -56,12 +63,7 @@ interface GrismState {
     grismNorm: { pmin: number; pmax: number };
     forwardWaveRange: { min: number; max: number };
     slice1DWaveRange: { min: number; max: number };
-    collapseWindow: {
-        waveMin: number;
-        waveMax: number;
-        spatialMin: number;
-        spatialMax: number;
-    };
+    collapseWindow: CollapseWindow;
     emissionLines: Record<string, number>;
     selectedEmissionLines: Record<string, number>;
     setWaveUnit: (unit: WaveUnit) => void;
@@ -70,7 +72,7 @@ interface GrismState {
     setGrismNorm: (patch: Partial<{ pmin: number; pmax: number }>) => void;
     setForwardWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
     setSlice1DWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
-    setCollapseWindow: (patch: Partial<GrismState['collapseWindow']>) => void;
+    setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
     setEmissionLines: (lines: Record<string, number>) => void;
     addEmissionLine: (name: string, wavelength: number) => void;
     removeEmissionLine: (name: string) => void;

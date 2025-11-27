@@ -405,7 +405,7 @@ export function useGrismErr({
     return results;
 }
 
-type ExtractedSpectrum = {
+export type ExtractedSpectrum = {
     covered: boolean;
     wavelength: number[];
     spectrum_2d: number[][];

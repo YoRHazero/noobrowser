@@ -3,11 +3,12 @@ import {
     Span
 } from "@chakra-ui/react";
 import GrismForward from "@/features/grism/GrismForward";
+import Grism1DCanvas from "./grism/Grism1DCanvas";
 
 export default function Grism() {
     const items = [
         { value: 'forward', title : 'Grism Forward', item: <GrismForward /> },
-        { value: 'backward', title : 'Grism Backward', item: <div>Grism Forward Fit</div> },
+        { value: 'backward', title : 'Grism Backward', item: <Grism1DCanvas /> },
     ]
     return (
         <Accordion.Root multiple defaultValue={['forward', 'backward']} >
