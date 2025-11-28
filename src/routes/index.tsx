@@ -20,7 +20,8 @@ import { useState, useEffect } from 'react'
 import { useConnectionStore } from '@/stores/connection'
 import { toaster } from '@/components/ui/toaster'
 import logo from '@/logo.png'
-import Galaxy from '@/components/bits/Galaxy'
+import { DarkMode } from '@/components/ui/color-mode'
+import Galaxy from '@/components/tailwind/Galaxy'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -70,9 +71,12 @@ function App() {
     }, [queryStatus.isSuccess])
 
     return (
-      <Box className="galaxy-container" position="relative" >
-        <Galaxy />
-      <Box minH="100vh" bg="bg" color="fg">
+      <DarkMode>
+      <div style={{ position: 'relative', width: '100%', height: '100vh' }}>
+        <Galaxy
+          transparent={false}
+         />
+      <Box minH="100vh" bg="transparent" color="fg">
         <Center py="12">
           <Stack gap="8" w="full" maxW="lg" px={{ base: 4, md: 6 }}>
             <Stack align="center" gap="3">
@@ -149,6 +153,7 @@ function App() {
           </Stack>
         </Center>
       </Box>
-      </Box>
+      </div>
+      </DarkMode>
     )
 }
