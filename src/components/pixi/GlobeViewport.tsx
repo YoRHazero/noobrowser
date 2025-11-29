@@ -108,18 +108,17 @@ export default function GlobeViewport( {children}: {children: React.ReactNode} )
         const nextScale = clamp(viewRef.current.scale * factor, MIN_SCALE, MAX_SCALE);
         setView({ scale: nextScale });
     }, [setView, stopAnimation]);
-
+    const appCanvas = (app === undefined || app.renderer === undefined) ? null : app.canvas as HTMLCanvasElement | null;
     useEffect(() => {
-        if (!app?.renderer || !app.canvas) return;
-        const canvas = app.canvas as HTMLCanvasElement;
+        if (!app?.renderer || !appCanvas) return;
         const stopper = (e: WheelEvent) => e.preventDefault();
-        canvas.addEventListener('wheel', stopper, { passive: false });
+        appCanvas.addEventListener('wheel', stopper, { passive: false });
         return () => {
-            canvas.removeEventListener('wheel', stopper);
+            appCanvas.removeEventListener('wheel', stopper);
         };
-    }, [app, app?.canvas]);
+    }, [app, appCanvas]);
     
-    if (!app || !app.renderer || !app.canvas) {
+    if (!app || !app.renderer || !appCanvas) {
         return null;
     }
     return (

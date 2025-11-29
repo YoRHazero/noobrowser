@@ -164,3 +164,115 @@ export default function textureFromData({
   const byteData = scaleToByte(normalizedData);
   return textureFromGrayscaleData(byteData, width, height);
 }
+
+
+/****** 1D Plot Utils ******/
+
+import { type FitModel } from "@/stores/fit";
+
+export function sampleModel(
+  model: FitModel, 
+  sliceRange: { min: number; max: number },
+  samplePoints: number = 201
+): {wavelength: number; flux: number}[] {
+  const xmin = Math.max(sliceRange.min, model.range.min);
+  const xmax = Math.min(sliceRange.max, model.range.max);
+
+  if (xmin >= xmax) {
+    return [];
+  }
+
+  if (model.kind === "linear") {
+    const slope = model.k;
+    const intercept = model.b;
+    const x0 = model.x0;
+
+    const fluxAtXmin = slope * (xmin - x0) + intercept;
+    const fluxAtXmax = slope * (xmax - x0) + intercept;
+    
+    return [
+      { wavelength: xmin, flux: fluxAtXmin },
+      { wavelength: (xmax + xmin) / 2, flux: (fluxAtXmin + fluxAtXmax) / 2 },
+      { wavelength: xmax, flux: fluxAtXmax }
+    ];
+  } else if (model.kind === "gaussian") {
+    const amplitude = model.amplitude;
+    const mu = model.mu;
+    const sigma = model.sigma;
+    const data: {wavelength: number; flux: number}[] = new Array(samplePoints);
+
+    for (let i = 0; i < samplePoints; i++) {
+      const t = i / (samplePoints - 1);
+      const wavelength = xmin + t * (xmax - xmin);
+      const exponent = -0.5 * Math.pow((wavelength - mu) / sigma, 2);
+      const flux = amplitude * Math.exp(exponent);
+      data[i] = { wavelength, flux };
+    }
+    return data;
+  } else {
+    throw new Error(`Unknown model kind`);
+  }
+}
+
+export function sampleModelFromWave(
+  model: FitModel, 
+  wavelength: number
+): {wavelength: number; flux: number} {
+  if (model.kind === "linear") {
+    const slope = model.k;
+    const intercept = model.b;
+    const x0 = model.x0;
+    const flux = slope * (wavelength - x0) + intercept;
+    const result = {
+      wavelength: wavelength,
+      flux: flux
+    };
+    return result;
+  } else if (model.kind === "gaussian") {
+    const amplitude = model.amplitude;
+    const mu = model.mu;
+    const sigma = model.sigma;
+    const exponent = -0.5 * Math.pow((wavelength - mu) / sigma, 2);
+    const flux = amplitude * Math.exp(exponent);
+    const result = {
+      wavelength: wavelength,
+      flux: flux
+    };
+    return result;
+  } else {
+    throw new Error(`Unknown model kind`);
+  }
+}
+
+export function sampleModelFromWaveArray(
+  model: FitModel, 
+  wavelength: number[]
+): {wavelength: number; flux: number}[] {
+  if (Math.max(...wavelength) < model.range.min || Math.min(...wavelength) > model.range.max) {
+    return [];
+  }
+  if (model.kind === "linear") {
+    const slope = model.k;
+    const intercept = model.b;
+    const x0 = model.x0;
+    const result: {wavelength: number; flux: number}[] = wavelength.map((wave) => ({
+      wavelength: wave,
+      flux: slope * (wave - x0) + intercept
+    }));
+    return result;
+  } else if (model.kind === "gaussian") {
+    const amplitude = model.amplitude;
+    const mu = model.mu;
+    const sigma = model.sigma;
+    const result: {wavelength: number; flux: number}[] = wavelength.map((wave) => {
+      const exponent = -0.5 * Math.pow((wave - mu) / sigma, 2);
+      return {
+        wavelength: wave,
+        flux: amplitude * Math.exp(exponent)
+      };
+    });
+    return result;
+  } else {
+    throw new Error(`Unknown model kind`);
+  }
+}

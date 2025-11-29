@@ -2,9 +2,10 @@ import { Application } from "@pixi/react";
 import { useRef } from "react";
 import Viewport from "@/components/pixi/Viewport";
 import { Box } from "@chakra-ui/react";
-import { ViewportWrapper } from "@/components/pixi/Viewport";
+
 
 import GrismForwardImage from "@/features/grism/GrismForwardImage";
+import CollapseWindowLayer from "@/features/grism/CollapseWindowLayer";
 export default function GrismForwardCanvas() {
     const parentRef = useRef<HTMLDivElement | null>(null);
     return (
@@ -23,6 +24,7 @@ export default function GrismForwardCanvas() {
             >
                 <Viewport passiveWheel={false}>
                     <GrismForwardImage />
+                    <CollapseWindowLayer layerRef={useRef(null)} />
                 </Viewport>
             </Application>
         </Box>

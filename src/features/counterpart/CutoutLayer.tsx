@@ -59,10 +59,12 @@ export default function CutoutLayer(
             .stroke({ color: 0xff0000, width: 1 });
         
         const textureRect = app.renderer.generateTexture(graphics)
-        setTextureRect(textureRect);
-        return () => {
-            textureRect.destroy(true);
-        }
+        setTextureRect((prev) => {
+            if (prev && !prev.destroyed) {
+                prev.destroy(true);
+            }
+            return textureRect;
+        });
     }, [cutoutParams.height, cutoutParams.width]);
 
 

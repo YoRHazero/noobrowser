@@ -1,5 +1,6 @@
 // stores/fit.ts
 import { create } from "zustand";
+import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
 
 export type WaveFrame = "observe" | "rest";
 
@@ -17,6 +18,7 @@ interface BaseFitModel {
     active: boolean;
     subtracted: boolean;  // whether subtract this model from the spectrum in slice view
     range: FitRange;       // observed frame, µm
+    color: string;      // Hex color code
 }
 
 export interface FitLinearModel extends BaseFitModel {
@@ -151,6 +153,7 @@ export const useFitStore = create<FitState>()((set, get) => ({
                 b: 0,
                 x0: center,
                 range: r,
+                color: DEFAULT_COLOR,
             };
             const merged = [...state.models, model];
             return { models: normalizeModels(merged) };
@@ -170,6 +173,7 @@ export const useFitStore = create<FitState>()((set, get) => ({
                 mu: center,
                 sigma: 0.0001, // 0.0001 µm = 1 Å
                 range: r,
+                color: DEFAULT_COLOR,
             };
             const merged = [...state.models, model];
             return { models: normalizeModels(merged) };

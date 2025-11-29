@@ -41,6 +41,7 @@ import {
     toInputValue,
 } from "@/utils/wavelength";
 import { type WaveUnit, SPEED_OF_LIGHT_KM_S } from "@/utils/wavelength";
+import { TabbedColorPicker } from "@/components/ui/color-chooser";
 
 
 const modelTypeCollection = createListCollection({
@@ -537,6 +538,10 @@ function LinearModelCard(props: LinearModelCardProps) {
 
     const tooltipLabel = model.active ? "Deactivate this model" : "Activate this model";
 
+    const handleColorChange = (value: string) => {
+        props.onUpdate(model.id, { color: value });
+    }
+
     return (
         <Stack
             gap={2}
@@ -555,8 +560,9 @@ function LinearModelCard(props: LinearModelCardProps) {
                     placeholder="Linear model name"
                     disabled={disabled}
                 />
-
+                
                 <HStack gap={1} align="center">
+                    <TabbedColorPicker onValueChange={handleColorChange} />
                     <Tooltip
                         ids={{ trigger: activeSwitchId }}
                         content={tooltipLabel}
@@ -914,6 +920,10 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 
     const tooltipLabel = model.active ? "Deactivate this model" : "Activate this model";
 
+    const handleColorChange = (value: string) => {
+        props.onUpdate(model.id, { color: value });
+    };
+
     return (
         <Stack
             gap={2}
@@ -934,6 +944,7 @@ function GaussianModelCard(props: GaussianModelCardProps) {
                 />
 
                 <HStack gap={1} align="center">
+                    <TabbedColorPicker onValueChange={handleColorChange} />
                     <Tooltip
                         ids={{ trigger: activeSwitchId }}
                         content={tooltipLabel}

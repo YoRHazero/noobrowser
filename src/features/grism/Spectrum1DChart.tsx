@@ -1,11 +1,12 @@
 import { Box } from "@chakra-ui/react";
+import { memo } from "react";
 import { scaleLinear, type ScaleLinear } from "d3-scale";
 import { AnimatedAxis } from "@visx/react-spring";
 import { Group } from "@visx/group";
 import { LinePath, AreaClosed } from "@visx/shape";
-import { curveStep } from "@visx/curve";
+import { curveStep, curveLinear } from "@visx/curve";
 import type { Spectrum1D } from "@/utils/extraction";
-import {  useMemo, useState } from "react";
+import {  useCallback, useMemo, useState } from "react";
 import { findNearestWavelengthIndex } from "@/utils/wavelength";
 import {
   useTooltip,
@@ -21,7 +22,8 @@ import { useGrismStore } from "@/stores/image";
 import { useShallow } from "zustand/react/shallow";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
 import { useWavelengthDisplay } from "@/hook/transformation-hook";
-
+import { useFitStore, type FitGaussianModel, type FitLinearModel } from "@/stores/fit";
+import { sampleModel, sampleModelFromWave } from "@/utils/plot";
 
 type Anchor = {
     top: number;
@@ -54,9 +56,10 @@ interface Spectrum1DSliceChartProps {
     children?: React.ReactNode;
 }
 
-export function Spectrum1DSliceChart(props: Spectrum1DSliceChartProps) {
+const Spectrum1DSliceChart = memo(function Spectrum1DSliceChart(props: Spectrum1DSliceChartProps) {
     const { spectrum1D, xScale, yScale, width, height, anchor, label, children } = props;
     const { label: defaultBottomLabel, formatter } = useWavelengthDisplay();
+    
     return (
         <Group left={anchor.left} top={anchor.top}>
             <AnimatedAxis
@@ -107,6 +110,319 @@ export function Spectrum1DSliceChart(props: Spectrum1DSliceChartProps) {
             />
             {children}
         </Group>
+    )
+});
+
+
+
+interface Spectrum1DFitLayerProps {
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
+    samplePoints?: number;
+}
+const Spectrum1DFitLayer = memo(function Spectrum1DFitLayer(props: Spectrum1DFitLayerProps) {
+    const { xScale, yScale, samplePoints=201 } = props;
+    const models = useFitStore((state) => state.models);
+    const gaussianModelsDraw = models.filter((model) => model.kind === "gaussian" && model.active && model.subtracted === false);
+    const linearModelsDraw = models.filter((model) => model.kind === "linear" && model.active && model.subtracted === false);
+    const sliceRange = useGrismStore((state) => state.slice1DWaveRange);
+    const sampleGaussianList = useMemo(() => {
+        return gaussianModelsDraw.map((model) => {
+            const sampled = sampleModel(
+                model,
+                sliceRange,
+                samplePoints,
+            );
+            const sampledInChart = sampled.filter(
+                d => d.wavelength >= sliceRange.min 
+                && d.wavelength <= sliceRange.max
+                && yScale(d.flux) !== undefined
+                && yScale(d.flux) >= 0
+                && yScale(d.flux) <= yScale.range()[0]
+            );
+            return sampledInChart;
+        });
+    }, [gaussianModelsDraw, sliceRange, samplePoints, yScale]);
+    const sampleLinearList = useMemo(() => {
+        return linearModelsDraw.map((model) => {
+            const sampled = sampleModel(
+                model,
+                sliceRange,
+            );
+            return sampled;
+        });
+    }, [linearModelsDraw, sliceRange]);
+    return (
+        <g pointerEvents={"none"}>
+            {
+                (sampleLinearList).map((sampled, index) => {
+                    if (sampled.length < 2) {
+                        return null;
+                    }
+                    return (
+                        <LinePath<{wavelength: number; flux: number}>
+                            key={`fit-linear-${index}`}
+                            data={sampled}
+                            x={(d) => xScale(d.wavelength) ?? 0}
+                            y={(d) => yScale(d.flux) ?? 0}
+                            stroke={linearModelsDraw[index].color}
+                            strokeWidth={1}
+                            curve={curveLinear}
+                        />
+                    );
+                })
+            }
+            {
+                (sampleGaussianList).map((sampled, index) => {
+                    if (sampled.length < 2) {
+                        return null;
+                    }
+                    return (
+                        <LinePath<{wavelength: number; flux: number}>
+                            key={`fit-gaussian-${index}`}
+                            data={sampled}
+                            x={(d) => xScale(d.wavelength) ?? 0}
+                            y={(d) => yScale(d.flux) ?? 0}
+                            stroke={gaussianModelsDraw[index].color}
+                            strokeWidth={1}
+                            curve={curveLinear}
+                        />
+                    );
+                })
+            }
+        </g>
+    )
+});
+type DragKind = | { type: "gauss-peak"; id: number; lastX: number; lastY: number}
+                | { type: "gauss-sigma"; id: number; lastX: number}
+                | { type: "linear-x0"; id: number; lastX: number; lastY: number}
+                | null;
+interface Spectrum1DFitHandleLayerProps {
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
+    chartHeight: number;
+    sliceRange: { min: number; max: number };
+}
+const SQRT_2_LN2 = Math.sqrt(2 * Math.log(2));
+const Spectrum1DFitHandleLayer = memo(function Spectrum1DFitHandleLayer(props: Spectrum1DFitHandleLayerProps) {
+    const { xScale, yScale, chartHeight, sliceRange } = props;
+    const models = useFitStore((state) => state.models);
+    const updateModel = useFitStore((state) => state.updateModel);
+    const modelsDraw = models.filter((model) => model.active && model.subtracted === false);
+    const [drag, setDrag] = useState<DragKind>(null);
+    if (modelsDraw.length === 0) return null;
+    return (
+        <g>
+            {
+                modelsDraw.map((model) => model.kind === "gaussian" 
+                    ? (
+                    <GaussianHandle
+                        key={`handle-gaussian-${model.id}`}
+                        model={model}
+                        xScale={xScale}
+                        yScale={yScale}
+                        sliceRange={sliceRange}
+                        chartHeight={chartHeight}
+                        drag={drag}
+                        setDrag={setDrag}
+                        updateModel={updateModel}
+                    />
+                ) : (
+                    <LinearHandle
+                        key={`handle-linear-${model.id}`}
+                        model={model}
+                        xScale={xScale}
+                        yScale={yScale}
+                        sliceRange={sliceRange}
+                        drag={drag}
+                        setDrag={setDrag}
+                        updateModel={updateModel}
+                    />
+                ))
+            }
+        </g>
+    );
+});
+
+interface GaussianHandleProps {
+    model: FitGaussianModel;
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
+    sliceRange: { min: number; max: number };
+    chartHeight: number;
+    drag: DragKind;
+    setDrag: (drag: DragKind) => void;
+    updateModel: (id: number, patch: Partial<FitGaussianModel>) => void;
+    cricleSize?: number;
+}
+function GaussianHandle(props: GaussianHandleProps) {
+    const { model, xScale, yScale, sliceRange, chartHeight, drag, setDrag, updateModel, cricleSize=7 } = props;
+    const peakWave = model.mu;
+    const peakFlux = model.amplitude;
+    const peakX = xScale(peakWave);
+    const peakY = yScale(peakFlux);
+    const peakInChart = peakWave >= sliceRange.min && peakWave <= sliceRange.max && peakY !== undefined && peakY >= 0 && peakY <= chartHeight;
+
+    const halfFlux = peakFlux / 2;
+    const halfWidth = model.sigma * SQRT_2_LN2;
+    const halfLeftWave = model.mu - halfWidth;
+    const halfRightWave = model.mu + halfWidth;
+
+    const halfLeftX = xScale(halfLeftWave);
+    const halfRightX = xScale(halfRightWave);
+    const halfLeftY = yScale(halfFlux);
+    const halfRightY = yScale(halfFlux);
+    const halfLeftInChart = halfLeftWave >= sliceRange.min && halfLeftWave <= sliceRange.max && halfLeftY !== undefined && halfLeftY >= 0 && halfLeftY <= chartHeight;
+    const halfRightInChart = halfRightWave >= sliceRange.min && halfRightWave <= sliceRange.max && halfRightY !== undefined && halfRightY >= 0 && halfRightY <= chartHeight;
+
+    return (
+        <g pointerEvents="visiblePainted">
+            {peakInChart && (
+                <circle
+                    cx={peakX}
+                    cy={peakY}
+                    r={cricleSize}
+                    fill = {model.color}
+                    stroke="#000"
+                    strokeWidth={1}
+                    style={{ cursor: "move" }}
+                    onPointerDown={(e) => {
+                        e.stopPropagation();
+                        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+                        setDrag({ type: "gauss-peak", id: model.id, lastX: e.clientX, lastY: e.clientY });
+                    }}
+                    onPointerMove={(e) => {
+                        if (!drag || drag.type !== "gauss-peak" || drag.id !== model.id) return;
+                        const dx = e.clientX - drag.lastX;
+                        const dy = e.clientY - drag.lastY;
+                        if (dx === 0 && dy === 0) return;
+                        const newPx = peakX + dx;
+                        const newPy = peakY + dy;
+                        const newMu = xScale.invert(newPx);
+                        const newAmp = yScale.invert(newPy);
+                        updateModel(model.id, { mu: newMu, amplitude: newAmp });
+                        setDrag({...drag, lastX: e.clientX, lastY: e.clientY});
+                    }}
+                    onPointerUp={(e) => {
+                        if (!drag || drag.type !== "gauss-peak" || drag.id !== model.id) return;
+                        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+                        setDrag(null);
+                    }}
+                />
+            )}
+            {halfLeftInChart && (
+                <circle
+                    cx={halfLeftX}
+                    cy={halfLeftY}
+                    r={cricleSize}
+                    fill = {model.color}
+                    stroke="#000"
+                    strokeWidth={1}
+                    style={{ cursor: "ew-resize" }}
+                    onPointerDown={(e) => {
+                        e.stopPropagation();
+                        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+                        setDrag({ type: "gauss-sigma", id: model.id, lastX: e.clientX });
+                    }}
+                    onPointerMove={(e) => {
+                        if (!drag || drag.type !== "gauss-sigma" || drag.id !== model.id) return;
+                        const dx = e.clientX - drag.lastX;
+                        if (dx === 0) return;
+                        const newHalfWidth = halfWidth + xScale.invert(dx) - xScale.invert(0);
+                        const newSigma = newHalfWidth / SQRT_2_LN2;
+                        updateModel(model.id, { sigma: newSigma });
+                        setDrag({...drag, lastX: e.clientX});
+                    }}
+                    onPointerUp={(e) => {
+                        if (!drag || drag.type !== "gauss-sigma" || drag.id !== model.id) return;
+                        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+                        setDrag(null);
+                    }}
+                />
+            )}
+            {halfRightInChart && (
+                <circle
+                    cx={halfRightX}
+                    cy={halfRightY}
+                    r={cricleSize}
+                    fill = {model.color}
+                    stroke="#000"
+                    strokeWidth={1}
+                    style={{ cursor: "ew-resize" }}
+                    onPointerDown={(e) => {
+                        e.stopPropagation();
+                        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+                        setDrag({ type: "gauss-sigma", id: model.id, lastX: e.clientX });
+                    }}
+                    onPointerMove={(e) => {
+                        if (!drag || drag.type !== "gauss-sigma" || drag.id !== model.id) return;
+                        const dx = e.clientX - drag.lastX;
+                        if (dx === 0) return;
+                        const newHalfWidth = halfWidth + xScale.invert(dx) - xScale.invert(0);
+                        const newSigma = newHalfWidth / SQRT_2_LN2;
+                        updateModel(model.id, { sigma: newSigma });
+                        setDrag({...drag, lastX: e.clientX});
+                    }}
+                    onPointerUp={(e) => {
+                        if (!drag || drag.type !== "gauss-sigma" || drag.id !== model.id) return;
+                        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+                        setDrag(null);
+                    }}
+                />
+            )}
+        </g>
+    )
+}
+
+interface LinearHandleProps {
+    model: FitLinearModel;
+    xScale: ScaleLinear<number, number>;
+    yScale: ScaleLinear<number, number>;
+    sliceRange: { min: number; max: number };
+    drag: DragKind;
+    setDrag: (drag: DragKind) => void;
+    updateModel: (id: number, patch: Partial<FitLinearModel>) => void;
+    cricleSize?: number;
+}
+function LinearHandle(props: LinearHandleProps) {
+    const { model, xScale, yScale, sliceRange, drag, setDrag, updateModel, cricleSize = 7 } = props;
+    const x0X = xScale(model.x0);
+    const x0Y = yScale(model.b);
+
+    return (
+        <g pointerEvents="visiblePainted">
+            {x0X !== undefined && x0Y !== undefined && 
+                <circle
+                    cx={x0X}
+                    cy={x0Y}
+                    r={cricleSize}
+                    fill = {model.color}
+                    stroke="#000"
+                    strokeWidth={1}
+                    style={{ cursor: "move" }}
+                    onPointerDown={(e) => {
+                        e.stopPropagation();
+                        (e.currentTarget as Element).setPointerCapture(e.pointerId);
+                        setDrag({ type: "linear-x0", id: model.id, lastX: e.clientX, lastY: e.clientY });
+                    }}
+                    onPointerMove={(e) => {
+                        if (!drag || drag.type !== "linear-x0" || drag.id !== model.id) return;
+                        const dx = e.clientX - drag.lastX;
+                        const dy = e.clientY - drag.lastY;
+                        if (dx === 0 && dy === 0) return;
+                        const newX0 = model.x0 + xScale.invert(dx) - xScale.invert(0);
+                        const newB = model.b + yScale.invert(dy) - yScale.invert(0);
+                        updateModel(model.id, { x0: newX0, b: newB });
+                        setDrag({...drag, lastX: e.clientX, lastY: e.clientY});
+                    }}
+                    onPointerUp={(e) => {
+                        if (!drag || drag.type !== "linear-x0" || drag.id !== model.id) return;
+                        (e.currentTarget as Element).releasePointerCapture(e.pointerId);
+                        setDrag(null);
+                    }}
+                />
+            }
+        </g>
     )
 }
 
@@ -221,9 +537,8 @@ interface Spectrum1DAllChartProps {
     anchor: Anchor;
     children?: React.ReactNode;
 }
-export function Spectrum1DAllChart(props: Spectrum1DAllChartProps) {
+const Spectrum1DAllChart = memo(function Spectrum1DAllChart(props: Spectrum1DAllChartProps) {
     const { spectrum1D, xScale, yScale, anchor, children } = props;
-    const yBottom = yScale.range()[0];
     return (
         <Group left={anchor.left} top={anchor.top}>
             {/* Area for all fluxes */}
@@ -238,9 +553,9 @@ export function Spectrum1DAllChart(props: Spectrum1DAllChartProps) {
             {children}
         </Group>
     )
-}
+});
 
-export function BrushHandle({
+const BrushHandle = memo(function BrushHandle({
     x, height, isBrushActive=true
 }: BrushHandleRenderProps) {
     const handleWidth = 8;
@@ -259,13 +574,13 @@ export function BrushHandle({
             />
         </Group>
     )
-}
+}); 
 
 interface EmissionLineLayerProps {
     xScale: ScaleLinear<number, number>;
     chartHeight: number;
 }
-export function EmissionLineLayer(props: EmissionLineLayerProps) {
+const EmissionLineLayer = memo(function EmissionLineLayer(props: EmissionLineLayerProps) {
     const { xScale, chartHeight } = props;
     const {
         selectedEmissionLines,
@@ -310,7 +625,7 @@ export function EmissionLineLayer(props: EmissionLineLayerProps) {
         })}
     </g>
     );
-}
+});
 
 interface Spectrum1DBrushChartProps {
     spectrum1D: Spectrum1D[];
@@ -324,7 +639,41 @@ const DEFAULT_MARGIN = { top: 20, bottom: 50, left: 100, right: 30 };
 export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
     // Chart parameters setup
     const { spectrum1D, width, height, hRatio, margin } = props;
-    const waveArray = useMemo(() => spectrum1D.map(d => d.wavelength), [spectrum1D]);
+    const {
+        waveArray,
+        waveMin,
+        waveMax,
+        fluxMin,
+        fluxMax,
+    } = useMemo(() => {
+        const n = spectrum1D.length;
+        const waveArray = new Array<number>(n);
+        let waveMin = Infinity;
+        let waveMax = -Infinity;
+        let fluxMin = Infinity;
+        let fluxMax = -Infinity;
+        for (let i = 0; i < n; i++) {
+            const d = spectrum1D[i];
+            waveArray[i] = d.wavelength;
+            if (d.wavelength < waveMin) waveMin = d.wavelength;
+            if (d.wavelength > waveMax) waveMax = d.wavelength;
+            if (d.fluxMinusErr < fluxMin) fluxMin = d.fluxMinusErr;
+            if (d.fluxPlusErr > fluxMax) fluxMax = d.fluxPlusErr;
+        }
+        if (!Number.isFinite(waveMin)) {
+            waveMin = 0;
+            waveMax = 1;
+            fluxMin = 0;
+            fluxMax = 1;
+        }
+        return {
+            waveArray,
+            waveMin,
+            waveMax,
+            fluxMin,
+            fluxMax,
+        };
+    }, [spectrum1D]);
     const finalHRatio = useMemo(() => {
         const ratio = hRatio ?? DEFAULT_HRATIO;
         const total = ratio.top + ratio.bottom + ratio.gap;
@@ -355,21 +704,17 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
     // Brush xScale use entire wavelength range
     const chartBrushHeight = chartHeightTop
     const xScaleBrush = useMemo(() => {
-        const waveMin = Math.min(...waveArray);
-        const waveMax = Math.max(...waveArray);
         const scale = scaleLinear()
             .domain([waveMin, waveMax])
             .range([0, chartWidth])
         return scale;
-    }, [waveArray, chartWidth]);
+    }, [waveMin, waveMax, chartWidth]);
     const yScaleBrush = useMemo(() => {
-        const fluxMin = Math.min(...spectrum1D.map(d => d.fluxMinusErr));
-        const fluxMax = Math.max(...spectrum1D.map(d => d.fluxPlusErr));
         const scale = scaleLinear()
             .domain([fluxMin, fluxMax])
             .range([chartBrushHeight, 0])
         return scale;
-    }, [spectrum1D, chartBrushHeight]);
+    }, [fluxMin, fluxMax, chartBrushHeight]);
 
     // Tooltip state
     const {
@@ -387,7 +732,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
     });
     const tooltipOffset = 5;
 
-    const handleHover = (data: TooltipData | null) => {
+    const handleHover = useCallback((data: TooltipData | null) => {
         if (!data) {
             hideTooltip();
             return;
@@ -397,7 +742,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
             tooltipLeft: data.pointerX + chartAnchorBottom.left + tooltipOffset,
             tooltipTop: data.pointerY + chartAnchorBottom.top + tooltipOffset,
         });
-    };
+    }, [chartAnchorBottom.left, chartAnchorBottom.top, hideTooltip, showTooltip, tooltipOffset]);
 
     // Brush state
     const {
@@ -406,11 +751,10 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
     } = useGrismStore(
         useShallow((state) => ({
             slice1DWaveRange: state.slice1DWaveRange,
-            waveUnit: state.waveUnit,
             setSlice1DWaveRange: state.setSlice1DWaveRange,
         }))
     );
-    const handleBrushChange = (domain: Bounds | null) => {
+    const handleBrushChange = useCallback((domain: Bounds | null) => {
         if (!domain) return;
         const { x0, x1 } = domain;
         const [xMin, xMax] = x0 < x1 ? [x0, x1] : [x1, x0];
@@ -418,7 +762,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
             return;
         }
         setSlice1DWaveRange({ min: xMin, max: xMax });
-    }
+    }, [setSlice1DWaveRange]);
 
     const {startIdx: waveStartIndex, endIdx: waveEndIndex} = useMemo(() => {
         return getWavelengthSliceIndices(
@@ -430,9 +774,25 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
 
     // Slice spectrum 
     const chartHeightSlice = chartHeightBottom;
+    const models = useFitStore((state) => state.models);
+    const modelsSubtracted = models.filter((model) => model.subtracted && model.active);
     const sliceSpectrum = useMemo(() => {
-        return spectrum1D.slice(waveStartIndex, waveEndIndex + 1);
-    }, [spectrum1D, waveStartIndex, waveEndIndex]);
+        const slice =  spectrum1D.slice(waveStartIndex, waveEndIndex + 1);
+        const sliceSpectrumSubtracted = slice.map((d) => {
+            let totolFluxForSubtration = 0;
+            for (const model of modelsSubtracted) {
+                const modelFlux = sampleModelFromWave(model, d.wavelength).flux;
+                totolFluxForSubtration += modelFlux;
+            }
+            return {
+                ...d,
+                flux: d.flux - totolFluxForSubtration,
+                fluxMinusErr: d.fluxMinusErr - totolFluxForSubtration,
+                fluxPlusErr: d.fluxPlusErr - totolFluxForSubtration,
+            };
+        });
+        return sliceSpectrumSubtracted;
+    }, [spectrum1D, waveStartIndex, waveEndIndex, modelsSubtracted]);
     const xScaleSlice = useMemo(() => {
         const scale = scaleLinear()
             .domain([slice1DWaveRange.min, slice1DWaveRange.max])
@@ -447,7 +807,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
             .domain([fluxMin - fluxPadding, fluxMax + fluxPadding])
             .range([chartHeightSlice, 0])
         return scale;
-    }, [spectrum1D, waveArray, slice1DWaveRange, chartHeightSlice]);
+    }, [sliceSpectrum, slice1DWaveRange, chartHeightSlice]);
 
     // wavelength converter
     const { formatterWithUnit, formatter} = useWavelengthDisplay();
@@ -492,6 +852,10 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
                     anchor={chartAnchorBottom}
                     label={{ left: "Flux", bottom: "Wavelength" }}
                 >
+                    <Spectrum1DFitLayer
+                        xScale={xScaleSlice}
+                        yScale={yScaleSlice}
+                    />
                     <Spectrum1DHoverLayer
                         spectrum1D={sliceSpectrum}
                         width={chartWidth}
@@ -499,6 +863,12 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
                         xScale={xScaleSlice}
                         yScale={yScaleSlice}
                         onHover={handleHover}
+                    />
+                    <Spectrum1DFitHandleLayer
+                        xScale={xScaleSlice}
+                        yScale={yScaleSlice}
+                        chartHeight={chartHeightBottom}
+                        sliceRange={slice1DWaveRange}
                     />
                 </Spectrum1DSliceChart>
             </svg>
