@@ -47,7 +47,7 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
     normParams: { pmin: 1, pmax: 99 },
     counterpartPosition: { x0: 0, y0: 0, width: 3000, height: 0 },
     cutoutParams: { cutoutPmin: 1, cutoutPmax: 99, x0: 0, y0: 0, width: 100, height: 100 },
-    showCutout: false,
+    showCutout: true,
     setAvailableFilters: (filters) => set({ availableFilters: filters }),
     setFilterRGB: (patch) => set((state) => ({ filterRGB: { ...state.filterRGB, ...patch } })),
     setNormParams: (params) => set({ normParams: params }),

@@ -11,12 +11,12 @@ export default function GrismForwardCanvas() {
         <Box
             ref={parentRef}
             height={"120px"}
-            maxW={"1400px"}
+            w={900}
             border={"1px solid black"}
         >
             <Application
                 resizeTo={parentRef}
-                backgroundColor={0xffffff}
+                backgroundColor={0xf2f2f2}
                 resolution={1}
                 antialias={true}
                 autoDensity={true}

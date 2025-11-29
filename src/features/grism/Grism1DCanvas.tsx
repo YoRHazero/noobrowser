@@ -10,7 +10,7 @@ import { useGlobeStore } from "@/stores/footprints";
 import { useFitStore } from "@/stores/fit";
 import extractFormatted1DSpectrum from "@/utils/extraction";
 import { type Spectrum1D } from "@/utils/extraction";
-import Spectrum1DChart from "./Spectrum1DChart";
+import Spectrum1DChart from "@/features/grism/Spectrum1DChart";
 
 
 export default function Grism1DCanvas() {
@@ -51,11 +51,14 @@ export default function Grism1DCanvas() {
         ) ?? [];
     }, [extractSpectrumData, collapseWindow]);
 
+    if (spectrum1D.length === 0) {
+        return null;
+    }
     return (
         <Spectrum1DChart
             spectrum1D={spectrum1D}
-            width={1000}
-            height={400}
+            width={900}
+            height={700}
             margin={{ top: 20, right: 30, bottom: 50, left: 60 }}
         />
     )

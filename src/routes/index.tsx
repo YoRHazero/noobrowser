@@ -22,6 +22,8 @@ import { toaster } from '@/components/ui/toaster'
 import logo from '@/logo.png'
 import { DarkMode } from '@/components/ui/color-mode'
 import Galaxy from '@/components/tailwind/Galaxy'
+import ShinyText from '@/components/tailwind/ShinyText'
+import GradientText from '@/components/tailwind/GradientText'
 
 export const Route = createFileRoute('/')({
   component: App,
@@ -86,8 +88,8 @@ function App() {
                 boxSize="40"
                 css={{ animation: 'spin 20s linear infinite' }}
               />
-              <Heading size="2xl">Noobrowser</Heading>
-              <Text color="fg.muted">A web browser built with React</Text>
+              <GradientText><Heading size='3xl'>NooBrowser</Heading></GradientText>
+              <ShinyText text="A web tool for wfss built with React" disabled={false} speed={5} className="text-fg-muted" />
             </Stack>
 
             <Box

@@ -15,6 +15,7 @@ interface BaseFitModel {
     kind: FitModelType;
     name: string;
     active: boolean;
+    subtracted: boolean;  // whether subtract this model from the spectrum in slice view
     range: FitRange;       // observed frame, µm
 }
 
@@ -145,6 +146,7 @@ export const useFitStore = create<FitState>()((set, get) => ({
                 kind: "linear",
                 name: "Linear 1",
                 active: true,
+                subtracted: false,
                 k: 0,
                 b: 0,
                 x0: center,
@@ -163,6 +165,7 @@ export const useFitStore = create<FitState>()((set, get) => ({
                 kind: "gaussian",
                 name: "Gaussian 1",
                 active: true,
+                subtracted: false,
                 amplitude: 0,
                 mu: center,
                 sigma: 0.0001, // 0.0001 µm = 1 Å

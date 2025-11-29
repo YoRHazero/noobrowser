@@ -8,6 +8,7 @@ import {
     HStack,
     IconButton,
     Input,
+    Listbox,
     NumberInput,
     Popover,
     Portal,
@@ -17,13 +18,14 @@ import {
     Text,
     createListCollection,
 } from "@chakra-ui/react";
-import { LuSettings2, LuTrash2 } from "react-icons/lu";
-import { useEffect, useRef, useState, useId } from "react";
+import { LuSettings2, LuTrash2, LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { useEffect, useRef, useState, useId, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-
 import { useGrismStore } from "@/stores/image";
 import {
     useFitStore,
+    type FitModelType,
+    type FitModel,
     type FitGaussianModel,
     type FitLinearModel,
     type WaveFrame,
@@ -40,7 +42,6 @@ import {
 } from "@/utils/wavelength";
 import { type WaveUnit, SPEED_OF_LIGHT_KM_S } from "@/utils/wavelength";
 
-type FitModelType = "linear" | "gaussian";
 
 const modelTypeCollection = createListCollection({
     items: [
@@ -66,6 +67,7 @@ export default function GrismForwardFit() {
             <Stack gap={3} w="full" h="full">
                 <FitHeaderControls />
                 <GrismWavelengthControl />
+                <FitModelTransferListBox />
                 <FitModelsSection />
             </Stack>
         </Box>
@@ -77,9 +79,16 @@ export default function GrismForwardFit() {
 /* -------------------------------------------------------------------------- */
 
 function FitHeaderControls() {
-    const { addModel } = useFitStore(
+    const syncId = useId();
+    const { 
+        addModel,
+        models,
+        updateModel,
+    } = useFitStore(
         useShallow((state) => ({
             addModel: state.addModel,
+            models: state.models,
+            updateModel: state.updateModel,
         })),
     );
 
@@ -97,6 +106,17 @@ function FitHeaderControls() {
         const kind = (selectedModelType[0] as FitModelType) ?? "linear";
         addModel(kind, slice1DWaveRange);
     };
+    const syncModelToWindow = () => {
+        models.forEach((model) => {
+            if (model.kind === "gaussian") {
+                const mu = (slice1DWaveRange.min + slice1DWaveRange.max) / 2;
+                updateModel(model.id, {range: slice1DWaveRange, mu});
+            } else if (model.kind === "linear") {
+                const x0 = (slice1DWaveRange.min + slice1DWaveRange.max) / 2;
+                updateModel(model.id, {range: slice1DWaveRange, x0});
+            }
+        });
+    }
 
     return (
         <HStack justify="space-between" align="center">
@@ -139,6 +159,18 @@ function FitHeaderControls() {
                 >
                     Add
                 </Button>
+                <Tooltip
+                    ids={{ trigger: syncId }}
+                    content="Update parameters of all models to match current slice wavelength range"
+                    >
+                    <Button
+                        size="xs"
+                        variant="outline"
+                        onClick={syncModelToWindow}
+                    >
+                        Sync
+                    </Button>
+                </Tooltip>
             </HStack>
         </HStack>
     );
@@ -1064,5 +1096,156 @@ function GaussianModelCard(props: GaussianModelCardProps) {
                 </Text>
             </Stack>
         </Stack>
+    );
+}
+
+
+
+interface FitListBoxPanelProps {
+    title: string;
+    models: FitModel[];
+    selectedValues: string[];
+    onSelectedValuesChange: (values: string[]) => void;
+    contentRef: React.RefObject<HTMLDivElement | null>;
+}
+function FitListBoxPanel(props: FitListBoxPanelProps) {
+    const { title, models, selectedValues, onSelectedValuesChange, contentRef } = props;
+    const collection = useMemo(() => {
+        return createListCollection({
+            items: models.map((model) => ({
+                id: model.id,
+                label: model.name,
+                value: model.id.toString(),
+                kind: model.kind,
+            })),
+            itemToString: (item) => item.label,
+            itemToValue: (item) => item.value,
+            groupBy: (item) => item.kind === "linear" ? "Linear Models" : "Gaussian Models",
+        });
+    }, [models]);
+    return (
+        <Listbox.Root
+            collection={collection}
+            selectionMode="multiple"
+            value = {selectedValues}
+            onValueChange={(details) => onSelectedValuesChange(details.value as string[])}
+        >
+            <Listbox.Label>{title}</Listbox.Label>
+            <Listbox.Content
+                ref={contentRef}
+                h="150px"
+                overflowY="auto"
+                borderWidth="1px"
+                borderColor="border.subtle"
+                borderRadius="md"
+                bg="bg"
+            >
+                {collection.items.length > 0 ? (
+                    collection.group().map(([groupLabel, items]) => (
+                        <Listbox.ItemGroup key={groupLabel}>
+                            <Listbox.ItemGroupLabel 
+                                p="1" 
+                                fontSize={"xs"} 
+                                color={"fg.muted"}
+                            >
+                                {groupLabel}
+                            </Listbox.ItemGroupLabel>
+                            {items.map((item) => (
+                                <Listbox.Item
+                                    key={item.value}
+                                    item={item}
+                                >
+                                    <Listbox.ItemText>{item.label}</Listbox.ItemText>
+                                    <Listbox.ItemIndicator />
+                                </Listbox.Item>
+                            ))}
+                        </Listbox.ItemGroup>
+                    ))
+                ) : (
+                    null
+                )}
+            </Listbox.Content>
+        </Listbox.Root>
+    );
+}
+
+function FitModelTransferListBox() {
+    const {
+        models,
+        updateModel,
+    } = useFitStore(
+        useShallow(state => ({
+            models: state.models,
+            updateModel: state.updateModel,
+        }))
+    )
+
+    const [selectedLeft, setSelectedLeft] = useState<string[]>([]);
+    const [selectedRight, setSelectedRight] = useState<string[]>([]);
+
+    const leftContentRef = useRef<HTMLDivElement | null>(null);
+    const rightContentRef = useRef<HTMLDivElement | null>(null);
+
+    const leftModels = useMemo(() => models.filter(model => !model.subtracted), [models]);
+    const rightModels = useMemo(() => models.filter(model => model.subtracted), [models]);
+
+    const moveLeftToRight = () => {
+        if (selectedLeft.length === 0) return;
+
+        const toMove = leftModels.filter(model => selectedLeft.includes(model.id.toString()));
+        
+        toMove.forEach(model => {
+            updateModel(model.id, { subtracted: true });
+        });
+        setSelectedLeft([]);
+    }
+    const moveRightToLeft = () => {
+        if (selectedRight.length === 0) return;
+
+        const toMove = rightModels.filter(model => selectedRight.includes(model.id.toString()));
+        
+        toMove.forEach(model => {
+            updateModel(model.id, { subtracted: false });
+        });
+        setSelectedRight([]);
+    }
+
+    return (
+        <HStack gap={4} align="center" justify="center">
+            <FitListBoxPanel
+                title="Model to draw"
+                models={leftModels}
+                selectedValues={selectedLeft}
+                onSelectedValuesChange={setSelectedLeft}
+                contentRef={leftContentRef}
+            />
+            <Stack gap={2} align="center" justify="center" py={8}>
+                <IconButton
+                    aria-label="Move selected to right"
+                    size="xs"
+                    variant="subtle"
+                    disabled={selectedLeft.length === 0}
+                    onClick={moveLeftToRight}
+                >
+                    <LuChevronRight />
+                </IconButton>
+                <IconButton
+                    aria-label="Move selected to left"
+                    size="xs"
+                    variant="subtle"
+                    disabled={selectedRight.length === 0}
+                    onClick={moveRightToLeft}
+                >
+                    <LuChevronLeft />
+                </IconButton>
+            </Stack>
+            <FitListBoxPanel
+                title="Model to subtract"
+                models={rightModels}
+                selectedValues={selectedRight}
+                onSelectedValuesChange={setSelectedRight}
+                contentRef={rightContentRef}
+            />
+        </HStack>
     );
 }
