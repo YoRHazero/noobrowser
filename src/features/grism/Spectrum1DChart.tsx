@@ -1,5 +1,4 @@
 import { Box } from "@chakra-ui/react";
-import { extend } from "@pixi/react";
 import {
 	type BaseBrushState,
 	type Bounds,
