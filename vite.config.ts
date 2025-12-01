@@ -8,7 +8,6 @@ import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
-  base: '/noobrowser/',
   plugins: [
     tanstackRouter({ autoCodeSplitting: true }),
     viteReact(),

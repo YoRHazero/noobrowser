@@ -12,10 +12,13 @@ import reportWebVitals from "./reportWebVitals.ts";
 import { routeTree } from "./routeTree.gen";
 
 // Create a new router instance
-
+const rawBase = import.meta.env.BASE_URL;
+const basepath =
+  rawBase === "/" ? "" : rawBase.replace(/\/$/, "");
 const TanStackQueryProviderContext = TanStackQueryProvider.getContext();
 const router = createRouter({
 	routeTree,
+	basepath,
 	context: {
 		...TanStackQueryProviderContext,
 	},

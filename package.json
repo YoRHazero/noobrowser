@@ -12,7 +12,8 @@
     "lint": "biome lint",
     "check": "biome check",
     
-    "predeploy": "npm run build",
+    "build:gh": "vite build --base=/noobrowser/ && tsc",
+    "predeploy": "npm run build:gh",
     "deploy": "gh-pages -d dist"
   },
   "dependencies": {
