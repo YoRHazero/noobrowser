@@ -60,7 +60,7 @@ interface Spectrum1DSliceChartProps {
 const Spectrum1DSliceChart = memo(function Spectrum1DSliceChart(
 	props: Spectrum1DSliceChartProps,
 ) {
-	const { spectrum1D, xScale, yScale, width, height, anchor, label, children } =
+	const { spectrum1D, xScale, yScale, height, anchor, label, children } =
 		props;
 	const { label: defaultBottomLabel, formatter } = useWavelengthDisplay();
 
@@ -431,7 +431,6 @@ function LinearHandle(props: LinearHandleProps) {
 		model,
 		xScale,
 		yScale,
-		sliceRange,
 		drag,
 		setDrag,
 		updateModel,
