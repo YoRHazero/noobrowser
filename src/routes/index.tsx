@@ -34,7 +34,6 @@ function App() {
 	const {
 		backendUrl,
 		username,
-		isConnected,
 		setIsConnected,
 		setBackendUrl,
 		setUsername,

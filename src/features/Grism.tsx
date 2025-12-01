@@ -13,7 +13,7 @@ export default function Grism() {
 	return (
 		<Accordion.Root multiple defaultValue={["forward", "backward"]}>
 			{items.map((item, index) => (
-				<Accordion.Item key={index} value={item.value}>
+				<Accordion.Item key={`item-${index}`} value={item.value}>
 					<Accordion.ItemTrigger>
 						<Span fontSize={"large"}>{item.title}</Span>
 						<Accordion.ItemIndicator />

@@ -15,15 +15,11 @@ export default function Grism1DCanvas() {
 		forwardWaveRange,
 		apertureSize,
 		collapseWindow,
-		slice1DWaveRange,
-		setSlice1DWaveRange,
 	} = useGrismStore(
 		useShallow((state) => ({
 			forwardWaveRange: state.forwardWaveRange,
 			apertureSize: state.apertureSize,
 			collapseWindow: state.collapseWindow,
-			slice1DWaveRange: state.slice1DWaveRange,
-			setSlice1DWaveRange: state.setSlice1DWaveRange,
 		})),
 	);
 
