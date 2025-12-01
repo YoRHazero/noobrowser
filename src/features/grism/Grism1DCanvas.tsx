@@ -11,11 +11,7 @@ export default function Grism1DCanvas() {
 		(state) => state.selectedFootprintId,
 	);
 	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
-	const {
-		forwardWaveRange,
-		apertureSize,
-		collapseWindow,
-	} = useGrismStore(
+	const { forwardWaveRange, apertureSize, collapseWindow } = useGrismStore(
 		useShallow((state) => ({
 			forwardWaveRange: state.forwardWaveRange,
 			apertureSize: state.apertureSize,
