@@ -10,7 +10,10 @@
     "test": "vitest run",
     "format": "biome format",
     "lint": "biome lint",
-    "check": "biome check"
+    "check": "biome check",
+    
+    "predeploy": "npm run build",
+    "deploy": "gh-pages -d dist"
   },
   "dependencies": {
     "@chakra-ui/react": "^3.30.0",
@@ -54,6 +57,7 @@
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^5.1.1",
     "baseline-browser-mapping": "^2.8.31",
+    "gh-pages": "^6.3.0",
     "jsdom": "^27.2.0",
     "tailwindcss": "^4.1.17",
     "typescript": "^5.9.3",
