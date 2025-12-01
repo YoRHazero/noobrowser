@@ -35,7 +35,7 @@ function FootprintItem({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, graphicsRef]);
+	}, [layerRef]);
 
 	// Setup for footprint
 	const colorSetup = {
@@ -77,7 +77,7 @@ function FootprintItem({
 					break;
 			}
 		},
-		[screenVertices, footprintState, colorSetup],
+		[screenVertices, footprintState],
 	);
 
 	const setHoveredFootprintId = useGlobeStore(

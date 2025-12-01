@@ -12,10 +12,6 @@ export class GraticuleGraphics extends Graphics {
 	private currentDecStep: number = -1;
 	private gridLines: { ra: number; dec: number }[][] = [];
 
-	constructor() {
-		super();
-	}
-
 	private getRAStep(scale: number): number {
 		if (scale < 1.5) return 45;
 		if (scale < 4) return 30;
@@ -137,7 +133,7 @@ export default function GlobeGrid({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, graphicsRef]);
+	}, [layerRef]);
 
 	const viewRef = useRef(useGlobeStore.getState().view);
 	useEffect(

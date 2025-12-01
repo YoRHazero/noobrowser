@@ -28,7 +28,7 @@ const MyComponent = () => {
 				meta: { source: "demo" },
 			},
 		]);
-	}, []);
+	}, [setFootprints]);
 
 	return <Footprint />;
 };

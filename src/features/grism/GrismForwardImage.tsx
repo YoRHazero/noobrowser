@@ -26,7 +26,7 @@ export default function GrismForwardImage({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, spriteRef]);
+	}, [layerRef]);
 
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,

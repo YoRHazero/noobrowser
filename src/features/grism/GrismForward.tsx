@@ -1,4 +1,4 @@
-import { Box, HStack, Stack } from "@chakra-ui/react";
+import { HStack, Stack } from "@chakra-ui/react";
 import Grism1DCanvas from "@/features/grism/Grism1DCanvas";
 import GrismForwardCanvas from "@/features/grism/GrismForwardCanvas";
 import GrismForwardTab from "@/features/grism/GrismForwardTab";

@@ -3,7 +3,6 @@ import { useState } from "react";
 import Galaxy from "@/components/tailwind/Galaxy";
 import TailwindTest from "@/components/tailwind/TailwindTest";
 import { Slider } from "@/components/ui/slider";
-import { useConnectionStore } from "@/stores/connection";
 export const Route = createFileRoute("/test")({
 	component: RouteComponent,
 });

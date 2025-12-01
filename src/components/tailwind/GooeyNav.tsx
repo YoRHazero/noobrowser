@@ -133,7 +133,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
 
 		if (filterRef.current) {
 			const particles = filterRef.current.querySelectorAll(".particle");
-			particles.forEach((p) => filterRef.current!.removeChild(p));
+			particles.forEach((p) => filterRef.current?.removeChild(p));
 		}
 
 		if (textRef.current) {
@@ -187,7 +187,7 @@ const GooeyNav: React.FC<GooeyNavProps> = ({
 
 		resizeObserver.observe(containerRef.current);
 		return () => resizeObserver.disconnect();
-	}, [activeIndex]);
+	}, [activeIndex, updateEffectPosition]);
 
 	return (
 		<div className="gooey-nav-container" ref={containerRef}>

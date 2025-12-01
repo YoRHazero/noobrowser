@@ -5,10 +5,6 @@ import { useGlobeStore } from "@/stores/footprints";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 
 export class GlobeBackgroundGraphics extends Graphics {
-	constructor() {
-		super();
-	}
-
 	public renderFrame(
 		view: { scale: number },
 		globeBackground: {

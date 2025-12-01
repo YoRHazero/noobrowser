@@ -801,13 +801,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
 				tooltipTop: data.pointerY + chartAnchorBottom.top + tooltipOffset,
 			});
 		},
-		[
-			chartAnchorBottom.left,
-			chartAnchorBottom.top,
-			hideTooltip,
-			showTooltip,
-			tooltipOffset,
-		],
+		[chartAnchorBottom.left, chartAnchorBottom.top, hideTooltip, showTooltip],
 	);
 
 	// Brush state
@@ -909,7 +903,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
 			.domain([fluxMin - fluxPadding, fluxMax + fluxPadding])
 			.range([chartHeightSlice, 0]);
 		return scale;
-	}, [sliceSpectrum, slice1DWaveRange, chartHeightSlice]);
+	}, [sliceSpectrum, chartHeightSlice]);
 
 	// wavelength converter
 	const { formatterWithUnit, formatter } = useWavelengthDisplay();

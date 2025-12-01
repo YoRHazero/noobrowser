@@ -1,11 +1,5 @@
 import { extend, useApplication } from "@pixi/react";
-import {
-	Container,
-	FederatedPointerEvent,
-	Graphics,
-	Sprite,
-	Texture,
-} from "pixi.js";
+import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useExtractSpectrum } from "@/hook/connection-hook";
@@ -13,7 +7,6 @@ import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
-import { clamp } from "@/utils/projection";
 
 extend({
 	Graphics,
@@ -57,7 +50,7 @@ export default function CollapseWindowLayer({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, spriteRef]);
+	}, [layerRef]);
 
 	const { data: extractSpectrumData } = useExtractSpectrum({
 		selectedFootprintId,
@@ -77,7 +70,7 @@ export default function CollapseWindowLayer({
 			spatialMin: 0,
 			spatialMax: extractSpectrumData.spectrum_2d.length - 1,
 		});
-	}, [extractSpectrumData, setCollapseWindow]);
+	}, [extractSpectrumData, setCollapseWindow, waveArray.length, waveArray[0]]);
 
 	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;
 	const { startIdx, endIdx } = getWavelengthSliceIndices(
@@ -102,7 +95,14 @@ export default function CollapseWindowLayer({
 			}
 			return texture;
 		});
-	}, [endIdx, startIdx, spatialMin, spatialMax, waveArray]);
+	}, [
+		endIdx,
+		startIdx,
+		spatialMin,
+		spatialMax,
+		waveArray,
+		app.renderer.generateTexture,
+	]);
 	// Draw trace dashed line
 	const [traceTexture, setTraceTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
@@ -134,7 +134,7 @@ export default function CollapseWindowLayer({
 			}
 			return texture;
 		});
-	}, [waveArray]);
+	}, [waveArray, app.renderer.generateTexture]);
 
 	// Cleanup on unmount
 	useEffect(() => {

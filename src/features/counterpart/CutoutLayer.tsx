@@ -32,7 +32,7 @@ export default function CutoutLayer({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, spriteRef]);
+	}, [layerRef]);
 
 	// Draw cutout rectangle
 	const { cutoutParams, setCutoutParams, counterpartPosition } =
@@ -59,7 +59,7 @@ export default function CutoutLayer({
 			}
 			return textureRect;
 		});
-	}, [cutoutParams.height, cutoutParams.width]);
+	}, [cutoutParams.height, cutoutParams.width, app.renderer.generateTexture]);
 
 	// Mouse events for dragging the cutout rectangle
 	const dragStartPointer = useRef<{ x: number; y: number } | null>(null);

@@ -101,7 +101,7 @@ function NormPercentageInput({
 				max={100}
 				onValueChange={(details) => {
 					const val = details.valueAsNumber;
-					if (!isNaN(val)) {
+					if (!Number.isNaN(val)) {
 						onValueChange(val);
 					}
 				}}

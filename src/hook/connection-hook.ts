@@ -268,7 +268,7 @@ export function useGrismOffsets({
 			queryKey: ["grism_offset", basename],
 			enabled: enabled,
 			queryFn: async () => {
-				const response = await axios.get(backendUrl + "/wfss/grism_offset/", {
+				const response = await axios.get(`${backendUrl}/wfss/grism_offset/`, {
 					params: { basename },
 				});
 				return response.data as GrismOffset;
@@ -322,7 +322,7 @@ export function useGrismData({
 			queryKey: ["grism_data", basename],
 			enabled: enabled,
 			queryFn: async () => {
-				const response = await axios.get(backendUrl + "/wfss/grism_data/", {
+				const response = await axios.get(`${backendUrl}/wfss/grism_data/`, {
 					params: { basename },
 					responseType: "arraybuffer",
 				});
@@ -380,7 +380,7 @@ export function useGrismErr({
 			queryKey: ["grism_err", basename],
 			enabled: enabled,
 			queryFn: async () => {
-				const response = await axios.get(backendUrl + "/wfss/grism_err/", {
+				const response = await axios.get(`${backendUrl}/wfss/grism_err/`, {
 					params: { basename },
 					responseType: "arraybuffer",
 				});

@@ -1,12 +1,6 @@
 import { extend } from "@pixi/react";
-import {
-	Assets,
-	Container,
-	FederatedPointerEvent,
-	Sprite,
-	Texture,
-} from "pixi.js";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Assets, Container, Sprite, Texture } from "pixi.js";
+import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
 	useCounterpartFootprint,
@@ -54,7 +48,7 @@ export default function CounterpartImageLayer({
 			width: vertex_marker[2][0] - vertex_marker[0][0],
 			height: vertex_marker[2][1] - vertex_marker[0][1],
 		});
-	}, [footprintData, isFootprintSuccess]);
+	}, [footprintData, isFootprintSuccess, setCounterpartPosition]);
 
 	/* Load counterpart image */
 	const counterpartImageQuery = useCounterpartImage({
@@ -95,7 +89,11 @@ export default function CounterpartImageLayer({
 				counterpartTexture.destroy(true);
 			}
 		};
-	}, [counterpartImageQuery.isSuccess, counterpartImageQuery.data]);
+	}, [
+		counterpartImageQuery.isSuccess,
+		counterpartImageQuery.data,
+		counterpartTexture,
+	]);
 
 	// Attach to the RenderLayer
 	const spriteRef = useRef<Sprite | null>(null);
@@ -108,7 +106,7 @@ export default function CounterpartImageLayer({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, spriteRef]);
+	}, [layerRef]);
 
 	return (
 		<pixiContainer>

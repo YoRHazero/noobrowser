@@ -176,7 +176,7 @@ export default function FootprintManager({
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef, footprintManagerRef]);
+	}, [layerRef]);
 
 	useEffect(() => {
 		if (!footprintManagerRef.current) return;

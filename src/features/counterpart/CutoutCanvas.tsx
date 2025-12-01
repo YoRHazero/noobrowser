@@ -3,7 +3,6 @@ import { Application, extend } from "@pixi/react";
 import { Container, RenderLayer } from "pixi.js";
 import { useRef } from "react";
 import CutoutImage from "@/features/counterpart/CutoutImage";
-import type { RenderLayerInstance } from "@/types/pixi-react";
 
 extend({
 	Container,

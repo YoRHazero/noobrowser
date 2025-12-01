@@ -46,7 +46,7 @@ function App() {
 	const save = () => {
 		let validUrl = url.trim();
 		if (!validUrl.startsWith("http://") && !validUrl.startsWith("https://")) {
-			validUrl = "http://" + validUrl;
+			validUrl = `http://${validUrl}`;
 		}
 		setBackendUrl(validUrl);
 		setUsername(name.trim());
@@ -82,7 +82,7 @@ function App() {
 		} else {
 			setIsConnected(false);
 		}
-	}, [queryStatus.isSuccess]);
+	}, [queryStatus.isSuccess, setIsConnected]);
 
 	return (
 		<DarkMode>

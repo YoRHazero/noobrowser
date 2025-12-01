@@ -212,7 +212,12 @@ function FitModelsSection() {
 
 	useEffect(() => {
 		ensureInitialModels(slice1DWaveRange);
-	}, [ensureInitialModels, slice1DWaveRange.min, slice1DWaveRange.max]);
+	}, [
+		ensureInitialModels,
+		slice1DWaveRange.min,
+		slice1DWaveRange.max,
+		slice1DWaveRange,
+	]);
 
 	if (models.length === 0) {
 		return (

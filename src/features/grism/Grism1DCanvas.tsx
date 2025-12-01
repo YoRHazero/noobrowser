@@ -1,13 +1,10 @@
-import { useCallback, useMemo, useState } from "react";
+import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import Spectrum1DChart from "@/features/grism/Spectrum1DChart";
 import { useExtractSpectrum } from "@/hook/connection-hook";
-import { useFitStore } from "@/stores/fit";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
-import extractFormatted1DSpectrum, {
-	type Spectrum1D,
-} from "@/utils/extraction";
+import extractFormatted1DSpectrum from "@/utils/extraction";
 
 export default function Grism1DCanvas() {
 	const selectedFootprintId = useGlobeStore(
