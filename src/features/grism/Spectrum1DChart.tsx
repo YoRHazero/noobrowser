@@ -164,7 +164,7 @@ const Spectrum1DFitLayer = memo(function Spectrum1DFitLayer(
 				}
 				return (
 					<LinePath<{ wavelength: number; flux: number }>
-						key={`fit-linear-${index}`}
+						key={`fit-linear-${linearModelsDraw[index].id}`}
 						data={sampled}
 						x={(d) => xScale(d.wavelength) ?? 0}
 						y={(d) => yScale(d.flux) ?? 0}
@@ -180,7 +180,7 @@ const Spectrum1DFitLayer = memo(function Spectrum1DFitLayer(
 				}
 				return (
 					<LinePath<{ wavelength: number; flux: number }>
-						key={`fit-gaussian-${index}`}
+						key={`fit-gaussian-${gaussianModelsDraw[index].id}`}
 						data={sampled}
 						x={(d) => xScale(d.wavelength) ?? 0}
 						y={(d) => yScale(d.flux) ?? 0}
