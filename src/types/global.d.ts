@@ -8,19 +8,21 @@ import { GraticuleGraphics} from "@/components/pixi/GlobeGrid";
 import { GlobeBackgroundGraphics } from "@/components/pixi/GlobeBackground";
 */
 declare global {
-  namespace React {
-    namespace JSX {
-      interface IntrinsicElements {
-        pixiViewportWrapper: PropsWithChildren<PixiReactElementProps<ViewportWrapper>> & {
-          app: Application;
-        };
+	namespace React {
+		namespace JSX {
+			interface IntrinsicElements {
+				pixiViewportWrapper: PropsWithChildren<
+					PixiReactElementProps<ViewportWrapper>
+				> & {
+					app: Application;
+				};
 
-        pixiFootprintContainer: PixiReactElementProps<FootprintContainer>;
+				pixiFootprintContainer: PixiReactElementProps<FootprintContainer>;
 
-        pixiGraticuleGraphics: PixiReactElementProps<GraticuleGraphics>;
+				pixiGraticuleGraphics: PixiReactElementProps<GraticuleGraphics>;
 
-        pixiGlobeBackgroundGraphics: PixiReactElementProps<GlobeBackgroundGraphics>;
-      }
-    }
-  }
+				pixiGlobeBackgroundGraphics: PixiReactElementProps<GlobeBackgroundGraphics>;
+			}
+		}
+	}
 }

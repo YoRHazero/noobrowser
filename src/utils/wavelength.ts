@@ -14,10 +14,10 @@ export const SPEED_OF_LIGHT_KM_S = 299792.458;
  * @returns The string representation for input field.
  */
 export function toInputValue(value: number, digits: number = 6): string {
-    if (!Number.isFinite(value)) return "";
-    const factor = 10 ** digits;
-    const rounded = Math.round(value * factor) / factor;
-    return String(rounded);
+	if (!Number.isFinite(value)) return "";
+	const factor = 10 ** digits;
+	const rounded = Math.round(value * factor) / factor;
+	return String(rounded);
 }
 
 /**
@@ -29,21 +29,21 @@ export function toInputValue(value: number, digits: number = 6): string {
  * @returns The multiplicative factor from observed µm to display value.
  */
 export function displayFactor(
-    unit: WaveUnit,
-    frame: WaveFrame,
-    zRedshift: number,
+	unit: WaveUnit,
+	frame: WaveFrame,
+	zRedshift: number,
 ): number {
-    const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
-    let factor = 1; // base: observed frame, µm
+	const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
+	let factor = 1; // base: observed frame, µm
 
-    if (unit === "Å") {
-        factor *= ANGSTROM_PER_MICRON;
-    }
-    if (frame === "rest") {
-        factor /= zFactor || 1;
-    }
+	if (unit === "Å") {
+		factor *= ANGSTROM_PER_MICRON;
+	}
+	if (frame === "rest") {
+		factor /= zFactor || 1;
+	}
 
-    return factor;
+	return factor;
 }
 
 /**
@@ -56,17 +56,16 @@ export function displayFactor(
  * @returns The converted display value.
  */
 export function toDisplayWavelength(
-    valueUm: number,
-    unit: WaveUnit,
-    frame: WaveFrame,
-    zRedshift: number,
+	valueUm: number,
+	unit: WaveUnit,
+	frame: WaveFrame,
+	zRedshift: number,
 ): number {
-    const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
-    const frameValueUm =
-        frame === "observe" ? valueUm : valueUm / (zFactor || 1);
+	const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
+	const frameValueUm = frame === "observe" ? valueUm : valueUm / (zFactor || 1);
 
-    if (unit === "µm") return frameValueUm;
-    return frameValueUm * ANGSTROM_PER_MICRON;
+	if (unit === "µm") return frameValueUm;
+	return frameValueUm * ANGSTROM_PER_MICRON;
 }
 
 /**
@@ -78,21 +77,21 @@ export function toDisplayWavelength(
  * @returns The converted observed-frame µm value.
  */
 export function fromDisplayWavelength(
-    displayValue: number,
-    unit: WaveUnit,
-    frame: WaveFrame,
-    zRedshift: number,
+	displayValue: number,
+	unit: WaveUnit,
+	frame: WaveFrame,
+	zRedshift: number,
 ): number {
-    const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
+	const zFactor = 1 + (Number.isFinite(zRedshift) ? zRedshift : 0);
 
-    let valueUmInFrame: number;
-    if (unit === "µm") {
-        valueUmInFrame = displayValue;
-    } else {
-        valueUmInFrame = displayValue / ANGSTROM_PER_MICRON;
-    }
+	let valueUmInFrame: number;
+	if (unit === "µm") {
+		valueUmInFrame = displayValue;
+	} else {
+		valueUmInFrame = displayValue / ANGSTROM_PER_MICRON;
+	}
 
-    return frame === "observe" ? valueUmInFrame : valueUmInFrame * (zFactor || 1);
+	return frame === "observe" ? valueUmInFrame : valueUmInFrame * (zFactor || 1);
 }
 
 /**
@@ -106,48 +105,51 @@ export function fromDisplayWavelength(
  * @returns The formatted wavelength string.
  */
 export function formatWavelength(
-    valueUm: number,
-    unit: WaveUnit,
-    frame: WaveFrame,
-    zRedshift: number,
-    digits: number = 4,
+	valueUm: number,
+	unit: WaveUnit,
+	frame: WaveFrame,
+	zRedshift: number,
+	digits: number = 4,
 ): string {
-    const v = toDisplayWavelength(valueUm, unit, frame, zRedshift);
-    if (unit === "µm") {
-        return `${v.toFixed(digits)} μm`;
-    }
-    return `${Math.round(v)} Å`;
+	const v = toDisplayWavelength(valueUm, unit, frame, zRedshift);
+	if (unit === "µm") {
+		return `${v.toFixed(digits)} μm`;
+	}
+	return `${Math.round(v)} Å`;
 }
 
 export function findNearestWavelengthIndex(
-    wavelengthArray: number[],
-    targetWavelength: number,
-): {index: number, wavelength: number} | null {
-    const n = wavelengthArray.length;
-    if (n === 0) return null;
+	wavelengthArray: number[],
+	targetWavelength: number,
+): { index: number; wavelength: number } | null {
+	const n = wavelengthArray.length;
+	if (n === 0) return null;
 
-    let left = 0;
-    let right = n - 1;
-    
-    while (left < right) {
-        const mid = (left + right) >> 1;
-        if (wavelengthArray[mid] < targetWavelength) {
-            left = mid + 1;
-        } else {
-            right = mid;
-        }
-    }
+	let left = 0;
+	let right = n - 1;
 
-    let nearestIndex = left;
-    let nearestValue = wavelengthArray[nearestIndex];
+	while (left < right) {
+		const mid = (left + right) >> 1;
+		if (wavelengthArray[mid] < targetWavelength) {
+			left = mid + 1;
+		} else {
+			right = mid;
+		}
+	}
 
-    if (nearestIndex > 0) {
-        const prevValue = wavelengthArray[nearestIndex - 1];
-        if (Math.abs(prevValue - targetWavelength) <= Math.abs(nearestValue - targetWavelength)) {
-            nearestIndex = nearestIndex - 1;
-            nearestValue = prevValue;
-        }
-    }
-    
-    return {index: nearestIndex, wavelength: nearestValue};
+	let nearestIndex = left;
+	let nearestValue = wavelengthArray[nearestIndex];
+
+	if (nearestIndex > 0) {
+		const prevValue = wavelengthArray[nearestIndex - 1];
+		if (
+			Math.abs(prevValue - targetWavelength) <=
+			Math.abs(nearestValue - targetWavelength)
+		) {
+			nearestIndex = nearestIndex - 1;
+			nearestValue = prevValue;
+		}
+	}
+
+	return { index: nearestIndex, wavelength: nearestValue };
 }
