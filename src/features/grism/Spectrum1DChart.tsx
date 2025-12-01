@@ -1,5 +1,5 @@
 import { Box } from "@chakra-ui/react";
-import { memo } from "react";
+import { memo, useEffect, useRef } from "react";
 import { scaleLinear, type ScaleLinear } from "d3-scale";
 import { AnimatedAxis } from "@visx/react-spring";
 import { Group } from "@visx/group";
@@ -16,6 +16,8 @@ import {
 import {
     type Bounds,
     type BrushHandleRenderProps,
+    type UpdateBrush,
+    type BaseBrushState,
     Brush,
 } from "@visx/brush";
 import { useGrismStore } from "@/stores/image";
@@ -24,6 +26,7 @@ import { getWavelengthSliceIndices } from "@/utils/extraction";
 import { useWavelengthDisplay } from "@/hook/transformation-hook";
 import { useFitStore, type FitGaussianModel, type FitLinearModel } from "@/stores/fit";
 import { sampleModel, sampleModelFromWave } from "@/utils/plot";
+import { extend } from "@pixi/react";
 
 type Anchor = {
     top: number;
@@ -754,8 +757,11 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
             setSlice1DWaveRange: state.setSlice1DWaveRange,
         }))
     );
+    const brushRef = useRef<any>(null);
+    const brushMoveRef = useRef<boolean>(false);
     const handleBrushChange = useCallback((domain: Bounds | null) => {
         if (!domain) return;
+        brushMoveRef.current = true;
         const { x0, x1 } = domain;
         const [xMin, xMax] = x0 < x1 ? [x0, x1] : [x1, x0];
         if (xMin === xMax) {
@@ -772,6 +778,27 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
         );
     }, [waveArray, slice1DWaveRange]);
 
+    useEffect(() => {
+        if (!brushRef?.current) return;
+        if (brushMoveRef.current) {
+            brushMoveRef.current = false;
+            return;
+        }
+        const updater: UpdateBrush = (prevBrush) => {
+            const newExtent = brushRef.current.getExtent(
+                { x: xScaleBrush(waveStartIndex >= 0 ? waveArray[waveStartIndex] : waveArray[0]),},
+                { x: xScaleBrush(waveEndIndex >= 0 ? waveArray[waveEndIndex] : waveArray[waveArray.length -1]),}
+            );
+            const newState: BaseBrushState = {
+                ...prevBrush,
+                start: { y: newExtent.y0, x: newExtent.x0 },
+                end: { y: newExtent.y1, x: newExtent.x1 },
+                extent: newExtent,
+            }
+            return newState;
+        };
+        brushRef.current.updateBrush(updater);
+    }, [waveStartIndex, waveEndIndex, waveArray, xScaleBrush]);
     // Slice spectrum 
     const chartHeightSlice = chartHeightBottom;
     const models = useFitStore((state) => state.models);
@@ -830,6 +857,7 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
                         yScale={yScaleBrush}
                         width={chartWidth}
                         height={chartHeightTop}
+                        innerRef={brushRef}
                         margin={{top: 0, bottom: 0, left: 0, right: 0}}
                         handleSize={8}
                         resizeTriggerAreas={["left", "right"]}

@@ -10,11 +10,12 @@ import {
     NumberInput,
     Separator,
     Stack,
+    Switch,
     Text,
     CheckboxCard,
 } from "@chakra-ui/react";
 import { LuTrash2 } from "react-icons/lu";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useState, useId } from "react";
 import { useShallow } from "zustand/react/shallow";
 
 import { Slider } from "@/components/ui/slider";
@@ -23,6 +24,7 @@ import { useGlobeStore } from "@/stores/footprints";
 import { useExtractSpectrum } from "@/hook/connection-hook";
 import { clamp } from "@/utils/projection";
 import { InfoTip } from "@/components/ui/toggle-tip";
+import { Tooltip } from "@/components/ui/tooltip";
 import GrismWavelengthControl from "@/features/grism/GrismWavelengthControl";
 import { useFitStore } from "@/stores/fit";
 import {
@@ -148,6 +150,7 @@ function RedshiftControls() {
 /* -------------------------------------------------------------------------- */
 
 function ExtractionControls() {
+    const switchId = useId();
     const {
         waveUnit,
         collapseWindow,
@@ -157,6 +160,8 @@ function ExtractionControls() {
         slice1DWaveRange,
         setSlice1DWaveRange,
         zRedshift,
+        showTraceOnSpectrum2D,
+        switchShowTraceOnSpectrum2D,
     } = useGrismStore(
         useShallow((state) => ({
             waveUnit: state.waveUnit,
@@ -167,6 +172,8 @@ function ExtractionControls() {
             slice1DWaveRange: state.slice1DWaveRange,
             setSlice1DWaveRange: state.setSlice1DWaveRange,
             zRedshift: state.zRedshift,
+            showTraceOnSpectrum2D: state.showTraceOnSpectrum2D,
+            switchShowTraceOnSpectrum2D: state.switchShowTraceOnSpectrum2D,
         })),
     );
 
@@ -320,6 +327,23 @@ function ExtractionControls() {
                         Extraction Settings
                     </Heading>
                     <InfoTip content="Run spectrum extraction first so that wavelength and spectrum_2d are available. The controls will be enabled after data is loaded." />
+                    <Tooltip 
+                        ids={{trigger: switchId}}
+                        content={showTraceOnSpectrum2D ? "Hide trace on 2D spectrum" : "Show trace on 2D spectrum"}
+                    >
+                        <Switch.Root
+                            ids ={{ root: switchId }}
+                            size="sm"
+                            checked={showTraceOnSpectrum2D}
+                            onCheckedChange={switchShowTraceOnSpectrum2D}
+                            colorPalette={"red"}
+                        >
+                            <Switch.HiddenInput />
+                            <Switch.Control>
+                                <Switch.Thumb />
+                            </Switch.Control>
+                        </Switch.Root>
+                    </Tooltip>
                 </HStack>
             </HStack>
 

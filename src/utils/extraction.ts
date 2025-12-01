@@ -15,21 +15,28 @@ export function getWavelengthSliceIndices(
     waveMax: number,
 ): { startIdx: number; endIdx: number } {
     const dataWidth = wavelength.length;
-    
+    if (dataWidth === 0) {
+        return { startIdx: 0, endIdx: -1 };
+    }
+    const { waveLow, waveHigh } = waveMin <= waveMax
+        ? { waveLow: waveMin, waveHigh: waveMax }
+        : { waveLow: waveMax, waveHigh: waveMin };
     const waveMinClamped = clamp(
-        waveMin,
+        waveLow,
         wavelength[0],
         wavelength[dataWidth - 1],
     );
     const waveMaxClamped = clamp(
-        waveMax,
+        waveHigh,
         wavelength[0],
         wavelength[dataWidth - 1],
     );
 
     const startIdx = wavelength.findIndex((wave) => wave >= waveMinClamped);
-    const endIdx =
-        wavelength.findIndex((wave) => wave > waveMaxClamped) - 1;
+    let endIdx = wavelength.findIndex((wave) => wave > waveMaxClamped) - 1;
+    if (endIdx < 0) {
+        endIdx = dataWidth - 1;
+    }
 
     return { startIdx, endIdx };
 }

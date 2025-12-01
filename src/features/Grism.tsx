@@ -10,7 +10,7 @@ export default function Grism() {
         { value: 'backward', title : 'Grism Backward', item: <div>Backward Placeholder</div>},
     ]
     return (
-        <Accordion.Root multiple defaultValue={['forward', 'backward']} lazyMount={true} unmountOnExit={true}>
+        <Accordion.Root multiple defaultValue={['forward', 'backward']}>
             {items.map((item, index) => (
                 <Accordion.Item 
                     key={index}

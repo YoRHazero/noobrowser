@@ -1,13 +1,18 @@
-import { Application } from "@pixi/react";
+import { Application, extend } from "@pixi/react";
 import { useRef } from "react";
 import Viewport from "@/components/pixi/Viewport";
 import { Box } from "@chakra-ui/react";
+import type { RenderLayerInstance } from "@/types/pixi-react";
+import { RenderLayer } from "pixi.js";
 
+extend({ RenderLayer });
 
 import GrismForwardImage from "@/features/grism/GrismForwardImage";
 import CollapseWindowLayer from "@/features/grism/CollapseWindowLayer";
 export default function GrismForwardCanvas() {
     const parentRef = useRef<HTMLDivElement | null>(null);
+    const imageLayerRef = useRef<RenderLayerInstance | null>(null);
+    const helperLayerRef = useRef<RenderLayerInstance | null>(null);
     return (
         <Box
             ref={parentRef}
@@ -23,8 +28,11 @@ export default function GrismForwardCanvas() {
                 autoDensity={true}
             >
                 <Viewport passiveWheel={false}>
-                    <GrismForwardImage />
-                    <CollapseWindowLayer layerRef={useRef(null)} />
+                    <pixiRenderLayer ref={imageLayerRef} />
+                    <pixiRenderLayer ref={helperLayerRef} />
+
+                    <GrismForwardImage layerRef={imageLayerRef} />
+                    <CollapseWindowLayer layerRef={helperLayerRef} />
                 </Viewport>
             </Application>
         </Box>

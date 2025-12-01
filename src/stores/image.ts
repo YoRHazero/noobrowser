@@ -66,6 +66,7 @@ interface GrismState {
     collapseWindow: CollapseWindow;
     emissionLines: Record<string, number>;
     selectedEmissionLines: Record<string, number>;
+    showTraceOnSpectrum2D: boolean;
     setWaveUnit: (unit: WaveUnit) => void;
     setApertureSize: (size: number) => void;
     setZRedshift: (z: number) => void;
@@ -77,6 +78,7 @@ interface GrismState {
     addEmissionLine: (name: string, wavelength: number) => void;
     removeEmissionLine: (name: string) => void;
     setSelectedEmissionLines: (lines: Record<string, number>) => void;
+    switchShowTraceOnSpectrum2D: () => void;
 }
 
 export const useGrismStore = create<GrismState>()(
@@ -102,6 +104,7 @@ export const useGrismStore = create<GrismState>()(
                 "Paβ": 1.2818,
             },
             selectedEmissionLines: {},
+            showTraceOnSpectrum2D: true,
             setWaveUnit: (unit) => set({ waveUnit: unit }),
             setApertureSize: (size) => set({ apertureSize: size }),
             setZRedshift: (z) => set({ zRedshift: z }),
@@ -139,7 +142,9 @@ export const useGrismStore = create<GrismState>()(
                 });
             },
             setSelectedEmissionLines: (lines) => set({ selectedEmissionLines: lines }),
+            switchShowTraceOnSpectrum2D: () => set((state) => ({ showTraceOnSpectrum2D: !state.showTraceOnSpectrum2D })),
         }),
+
         {
             name: 'emission-lines-storage',
             storage: createJSONStorage(() => localStorage),

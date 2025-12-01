@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef } from "react";
 import { extend } from "@pixi/react";
 import { 
     Sprite,
     Texture,
 } from "pixi.js";
+import type { RenderLayerInstance } from "@/types/pixi-react";
 import {
     useGlobeStore
 } from "@/stores/footprints";
@@ -15,20 +16,32 @@ import textureFromData from "@/utils/plot";
 
 extend({ Sprite });
 
-export default function GrismForwardImage() {
+export default function GrismForwardImage(
+    { layerRef }:
+    { layerRef: React.RefObject<RenderLayerInstance | null> }
+) {
+    const spriteRef = useRef<Sprite | null>(null);
+    useEffect(() => {
+        if (!layerRef) return;
+        const layer = layerRef.current;
+        const node = spriteRef.current;
+        if (!layer || !node) return;
+        console.log("Attaching node to layer", node, layer);
+        layer.attach(node);
+        return () => { layer.detach(node); };
+    }, [layerRef, spriteRef]);
+
     const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
     const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
     const {
         forwardWaveRange,
         apertureSize,
         grismNorm,
-        setCollapseWindow,
     } = useGrismStore(
         useShallow((state) => ({
             apertureSize: state.apertureSize,
             forwardWaveRange: state.forwardWaveRange,
             grismNorm: state.grismNorm,
-            setCollapseWindow: state.setCollapseWindow,
         }))
     );
     const {data: extractSpectrumData} = useExtractSpectrum({
@@ -51,13 +64,6 @@ export default function GrismForwardImage() {
             return;
         }
         const sorted = sort2DArray(extractSpectrumData.spectrum_2d);
-        const wavelength = extractSpectrumData.wavelength;
-        setCollapseWindow({
-            waveMin: wavelength[0],
-            waveMax: wavelength[wavelength.length - 1],
-            spatialMin: 0,
-            spatialMax: extractSpectrumData.spectrum_2d.length - 1,
-        });
         setSortedSpec2D(sorted);
     }, [extractSpectrumData]);
 
@@ -93,6 +99,7 @@ export default function GrismForwardImage() {
     return (
         grismTexture !== Texture.EMPTY && (
             <pixiSprite
+                ref={spriteRef}
                 texture={grismTexture}
                 anchor={0}
                 x={0}
