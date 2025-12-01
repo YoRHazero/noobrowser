@@ -268,12 +268,14 @@ function ExtractionParameters() {
 		setApertureSize,
 		forwardWaveRange,
 		setForwardWaveRange,
+		setCollapseWindow,
 	} = useGrismStore(
 		useShallow((state) => ({
 			apertureSize: state.apertureSize,
 			setApertureSize: state.setApertureSize,
 			forwardWaveRange: state.forwardWaveRange,
 			setForwardWaveRange: state.setForwardWaveRange,
+			setCollapseWindow: state.setCollapseWindow,
 		})),
 	);
 	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
@@ -305,6 +307,14 @@ function ExtractionParameters() {
 	useEffect(() => {
 		if (extractSpectrumData) {
 			if (extractSpectrumData.covered) {
+				const waveArray = extractSpectrumData.wavelength;
+				const spectrum2D = extractSpectrumData.spectrum_2d;
+				setCollapseWindow({
+					waveMin: waveArray[0],
+					waveMax: waveArray[waveArray.length - 1],
+					spatialMin: 0,
+					spatialMax: spectrum2D.length - 1,
+				});
 				queueMicrotask(() => {
 					toaster.success({
 						title: "Extracted spectrum retrieved",
@@ -319,7 +329,7 @@ function ExtractionParameters() {
 				});
 			}
 		}
-	}, [extractSpectrumData]);
+	}, [extractSpectrumData, setCollapseWindow]);
 	return (
 		<Stack gap={3}>
 			<Heading size="sm" as="h3">

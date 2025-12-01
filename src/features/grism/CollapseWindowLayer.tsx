@@ -61,18 +61,7 @@ export default function CollapseWindowLayer({
 		enabled: false,
 	});
 	const waveArray = extractSpectrumData?.wavelength || [];
-	// Update collapse window when extractSpectrumData changes
-	useEffect(() => {
-		if (!extractSpectrumData) return;
-		setCollapseWindow({
-			waveMin: waveArray[0],
-			waveMax: waveArray[waveArray.length - 1],
-			spatialMin: 0,
-			spatialMax: extractSpectrumData.spectrum_2d.length - 1,
-		});
-	}, [extractSpectrumData, setCollapseWindow, waveArray.length, waveArray[0]]);
-
-	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;
+	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;	
 	const { startIdx, endIdx } = getWavelengthSliceIndices(
 		waveArray,
 		waveMin,

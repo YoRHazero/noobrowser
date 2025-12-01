@@ -90,8 +90,8 @@ export default function GlobeViewport({
 		lastMousePos.current = null;
 
 		if (app?.renderer) {
-			app.renderer.events.cursorStyles.default = "default";
-			app.renderer.events.setCursor("default");
+			app.renderer.events.cursorStyles.default = "grab";
+			app.renderer.events.setCursor("grab");
 		}
 	}, [app]);
 
