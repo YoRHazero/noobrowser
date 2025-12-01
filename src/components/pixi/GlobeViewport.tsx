@@ -110,7 +110,7 @@ export default function GlobeViewport({
 			const currentScale = viewRef.current.scale;
 			setView({
 				yawDeg: wrapDeg180(
-					viewRef.current.yawDeg + (dx * SENSITIVITY) / currentScale,
+					viewRef.current.yawDeg - (dx * SENSITIVITY) / currentScale,
 				),
 				pitchDeg: clamp(
 					viewRef.current.pitchDeg + (dy * SENSITIVITY) / currentScale,
