@@ -28,14 +28,12 @@ export default function CollapseWindowLayer({
 		apertureSize,
 		collapseWindow,
 		showTraceOnSpectrum2D,
-		setCollapseWindow,
 	} = useGrismStore(
 		useShallow((state) => ({
 			forwardWaveRange: state.forwardWaveRange,
 			apertureSize: state.apertureSize,
 			collapseWindow: state.collapseWindow,
 			showTraceOnSpectrum2D: state.showTraceOnSpectrum2D,
-			setCollapseWindow: state.setCollapseWindow,
 		})),
 	);
 	// Attach to the RenderLayer

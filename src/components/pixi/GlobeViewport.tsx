@@ -60,7 +60,7 @@ export default function GlobeViewport({
 		const deltaYaw = (velocity.current.vx / currentScale) * delta;
 		const deltaPitch = (velocity.current.vy / currentScale) * delta;
 
-		const newYaw = wrapDeg180(viewRef.current.yawDeg - deltaYaw);
+		const newYaw = wrapDeg180(viewRef.current.yawDeg + deltaYaw);
 		const newPitch = clamp(viewRef.current.pitchDeg - deltaPitch, -89.5, 89.5);
 
 		setView({ yawDeg: newYaw, pitchDeg: newPitch });

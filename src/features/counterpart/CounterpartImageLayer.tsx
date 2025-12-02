@@ -72,7 +72,7 @@ export default function CounterpartImageLayer({
 					parser: "texture",
 				});
 				if (canceled) {
-					texture.destroy(true);
+					Assets.unload(imageUrl);
 					return;
 				}
 				setCounterpartTexture(texture);
@@ -82,19 +82,13 @@ export default function CounterpartImageLayer({
 		})();
 		return () => {
 			canceled = true;
+			Assets.unload(imageUrl);
 		};
 	}, [
 		counterpartImageQuery.isSuccess,
 		counterpartImageQuery.data,
 	]);
-
-	useEffect(() => {
-		if (counterpartTexture === Texture.EMPTY) return;
-		return () => {
-			counterpartTexture.destroy(true);
-		};
-	}, [counterpartTexture]);
-
+	
 	// Attach to the RenderLayer
 	const spriteRef = useRef<Sprite | null>(null);
 	useEffect(() => {
