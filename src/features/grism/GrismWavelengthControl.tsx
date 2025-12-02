@@ -4,9 +4,9 @@
 import { HStack, SegmentGroup, Stack, Text } from "@chakra-ui/react";
 import { useShallow } from "zustand/react/shallow";
 
-import { useFitStore, type WaveFrame } from "@/stores/fit";
-import type { WaveUnit } from "@/stores/image";
+import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
+import type { WaveFrame, WaveUnit } from "@/stores/stores-types";
 
 export default function GrismWavelengthControl() {
 	const { waveFrame, setWaveFrame } = useFitStore(

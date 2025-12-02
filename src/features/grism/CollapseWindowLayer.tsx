@@ -59,7 +59,7 @@ export default function CollapseWindowLayer({
 		enabled: false,
 	});
 	const waveArray = extractSpectrumData?.wavelength || [];
-	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;	
+	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;
 	const { startIdx, endIdx } = getWavelengthSliceIndices(
 		waveArray,
 		waveMin,

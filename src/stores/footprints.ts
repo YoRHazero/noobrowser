@@ -1,34 +1,12 @@
 import { create } from "zustand";
+import type {
+	BackgroundState,
+	Footprint,
+	GridState,
+	ViewState,
+	XY,
+} from "@/stores/stores-types";
 import { clamp, wrapDeg360 } from "@/utils/projection";
-
-export type RaDec = {
-	ra: number;
-	dec: number;
-};
-
-export type Footprint = {
-	id: string;
-	vertices: RaDec[];
-	meta?: Record<string, any>;
-};
-
-type ViewState = {
-	yawDeg: number;
-	pitchDeg: number;
-	scale: number;
-};
-
-type BackgroundState = {
-	centerX: number;
-	centerY: number;
-	initialRadius: number;
-};
-
-type GridState = {
-	showGrid: boolean;
-	meridianStep: number;
-	parallelStep: number;
-};
 
 interface GlobeState {
 	footprints: Footprint[];
@@ -36,16 +14,14 @@ interface GlobeState {
 	globeBackground: BackgroundState;
 	globeGrid: GridState;
 	hoveredFootprintId: string | null;
-	hoveredFootprintMousePosition: { x: number; y: number } | null;
+	hoveredFootprintMousePosition: XY | null;
 	selectedFootprintId: string | null;
 	setView: (patch: Partial<ViewState>) => void;
 	setGlobeBackground: (background: BackgroundState) => void;
 	setGlobeGrid: (patch: Partial<GridState>) => void;
 	setFootprints: (footprints: Footprint[]) => void;
 	setHoveredFootprintId: (id: string | null) => void;
-	setHoveredFootprintMousePosition: (
-		position: { x: number; y: number } | null,
-	) => void;
+	setHoveredFootprintMousePosition: (position: XY | null) => void;
 	setSelectedFootprintId: (id: string | null) => void;
 	setFootprintMeta: (id: string, key: string, value: any) => void;
 }

@@ -24,11 +24,8 @@ import {
 	useWorldCoordinates,
 } from "@/hook/connection-hook";
 import { useGlobeStore } from "@/stores/footprints";
-import {
-	type CutoutParams,
-	useCounterpartStore,
-	useGrismStore,
-} from "@/stores/image";
+import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import type { CutoutParams } from "@/stores/stores-types.js";
 import { clamp } from "@/utils/projection";
 
 export default function CutoutPanel() {

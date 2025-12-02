@@ -29,15 +29,16 @@ import { useShallow } from "zustand/react/shallow";
 import { TabbedColorPicker } from "@/components/ui/color-chooser";
 import { Tooltip } from "@/components/ui/tooltip";
 import GrismWavelengthControl from "@/features/grism/GrismWavelengthControl";
-import {
-	type FitGaussianModel,
-	type FitLinearModel,
-	type FitModel,
-	type FitModelType,
-	useFitStore,
-	type WaveFrame,
-} from "@/stores/fit";
+import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
+import type {
+	FitGaussianModel,
+	FitLinearModel,
+	FitModel,
+	FitModelType,
+	WaveFrame,
+	WaveUnit,
+} from "@/stores/stores-types";
 import {
 	ANGSTROM_PER_MICRON,
 	displayFactor,
@@ -46,7 +47,6 @@ import {
 	SPEED_OF_LIGHT_KM_S,
 	toDisplayWavelength,
 	toInputValue,
-	type WaveUnit,
 } from "@/utils/wavelength";
 
 const modelTypeCollection = createListCollection({

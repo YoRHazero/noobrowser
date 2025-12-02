@@ -7,7 +7,8 @@ import {
 } from "pixi.js";
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { type Footprint, useGlobeStore } from "@/stores/footprints";
+import { useGlobeStore } from "@/stores/footprints";
+import type { Footprint } from "@/stores/stores-types";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { projectRaDec, toScreen } from "@/utils/projection";
 

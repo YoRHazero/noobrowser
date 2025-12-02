@@ -1,6 +1,5 @@
 // utils/wavelength.ts
-import type { WaveFrame } from "@/stores/fit";
-import type { WaveUnit } from "@/stores/image";
+import type { WaveFrame, WaveUnit } from "@/stores/stores-types";
 
 export type { WaveUnit, WaveFrame };
 export const ANGSTROM_PER_MICRON = 1e4;

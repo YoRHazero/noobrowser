@@ -11,7 +11,8 @@ import {
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGlobeAnimation } from "@/hook/animation-hook";
-import { type Footprint, useGlobeStore } from "@/stores/footprints";
+import { useGlobeStore } from "@/stores/footprints";
+import type { Footprint } from "@/stores/stores-types";
 import { centerRaDecToView } from "@/utils/projection";
 
 type Rows = {

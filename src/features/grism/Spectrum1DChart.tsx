@@ -15,12 +15,9 @@ import { type ScaleLinear, scaleLinear } from "d3-scale";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useWavelengthDisplay } from "@/hook/transformation-hook";
-import {
-	type FitGaussianModel,
-	type FitLinearModel,
-	useFitStore,
-} from "@/stores/fit";
+import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
+import type { FitGaussianModel, FitLinearModel } from "@/stores/stores-types";
 import type { Spectrum1D } from "@/utils/extraction";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
 import { sampleModel, sampleModelFromWave } from "@/utils/plot";
@@ -60,8 +57,7 @@ interface Spectrum1DSliceChartProps {
 const Spectrum1DSliceChart = memo(function Spectrum1DSliceChart(
 	props: Spectrum1DSliceChartProps,
 ) {
-	const { spectrum1D, xScale, yScale, height, anchor, label, children } =
-		props;
+	const { spectrum1D, xScale, yScale, height, anchor, label, children } = props;
 	const { label: defaultBottomLabel, formatter } = useWavelengthDisplay();
 
 	return (

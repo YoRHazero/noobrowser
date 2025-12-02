@@ -175,9 +175,10 @@ export default function textureFromData({
 	return textureFromGrayscaleData(byteData, width, height);
 }
 
-/****** 1D Plot Utils ******/
-
-import type { FitModel } from "@/stores/fit";
+/* -------------------------------------------------------------------------- */
+/*                                1D Plot Utils                               */
+/* -------------------------------------------------------------------------- */
+import type { FitModel } from "@/stores/stores-types";
 
 export function sampleModel(
 	model: FitModel,

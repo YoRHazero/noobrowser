@@ -1,41 +1,25 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
-
-export type CutoutParams = {
-	cutoutPmin: number;
-	cutoutPmax: number;
-	x0: number;
-	y0: number;
-	width: number;
-	height: number;
-};
-
-export type CounterpartPosition = {
-	x0: number;
-	y0: number;
-	width: number;
-	height: number;
-};
-
-export type WaveUnit = "µm" | "Å";
-
-export type CollapseWindow = {
-	waveMin: number;
-	waveMax: number;
-	spatialMin: number;
-	spatialMax: number;
-};
+import type {
+	CollapseWindow,
+	CounterpartPosition,
+	CutoutParams,
+	NormParams,
+	rgbSet,
+	WaveUnit,
+	waveRange,
+} from "./stores-types.js";
 
 interface CounterpartState {
 	availableFilters: string[];
-	filterRGB: { r: string; g: string; b: string };
-	normParams: { pmin: number; pmax: number };
+	filterRGB: rgbSet;
+	normParams: NormParams;
 	cutoutParams: CutoutParams;
 	counterpartPosition: CounterpartPosition;
 	showCutout: boolean;
 	setAvailableFilters: (filters: string[]) => void;
-	setFilterRGB: (patch: Partial<{ r: string; g: string; b: string }>) => void;
-	setNormParams: (params: { pmin: number; pmax: number }) => void;
+	setFilterRGB: (patch: Partial<rgbSet>) => void;
+	setNormParams: (params: Partial<NormParams>) => void;
 	setCounterpartPosition: (patch: Partial<CounterpartPosition>) => void;
 	setCutoutParams: (patch: Partial<CutoutParams>) => void;
 	setShowCutout: (show: boolean) => void;
@@ -58,7 +42,8 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 	setAvailableFilters: (filters) => set({ availableFilters: filters }),
 	setFilterRGB: (patch) =>
 		set((state) => ({ filterRGB: { ...state.filterRGB, ...patch } })),
-	setNormParams: (params) => set({ normParams: params }),
+	setNormParams: (patch) =>
+		set((state) => ({ normParams: { ...state.normParams, ...patch } })),
 	setCounterpartPosition: (patch) =>
 		set((state) => ({
 			counterpartPosition: { ...state.counterpartPosition, ...patch },
@@ -72,9 +57,9 @@ interface GrismState {
 	waveUnit: WaveUnit;
 	apertureSize: number;
 	zRedshift: number;
-	grismNorm: { pmin: number; pmax: number };
-	forwardWaveRange: { min: number; max: number };
-	slice1DWaveRange: { min: number; max: number };
+	grismNorm: NormParams;
+	forwardWaveRange: waveRange;
+	slice1DWaveRange: waveRange;
 	collapseWindow: CollapseWindow;
 	emissionLines: Record<string, number>;
 	selectedEmissionLines: Record<string, number>;
@@ -82,9 +67,9 @@ interface GrismState {
 	setWaveUnit: (unit: WaveUnit) => void;
 	setApertureSize: (size: number) => void;
 	setZRedshift: (z: number) => void;
-	setGrismNorm: (patch: Partial<{ pmin: number; pmax: number }>) => void;
-	setForwardWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
-	setSlice1DWaveRange: (patch: Partial<{ min: number; max: number }>) => void;
+	setGrismNorm: (patch: Partial<NormParams>) => void;
+	setForwardWaveRange: (patch: Partial<waveRange>) => void;
+	setSlice1DWaveRange: (patch: Partial<waveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
 	setEmissionLines: (lines: Record<string, number>) => void;
 	addEmissionLine: (name: string, wavelength: number) => void;

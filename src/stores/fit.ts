@@ -1,41 +1,14 @@
 // stores/fit.ts
 import { create } from "zustand";
 import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
-
-export type WaveFrame = "observe" | "rest";
-
-export type FitModelType = "linear" | "gaussian";
-
-type FitRange = {
-	min: number; // observed frame, µm
-	max: number; // observed frame, µm
-};
-
-interface BaseFitModel {
-	id: number; // 1-based index over all models (linear first, then gaussian)
-	kind: FitModelType;
-	name: string;
-	active: boolean;
-	subtracted: boolean; // whether subtract this model from the spectrum in slice view
-	range: FitRange; // observed frame, µm
-	color: string; // Hex color code
-}
-
-export interface FitLinearModel extends BaseFitModel {
-	kind: "linear";
-	k: number;
-	b: number;
-	x0: number; // observed frame, µm
-}
-
-export interface FitGaussianModel extends BaseFitModel {
-	kind: "gaussian";
-	amplitude: number;
-	mu: number; // observed frame, µm
-	sigma: number; // observed frame, µm
-}
-
-export type FitModel = FitLinearModel | FitGaussianModel;
+import type {
+	FitGaussianModel,
+	FitLinearModel,
+	FitModel,
+	FitModelType,
+	FitRange,
+	WaveFrame,
+} from "./stores-types";
 
 export interface FitState {
 	waveFrame: WaveFrame;

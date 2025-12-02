@@ -1,5 +1,5 @@
 import type { ExtractedSpectrum } from "@/hook/connection-hook";
-import type { CollapseWindow } from "@/stores/image";
+import type { CollapseWindow } from "@/stores/stores-types";
 import { clamp } from "@/utils/projection";
 export type { CollapseWindow };
 export type Spectrum1D = {

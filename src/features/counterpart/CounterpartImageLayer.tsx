@@ -84,11 +84,8 @@ export default function CounterpartImageLayer({
 			canceled = true;
 			Assets.unload(imageUrl);
 		};
-	}, [
-		counterpartImageQuery.isSuccess,
-		counterpartImageQuery.data,
-	]);
-	
+	}, [counterpartImageQuery.isSuccess, counterpartImageQuery.data]);
+
 	// Attach to the RenderLayer
 	const spriteRef = useRef<Sprite | null>(null);
 	useEffect(() => {
