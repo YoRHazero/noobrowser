@@ -14,6 +14,7 @@
     "build:gh": "vite build --base=/noobrowser/ && tsc",
     "predeploy": "npm run build:gh",
     "deploy": "gh-pages -d dist",
+    "tauri": "tauri",
     "tauri:dev": "tauri dev",
     "tauri:build": "tauri build"
   },
