@@ -10,6 +10,7 @@ import {
 	Stack,
 } from "@chakra-ui/react";
 import { useEffect, useMemo } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { NormPercentageInput } from "@/components/ui/custom-component";
 import { toaster } from "@/components/ui/toaster";
 import {
@@ -83,11 +84,20 @@ export default function CounterpartPanel() {
 	const {
 		availableFilters,
 		filterRGB,
-		normParams,
+		counterpartNorm,
 		setAvailableFilters,
 		setFilterRGB,
-		setNormParams,
-	} = useCounterpartStore();
+		setCounterpartNorm,
+	} = useCounterpartStore(
+		useShallow((state) => ({
+			availableFilters: state.availableFilters,
+			filterRGB: state.filterRGB,
+			counterpartNorm: state.counterpartNorm,
+			setAvailableFilters: state.setAvailableFilters,
+			setFilterRGB: state.setFilterRGB,
+			setCounterpartNorm: state.setCounterpartNorm,
+		})),
+	);
 
 	const filterCollection = useMemo(
 		() =>
@@ -125,7 +135,7 @@ export default function CounterpartPanel() {
 	} = useCounterpartImage({
 		selectedFootprintId,
 		filter: filterRGB.r,
-		normParams,
+		normParams: counterpartNorm,
 	});
 	useEffect(() => {
 		if (isFootprintError && footprintError) {
@@ -161,14 +171,14 @@ export default function CounterpartPanel() {
 
 	/* normalization parameters */
 	const handleNormPminChange = (next: number) => {
-		const maxAllowedPmin = normParams.pmax - 5;
+		const maxAllowedPmin = counterpartNorm.pmax - 5;
 		const clampedValue = clamp(next, 0, maxAllowedPmin);
-		setNormParams({ ...normParams, pmin: clampedValue });
+		setCounterpartNorm({ ...counterpartNorm, pmin: clampedValue });
 	};
 	const handleNormPmaxChange = (next: number) => {
-		const minAllowedPmax = normParams.pmin + 5;
+		const minAllowedPmax = counterpartNorm.pmin + 5;
 		const clampedValue = clamp(next, minAllowedPmax, 100);
-		setNormParams({ ...normParams, pmax: clampedValue });
+		setCounterpartNorm({ ...counterpartNorm, pmax: clampedValue });
 	};
 
 	return (
@@ -206,13 +216,13 @@ export default function CounterpartPanel() {
 					<HStack gap={4} align={"flex-end"}>
 						<NormPercentageInput
 							label="Pmin (%)"
-							value={normParams.pmin}
+							value={counterpartNorm.pmin}
 							onValueChange={handleNormPminChange}
 							width={numberInputWidth}
 						/>
 						<NormPercentageInput
 							label="Pmax (%)"
-							value={normParams.pmax}
+							value={counterpartNorm.pmax}
 							onValueChange={handleNormPmaxChange}
 							width={numberInputWidth}
 						/>

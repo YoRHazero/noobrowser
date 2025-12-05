@@ -88,7 +88,7 @@ function NormPercentageInput({
 	label: string;
 	value: number;
 	onValueChange: (value: number) => void;
-	width: string;
+	width?: string;
 	orientation?: "horizontal" | "vertical";
 }) {
 	return (
@@ -105,7 +105,7 @@ function NormPercentageInput({
 						onValueChange(val);
 					}
 				}}
-				width={width}
+				width={width ?? "100%"}
 			>
 				<NumberInput.Control>
 					<NumberInput.IncrementTrigger />

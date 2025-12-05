@@ -49,37 +49,105 @@ export function percentileFromSortedArray(
 	return Array.isArray(p) ? results : results[0];
 }
 
+/** Finds the percentile rank of a value in a sorted array.
+ * @param sortedArr - The sorted array of numbers.
+ * @param value - The value to find the percentile rank for.
+ * @param excludeZero - Whether to exclude zero values from the computation.
+ * @returns The percentile rank (0-100) or null if the array is empty after exclusions.
+ */
+export function findPercentileInSortedArray(
+	sortedArr: number[],
+	value: number,
+	excludeZero = true,
+): number | undefined {
+	const baseArr = excludeZero ? sortedArr.filter((v) => v !== 0) : sortedArr;
+	const n = baseArr.length;
+
+	if (n === 0) {
+		return;
+	}
+
+	let lowerIndex = 0;
+	let upperIndex = n - 1;
+
+	while (lowerIndex <= upperIndex) {
+		const midIndex = Math.floor((lowerIndex + upperIndex) / 2);
+		const midValue = baseArr[midIndex];
+
+		if (midValue === value) {
+			lowerIndex = midIndex;
+			break;
+		} else if (midValue < value) {
+			lowerIndex = midIndex + 1;
+		} else {
+			upperIndex = midIndex - 1;
+		}
+	}
+
+	if (lowerIndex === 0) {
+		return 0;
+	}
+	if (lowerIndex >= n) {
+		return 100;
+	}
+
+	const lowerValue = baseArr[lowerIndex - 1];
+	const upperValue = baseArr[lowerIndex];
+
+	if (upperValue === lowerValue) {
+		return ((lowerIndex - 1) / (n - 1)) * 100;
+	}
+
+	const weight = (value - lowerValue) / (upperValue - lowerValue);
+	const rank = (lowerIndex - 1 + weight) / (n - 1);
+	return rank * 100;
+}
+
 /** Normalizes a 2D array based on percentile values.
  * @param arr - The 2D array to normalize.
- * @param pmin - The minimum percentile (0-100).
- * @param pmax - The maximum percentile (0-100).
  * @param sortedArray - An optional pre-sorted flat array for performance.
  * @param excludeZero - Whether to exclude zero values from the normalization.
+ * @param norm - Normalization parameters: pmin, pmax, vmin, vmax. 
+ * If vmin/vmax are provided, they take precedence over pmin/pmax.
  * @returns The normalized 2D array with values between 0 and 1.
  */
 export function normalize2D(
 	arr: number[][],
-	pmin: number,
-	pmax: number,
 	sortedArray: number[] = [],
 	excludeZero: boolean = true,
+	norm: {
+		pmin?: number;
+		pmax?: number;
+		vmin?: number;
+		vmax?: number;
+	}
 ): number[][] {
 	const sorted = sortedArray ?? sort2DArray(arr);
-	const [vmin, vmax] = percentileFromSortedArray(
+	const { pmin, pmax, vmin, vmax } = norm;
+	// Throw error if both pmin/vmin or pmax/vmax are not provided
+	if ((pmin === undefined && vmin === undefined) || (pmax === undefined && vmax === undefined)) {
+		throw new Error("Either pmin/vmin or pmax/vmax must be provided for normalization.");
+	}
+	const finalVmin = vmin ?? percentileFromSortedArray(
 		sorted,
-		[pmin, pmax],
+		pmin ?? 0, // 0 will never be used since we checked above, just to satisfy TS
 		excludeZero,
-	) as number[];
+	) as number;
+	const finalVmax = vmax ?? percentileFromSortedArray(
+		sorted,
+		pmax ?? 100, // 100 will never be used since we checked above, just to satisfy TS
+		excludeZero,
+	) as number;
 
-	if (vmax <= vmin) {
+	if (finalVmax <= finalVmin) {
 		return arr.map((row) => row.map(() => 0));
 	}
 
-	const invRange = 1 / (vmax - vmin);
+	const invRange = 1 / (finalVmax - finalVmin);
 
 	const normalized: number[][] = arr.map((row) =>
 		row.map((value) => {
-			const t = (value - vmin) * invRange;
+			const t = (value - finalVmin) * invRange;
 			return clamp(t, 0, 1);
 		}),
 	);
@@ -145,14 +213,18 @@ export default function textureFromData({
 	data,
 	pmin,
 	pmax,
+	vmin,
+	vmax,
 	width = null,
 	height = null,
 	sortedArray = [],
 	excludeZero = true,
 }: {
 	data: number[][];
-	pmin: number;
-	pmax: number;
+	pmin?: number;
+	pmax?: number;
+	vmin?: number;
+	vmax?: number;
 	width?: number | null;
 	height?: number | null;
 	sortedArray?: number[];
@@ -166,10 +238,9 @@ export default function textureFromData({
 	}
 	const normalizedData = normalize2D(
 		data,
-		pmin,
-		pmax,
 		sortedArray,
 		excludeZero,
+		{ pmin, pmax, vmin, vmax },
 	);
 	const byteData = scaleToByte(normalizedData);
 	return textureFromGrayscaleData(byteData, width, height);

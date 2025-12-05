@@ -20,12 +20,12 @@ export default function CounterpartImageLayer({
 }: {
 	layerRef: React.RefObject<RenderLayerInstance | null>;
 }) {
-	const { counterpartPosition, setCounterpartPosition, normParams, filterRGB } =
+	const { counterpartPosition, setCounterpartPosition, counterpartNorm, filterRGB } =
 		useCounterpartStore(
 			useShallow((state) => ({
 				counterpartPosition: state.counterpartPosition,
 				setCounterpartPosition: state.setCounterpartPosition,
-				normParams: state.normParams,
+				counterpartNorm: state.counterpartNorm,
 				filterRGB: state.filterRGB,
 			})),
 		);
@@ -54,7 +54,7 @@ export default function CounterpartImageLayer({
 	const counterpartImageQuery = useCounterpartImage({
 		selectedFootprintId,
 		filter: filterRed,
-		normParams,
+		normParams: counterpartNorm,
 	});
 	const [counterpartTexture, setCounterpartTexture] = useState<Texture>(
 		Texture.EMPTY,

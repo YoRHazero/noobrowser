@@ -28,8 +28,8 @@ export interface FitState {
 	) => void;
 	removeModel: (id: number) => void;
 	renameModel: (id: number, name: string) => void;
+	validateModel: () => void;
 	toggleActive: (id: number, active: boolean) => void;
-
 	filterModel: (predicate: (model: FitModel) => boolean) => FitModel[];
 	filterGaussianModel: () => FitGaussianModel[];
 	filterLinearModel: () => FitLinearModel[];
@@ -146,7 +146,7 @@ export const useFitStore = create<FitState>()((set, get) => ({
 				subtracted: false,
 				amplitude: 0,
 				mu: center,
-				sigma: 0.0001, // 0.0001 µm = 1 Å
+				sigma: 0.0005, // 0.0005 µm = 5 Å
 				range: r,
 				color: DEFAULT_COLOR,
 			};
@@ -196,6 +196,19 @@ export const useFitStore = create<FitState>()((set, get) => ({
 				model.id === id ? { ...model, name } : model,
 			),
 		})),
+
+	validateModel: () => {
+		// Validate Gaussian sigma > 0
+		set((state) => ({
+			models: state.models.map((model) => {
+				if (model.kind === "gaussian") {
+					const sigma = Math.abs(model.sigma);
+					return { ...model, sigma };
+				}
+				return model;
+			}),
+		}));
+	},
 
 	toggleActive: (id, active) =>
 		set((state) => ({

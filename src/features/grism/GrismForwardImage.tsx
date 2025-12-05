@@ -16,27 +16,17 @@ export default function GrismForwardImage({
 	layerRef: React.RefObject<RenderLayerInstance | null>;
 }) {
 	const spriteRef = useRef<Sprite | null>(null);
-	useEffect(() => {
-		if (!layerRef) return;
-		const layer = layerRef.current;
-		const node = spriteRef.current;
-		if (!layer || !node) return;
-		console.log("Attaching node to layer", node, layer);
-		layer.attach(node);
-		return () => {
-			layer.detach(node);
-		};
-	}, [layerRef]);
-
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
 	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
-	const { forwardWaveRange, apertureSize, grismNorm } = useGrismStore(
+	const { forwardWaveRange, apertureSize, grismNorm, extractedSpecSortedArray, setExtractedSpecSortedArray } = useGrismStore(
 		useShallow((state) => ({
 			apertureSize: state.apertureSize,
 			forwardWaveRange: state.forwardWaveRange,
 			grismNorm: state.grismNorm,
+			extractedSpecSortedArray: state.extractedSpecSortedArray,
+			setExtractedSpecSortedArray: state.setExtractedSpecSortedArray,
 		})),
 	);
 	const { data: extractSpectrumData } = useExtractSpectrum({
@@ -48,28 +38,27 @@ export default function GrismForwardImage({
 		enabled: false,
 	});
 
-	const [sortedSpec2D, setSortedSpec2D] = useState<number[] | null>(null);
 	useEffect(() => {
 		if (!extractSpectrumData) {
-			setSortedSpec2D(null);
+			setExtractedSpecSortedArray(null);
 			return;
 		}
 		if (!extractSpectrumData.covered) {
-			setSortedSpec2D(null);
+			setExtractedSpecSortedArray(null);
 			return;
 		}
 		const sorted = sort2DArray(extractSpectrumData.spectrum_2d);
-		setSortedSpec2D(sorted);
+		setExtractedSpecSortedArray(sorted);
 	}, [extractSpectrumData]);
 
 	const [grismTexture, setGrismTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
-		if (!extractSpectrumData || !sortedSpec2D) return;
+		if (!extractSpectrumData || !extractedSpecSortedArray) return;
 		const texture = textureFromData({
 			data: extractSpectrumData.spectrum_2d,
 			pmin: grismNorm.pmin,
 			pmax: grismNorm.pmax,
-			sortedArray: sortedSpec2D,
+			sortedArray: extractedSpecSortedArray,
 			excludeZero: true,
 		});
 		setGrismTexture((prev) => {
@@ -78,7 +67,7 @@ export default function GrismForwardImage({
 			}
 			return texture;
 		});
-	}, [extractSpectrumData, sortedSpec2D, grismNorm.pmin, grismNorm.pmax]);
+	}, [extractSpectrumData, extractedSpecSortedArray, grismNorm.pmin, grismNorm.pmax]);
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
@@ -90,6 +79,17 @@ export default function GrismForwardImage({
 			});
 		};
 	}, []);
+	// Attach to the RenderLayer
+	useEffect(() => {
+		if (!layerRef || grismTexture === Texture.EMPTY) return;
+		const layer = layerRef.current;
+		const node = spriteRef.current;
+		if (!layer || !node) return;
+		layer.attach(node);
+		return () => {
+			layer.detach(node);
+		};
+	}, [layerRef, grismTexture]);
 
 	return (
 		grismTexture !== Texture.EMPTY && (

@@ -15,7 +15,6 @@ import {
 import { useEffect, useId, useState } from "react";
 import { useImmer } from "use-immer";
 import { useShallow } from "zustand/react/shallow";
-import { NormPercentageInput } from "@/components/ui/custom-component";
 import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
@@ -26,61 +25,16 @@ import {
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import type { CutoutParams } from "@/stores/stores-types.js";
-import { clamp } from "@/utils/projection";
 
 export default function CutoutPanel() {
 	return (
 		<Box display="inline-flex" flexDirection="column" gap={4} p={4}>
 			<Stack gap={3}>
-				<NormalizationParameters />
-				<Separator />
 				<CutoutPosition />
 				<Separator />
 				<ExtractionParameters />
 			</Stack>
 		</Box>
-	);
-}
-
-function NormalizationParameters() {
-	const { cutoutParams, setCutoutParams } = useCounterpartStore(
-		useShallow((state) => ({
-			cutoutParams: state.cutoutParams,
-			setCutoutParams: state.setCutoutParams,
-		})),
-	);
-
-	const handleCutoutPminChange = (next: number) => {
-		const maxAllowedCutoutPmin = cutoutParams.cutoutPmax - 5;
-		const clampedValue = clamp(next, 0, maxAllowedCutoutPmin);
-		setCutoutParams({ cutoutPmin: clampedValue });
-	};
-	const handleCutoutPmaxChange = (next: number) => {
-		const minAllowedCutoutPmax = cutoutParams.cutoutPmin + 5;
-		const clampedValue = clamp(next, minAllowedCutoutPmax, 100);
-		setCutoutParams({ cutoutPmax: clampedValue });
-	};
-
-	return (
-		<Stack gap={3}>
-			<Heading size="sm" as="h3">
-				Normalization Parameters
-			</Heading>
-			<HStack gap={4}>
-				<NormPercentageInput
-					label="Pmin (%)"
-					value={cutoutParams.cutoutPmin}
-					onValueChange={handleCutoutPminChange}
-					width="80px"
-				/>
-				<NormPercentageInput
-					label="Pmax (%)"
-					value={cutoutParams.cutoutPmax}
-					onValueChange={handleCutoutPmaxChange}
-					width="80px"
-				/>
-			</HStack>
-		</Stack>
 	);
 }
 

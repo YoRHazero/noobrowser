@@ -42,8 +42,6 @@ export type FitModel = FitLinearModel | FitGaussianModel;
 /*                                 Image Type                                 */
 /* -------------------------------------------------------------------------- */
 export type CutoutParams = {
-	cutoutPmin: number;
-	cutoutPmax: number;
 	x0: number;
 	y0: number;
 	width: number;

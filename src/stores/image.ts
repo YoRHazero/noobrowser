@@ -13,22 +13,28 @@ import type {
 interface CounterpartState {
 	availableFilters: string[];
 	filterRGB: rgbSet;
-	normParams: NormParams;
+	counterpartNorm: NormParams;
 	cutoutParams: CutoutParams;
+	cutoutNorm: NormParams;
+	cutoutSortedArray: number[] | null;
 	counterpartPosition: CounterpartPosition;
 	showCutout: boolean;
+	goToCutoutRequested: boolean;
 	setAvailableFilters: (filters: string[]) => void;
 	setFilterRGB: (patch: Partial<rgbSet>) => void;
-	setNormParams: (params: Partial<NormParams>) => void;
+	setCounterpartNorm: (params: Partial<NormParams>) => void;
 	setCounterpartPosition: (patch: Partial<CounterpartPosition>) => void;
 	setCutoutParams: (patch: Partial<CutoutParams>) => void;
+	setCutoutNorm: (patch: Partial<NormParams>) => void;
+	setCutoutSortedArray: (array: number[] | null) => void;
 	setShowCutout: (show: boolean) => void;
+	setGoToCutoutRequested: (requested: boolean) => void;
 }
 
 export const useCounterpartStore = create<CounterpartState>()((set) => ({
 	availableFilters: [],
 	filterRGB: { r: "", g: "", b: "" },
-	normParams: { pmin: 1, pmax: 99 },
+	counterpartNorm: { pmin: 1, pmax: 99 },
 	counterpartPosition: { x0: 0, y0: 0, width: 3000, height: 0 },
 	cutoutParams: {
 		cutoutPmin: 1,
@@ -38,19 +44,26 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 		width: 100,
 		height: 100,
 	},
+	cutoutNorm: { pmin: 1, pmax: 99 },
+	cutoutSortedArray: null,
 	showCutout: true,
+	goToCutoutRequested: false,
 	setAvailableFilters: (filters) => set({ availableFilters: filters }),
 	setFilterRGB: (patch) =>
 		set((state) => ({ filterRGB: { ...state.filterRGB, ...patch } })),
-	setNormParams: (patch) =>
-		set((state) => ({ normParams: { ...state.normParams, ...patch } })),
+	setCounterpartNorm: (patch) =>
+		set((state) => ({ counterpartNorm: { ...state.counterpartNorm, ...patch } })),
 	setCounterpartPosition: (patch) =>
 		set((state) => ({
 			counterpartPosition: { ...state.counterpartPosition, ...patch },
 		})),
 	setCutoutParams: (patch) =>
 		set((state) => ({ cutoutParams: { ...state.cutoutParams, ...patch } })),
+	setCutoutNorm: (patch) =>
+		set((state) => ({ cutoutNorm: { ...state.cutoutNorm, ...patch } })),
+	setCutoutSortedArray: (array) => set({ cutoutSortedArray: array }),
 	setShowCutout: (show) => set({ showCutout: show }),
+	setGoToCutoutRequested: (requested) => set({ goToCutoutRequested: requested }),
 }));
 
 interface GrismState {
@@ -58,6 +71,7 @@ interface GrismState {
 	apertureSize: number;
 	zRedshift: number;
 	grismNorm: NormParams;
+	extractedSpecSortedArray: number[] | null;
 	forwardWaveRange: waveRange;
 	slice1DWaveRange: waveRange;
 	collapseWindow: CollapseWindow;
@@ -68,6 +82,7 @@ interface GrismState {
 	setApertureSize: (size: number) => void;
 	setZRedshift: (z: number) => void;
 	setGrismNorm: (patch: Partial<NormParams>) => void;
+	setExtractedSpecSortedArray: (array: number[] | null) => void;
 	setForwardWaveRange: (patch: Partial<waveRange>) => void;
 	setSlice1DWaveRange: (patch: Partial<waveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
@@ -85,6 +100,7 @@ export const useGrismStore = create<GrismState>()(
 			apertureSize: 100,
 			zRedshift: 0.0,
 			grismNorm: { pmin: 1, pmax: 99 },
+			extractedSpecSortedArray: null,
 			forwardWaveRange: { min: 3.8, max: 5.0 },
 			slice1DWaveRange: { min: 3.8, max: 5.0 },
 			collapseWindow: {
@@ -108,6 +124,7 @@ export const useGrismStore = create<GrismState>()(
 			setZRedshift: (z) => set({ zRedshift: z }),
 			setGrismNorm: (patch) =>
 				set((state) => ({ grismNorm: { ...state.grismNorm, ...patch } })),
+			setExtractedSpecSortedArray: (array) => set({ extractedSpecSortedArray: array }),
 			setForwardWaveRange: (patch) =>
 				set((state) => ({
 					forwardWaveRange: { ...state.forwardWaveRange, ...patch },

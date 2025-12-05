@@ -13,7 +13,6 @@ import {
 } from "@chakra-ui/react";
 import { LuCheck } from "react-icons/lu";
 export const DEFAULT_COLOR = "#eb5e41";
-// 通道滑块（来自文档 ChannelSlider 示例）
 const ChannelSliders = (props: { format: ColorPicker.ColorFormat }) => {
 	const channels = getColorChannels(props.format);
 	return (
@@ -32,43 +31,37 @@ const ChannelSliders = (props: { format: ColorPicker.ColorFormat }) => {
 	);
 };
 
-// 可选：让外部可以传默认色
 type TabbedColorPickerProps = {
+	value: string;
 	onValueChange: (value: string) => void;
 };
 
 export const TabbedColorPicker = (props: TabbedColorPickerProps) => {
-	const { onValueChange } = props;
+	const { value, onValueChange } = props;
 	return (
 		<ColorPicker.Root
-			defaultValue={parseColor(DEFAULT_COLOR)}
+			value={parseColor(value)}
 			onValueChange={(details) => {
 				onValueChange(details.value.toString("hex"));
 			}}
 			maxW="200px"
 		>
-			{/* 如果你要表单对接，可以加 HiddenInput */}
 			<ColorPicker.HiddenInput />
-
-			{/* 外部只显示颜色：一个小圆点触发器 */}
 			<ColorPicker.Control>
 				<ColorPicker.Trigger data-fit-content px="1.5" py="1">
 					<ColorPicker.ValueSwatch boxSize="6" rounded="inherit" />
 				</ColorPicker.Trigger>
 			</ColorPicker.Control>
 
-			{/* 弹出内容 */}
 			<Portal>
 				<ColorPicker.Positioner>
 					<ColorPicker.Content>
-						{/* 上半部分：Tabs 切换 Slider / 取色板 */}
 						<Tabs.Root defaultValue="picker" size="sm" variant="line">
 							<Tabs.List mb="3">
 								<Tabs.Trigger value="picker">picker</Tabs.Trigger>
 								<Tabs.Trigger value="channels">channels</Tabs.Trigger>
 							</Tabs.List>
 
-							{/* Tab1：取色板（Area + Sliders） */}
 							<Tabs.Content value="picker">
 								<Stack gap="3">
 									<ColorPicker.Area />
@@ -79,7 +72,6 @@ export const TabbedColorPicker = (props: TabbedColorPickerProps) => {
 								</Stack>
 							</Tabs.Content>
 
-							{/* Tab2：通道滑块（多格式 ChannelSlider） */}
 							<Tabs.Content value="channels">
 								<Stack gap="3">
 									<ColorPicker.FormatSelect />
@@ -90,7 +82,6 @@ export const TabbedColorPicker = (props: TabbedColorPickerProps) => {
 							</Tabs.Content>
 						</Tabs.Root>
 
-						{/* 下半部分：Swatch + 输入框（两个 Tab 共用） */}
 						<VStack mt="4" align="stretch" gap="3">
 							<ColorPicker.SwatchGroup>
 								{swatches.map((item) => (
@@ -104,7 +95,6 @@ export const TabbedColorPicker = (props: TabbedColorPickerProps) => {
 								))}
 							</ColorPicker.SwatchGroup>
 
-							{/* 这里用 hex 的 ChannelInput，也可以换成 ColorPicker.Input */}
 							<ColorPicker.ChannelInput channel="hex" aria-label="Hex color" />
 						</VStack>
 					</ColorPicker.Content>

@@ -4,6 +4,7 @@ import CounterpartCanvas from "@/features/counterpart/CounterpartCanvas";
 import CounterpartPanel from "@/features/counterpart/CounterpartPanel";
 import CutoutCanvas from "@/features/counterpart/CutoutCanvas";
 import CutoutPanel from "@/features/counterpart/CutoutPanel";
+import CutoutNormControler from "@/features/counterpart/CuroutNormControler";
 export default function Counterpart() {
 	return (
 		<HStack
@@ -25,17 +26,20 @@ export default function Counterpart() {
 					<CounterpartPanel />
 				</ExpandableBox>
 			</Box>
-			<Box position="relative">
-				<CutoutCanvas />
-				<ExpandableBox
-					position="absolute"
-					buttonPosition="top-left"
-					top="8px"
-					left="8px"
-				>
-					<CutoutPanel />
-				</ExpandableBox>
-			</Box>
+			<HStack gap={1}>
+				<Box position="relative">
+					<CutoutCanvas />
+					<ExpandableBox
+						position="absolute"
+						buttonPosition="top-left"
+						top="8px"
+						left="8px"
+					>
+						<CutoutPanel />
+					</ExpandableBox>
+				</Box>
+				<CutoutNormControler />
+			</HStack>
 		</HStack>
 	);
 }

@@ -41,7 +41,7 @@ export default function GrismForwardPanel() {
 			flexDirection="column"
 			gap={4}
 			p={4}
-			width={"450px"}
+			width={"full"}
 			border="1px solid"
 			borderRadius="md"
 			bg="bg.surface"

@@ -1,6 +1,7 @@
 import { extend, useApplication } from "@pixi/react";
 import { Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
+import { useShallow } from "zustand/react/shallow";
 import { useCounterpartCutout } from "@/hook/connection-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
@@ -12,38 +13,50 @@ extend({
 
 export default function CutoutImage() {
 	const spriteRef = useRef<Sprite | null>(null);
-	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
 	const selectedFootprintId = useGlobeStore((s) => s.selectedFootprintId);
-	const filterRGB = useCounterpartStore((s) => s.filterRGB);
+	const {
+		cutoutParams,
+		cutoutNorm,
+		filterRGB,
+		cutoutSortedArray,
+		setCutoutSortedArray,
+	} = useCounterpartStore(
+		useShallow((state) => ({
+			cutoutParams: state.cutoutParams,
+			cutoutNorm: state.cutoutNorm,
+			filterRGB: state.filterRGB,
+			cutoutSortedArray: state.cutoutSortedArray,
+			setCutoutSortedArray: state.setCutoutSortedArray,
+		})),
+	);
 	const { data: cutoutData } = useCounterpartCutout({
 		selectedFootprintId,
 		filter: filterRGB.r,
 		cutoutParams,
 		enabled: false,
 	});
-	const [sortedCutoutData, setSortedCutoutData] = useState<number[] | null>(
-		null,
-	);
 	// Sort cutout data when it changes
 	useEffect(() => {
 		if (!cutoutData) {
-			setSortedCutoutData(null);
+			setCutoutSortedArray(null);
 			return;
 		}
 		const sortedData = sort2DArray(cutoutData.cutout_data);
-		setSortedCutoutData(sortedData);
+		setCutoutSortedArray(sortedData);
 	}, [cutoutData]);
 
 	const [cutoutTexture, setCutoutTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
-		if (!cutoutData || !sortedCutoutData) return;
+		if (!cutoutData || !cutoutSortedArray) return;
 		const texture = textureFromData({
 			data: cutoutData.cutout_data,
 			width: cutoutParams.width,
 			height: cutoutParams.height,
-			pmin: cutoutParams.cutoutPmin,
-			pmax: cutoutParams.cutoutPmax,
-			sortedArray: sortedCutoutData,
+			pmin: cutoutNorm.pmin,
+			pmax: cutoutNorm.pmax,
+			vmin: cutoutNorm.vmin,
+			vmax: cutoutNorm.vmax,
+			sortedArray: cutoutSortedArray,
 			excludeZero: true,
 		});
 		setCutoutTexture((prev) => {
@@ -54,11 +67,10 @@ export default function CutoutImage() {
 		});
 	}, [
 		cutoutData,
-		sortedCutoutData,
+		cutoutSortedArray,
 		cutoutParams.width,
 		cutoutParams.height,
-		cutoutParams.cutoutPmin,
-		cutoutParams.cutoutPmax,
+		cutoutNorm
 	]);
 	// Cleanup on unmount
 	useEffect(() => {
