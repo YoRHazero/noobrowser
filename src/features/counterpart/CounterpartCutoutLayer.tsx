@@ -1,4 +1,5 @@
 import { extend, useApplication } from "@pixi/react";
+import gsap from "gsap";
 import { type FederatedPointerEvent, Graphics, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
@@ -23,26 +24,22 @@ export default function CutoutLayer({
 	// Attach to the RenderLayer
 	const { app } = useApplication();
 	const spriteRef = useRef<Sprite | null>(null);
-	useEffect(() => {
-		const layer = layerRef.current;
-		const node = spriteRef.current;
-		if (!layer || !node) return;
-
-		layer.attach(node);
-		return () => {
-			layer.detach(node);
-		};
-	}, [layerRef]);
-
 	// Draw cutout rectangle
-	const { cutoutParams, setCutoutParams, counterpartPosition } =
-		useCounterpartStore(
-			useShallow((state) => ({
-				cutoutParams: state.cutoutParams,
-				setCutoutParams: state.setCutoutParams,
-				counterpartPosition: state.counterpartPosition,
-			})),
-		);
+	const {
+		cutoutParams,
+		setCutoutParams,
+		counterpartPosition,
+		goToCutoutRequested,
+		setGoToCutoutRequested,
+	} = useCounterpartStore(
+		useShallow((state) => ({
+			cutoutParams: state.cutoutParams,
+			setCutoutParams: state.setCutoutParams,
+			counterpartPosition: state.counterpartPosition,
+			goToCutoutRequested: state.goToCutoutRequested,
+			setGoToCutoutRequested: state.setGoToCutoutRequested,
+		})),
+	);
 	const [textureRect, setTextureRect] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
 		const graphics = new Graphics();
@@ -122,6 +119,51 @@ export default function CutoutLayer({
 			dragDeltaPos.current = { deltaX, deltaY };
 		}
 	};
+	useEffect(() => {
+		if (textureRect === Texture.EMPTY) return;
+		const layer = layerRef.current;
+		const node = spriteRef.current;
+		if (!layer || !node) return;
+
+		layer.attach(node);
+		return () => {
+			layer.detach(node);
+		};
+	}, [layerRef, textureRect]);
+
+	// Go to cutout position when requested
+	useEffect(() => {
+		// Skip if viewport is not available
+		if (!layerRef.current) return;
+		layerRef.current.zIndex = 10;
+		const viewport = layerRef.current.parent;
+		if (!viewport) return;
+		viewport.sortableChildren = true;
+		if (!goToCutoutRequested) return;
+
+		// Center viewport on cutout
+		const cutoutCenterX = cutoutParams.x0 + cutoutParams.width / 2;
+		const cutoutCenterY = cutoutParams.y0 + cutoutParams.height / 2;
+		const screen = app.screen;
+		const scaleX = viewport.scale.x;
+		const scaleY = viewport.scale.y;
+		const targetX = screen.width / 2 - cutoutCenterX * scaleX;
+		const targetY = screen.height / 2 - cutoutCenterY * scaleY;
+		gsap.killTweensOf(viewport.position);
+		gsap.to(viewport.position, {
+			x: targetX,
+			y: targetY,
+			duration: 1.0,
+			ease: "power2.inOut",
+		});
+		setGoToCutoutRequested(false);
+	}, [
+		goToCutoutRequested,
+		cutoutParams,
+		app?.screen,
+		layerRef,
+		setGoToCutoutRequested,
+	]);
 
 	const showCutout = useCounterpartStore((state) => state.showCutout);
 	if (!showCutout) return null;

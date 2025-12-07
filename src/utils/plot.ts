@@ -107,7 +107,7 @@ export function findPercentileInSortedArray(
  * @param arr - The 2D array to normalize.
  * @param sortedArray - An optional pre-sorted flat array for performance.
  * @param excludeZero - Whether to exclude zero values from the normalization.
- * @param norm - Normalization parameters: pmin, pmax, vmin, vmax. 
+ * @param norm - Normalization parameters: pmin, pmax, vmin, vmax.
  * If vmin/vmax are provided, they take precedence over pmin/pmax.
  * @returns The normalized 2D array with values between 0 and 1.
  */
@@ -120,24 +120,33 @@ export function normalize2D(
 		pmax?: number;
 		vmin?: number;
 		vmax?: number;
-	}
+	},
 ): number[][] {
 	const sorted = sortedArray ?? sort2DArray(arr);
 	const { pmin, pmax, vmin, vmax } = norm;
 	// Throw error if both pmin/vmin or pmax/vmax are not provided
-	if ((pmin === undefined && vmin === undefined) || (pmax === undefined && vmax === undefined)) {
-		throw new Error("Either pmin/vmin or pmax/vmax must be provided for normalization.");
+	if (
+		(pmin === undefined && vmin === undefined) ||
+		(pmax === undefined && vmax === undefined)
+	) {
+		throw new Error(
+			"Either pmin/vmin or pmax/vmax must be provided for normalization.",
+		);
 	}
-	const finalVmin = vmin ?? percentileFromSortedArray(
-		sorted,
-		pmin ?? 0, // 0 will never be used since we checked above, just to satisfy TS
-		excludeZero,
-	) as number;
-	const finalVmax = vmax ?? percentileFromSortedArray(
-		sorted,
-		pmax ?? 100, // 100 will never be used since we checked above, just to satisfy TS
-		excludeZero,
-	) as number;
+	const finalVmin =
+		vmin ??
+		(percentileFromSortedArray(
+			sorted,
+			pmin ?? 0, // 0 will never be used since we checked above, just to satisfy TS
+			excludeZero,
+		) as number);
+	const finalVmax =
+		vmax ??
+		(percentileFromSortedArray(
+			sorted,
+			pmax ?? 100, // 100 will never be used since we checked above, just to satisfy TS
+			excludeZero,
+		) as number);
 
 	if (finalVmax <= finalVmin) {
 		return arr.map((row) => row.map(() => 0));
@@ -236,12 +245,12 @@ export default function textureFromData({
 	if (!height) {
 		height = data.length;
 	}
-	const normalizedData = normalize2D(
-		data,
-		sortedArray,
-		excludeZero,
-		{ pmin, pmax, vmin, vmax },
-	);
+	const normalizedData = normalize2D(data, sortedArray, excludeZero, {
+		pmin,
+		pmax,
+		vmin,
+		vmax,
+	});
 	const byteData = scaleToByte(normalizedData);
 	return textureFromGrayscaleData(byteData, width, height);
 }

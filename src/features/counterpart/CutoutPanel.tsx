@@ -20,11 +20,12 @@ import { Tooltip } from "@/components/ui/tooltip";
 import {
 	useCounterpartCutout,
 	useExtractSpectrum,
+	usePixelCoordinates,
 	useWorldCoordinates,
 } from "@/hook/connection-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
-import type { CutoutParams } from "@/stores/stores-types.js";
+import type { CutoutParams, RaDec } from "@/stores/stores-types.js";
 
 export default function CutoutPanel() {
 	return (
@@ -45,6 +46,7 @@ function CutoutPosition() {
 		showCutout,
 		setShowCutout,
 		filterRGB,
+		setGoToCutoutRequested,
 	} = useCounterpartStore(
 		useShallow((state) => ({
 			cutoutParams: state.cutoutParams,
@@ -52,6 +54,7 @@ function CutoutPosition() {
 			showCutout: state.showCutout,
 			setShowCutout: state.setShowCutout,
 			filterRGB: state.filterRGB,
+			setGoToCutoutRequested: state.setGoToCutoutRequested,
 		})),
 	);
 
@@ -61,22 +64,16 @@ function CutoutPosition() {
 	const switchId = useId();
 	const confirmId = useId();
 	const retrieveId = useId();
+	const goToId = useId();
 
 	const [cutoutParamsInput, setCutoutParamsInput] =
 		useImmer<CutoutParams>(cutoutParams);
-	const [isDirty, setIsDirty] = useState(false);
-
-	useEffect(() => {
-		if (!isDirty) {
-			setCutoutParamsInput(cutoutParams);
-		}
-	}, [cutoutParams, isDirty, setCutoutParamsInput]);
-
-	const onConfirm = () => {
-		setCutoutParams(cutoutParamsInput);
-		setIsDirty(false);
-	};
-
+	/* const [worldCoordinatesInput, setWorldCoordinatesInput] = useState<RaDec>({
+		ra: 0,
+		dec: 0,
+	}); */
+	const [isPixelDirty, setIsPixelDirty] = useState(false);
+	//const [isWorldDirty, setIsWorldDirty] = useState(false);
 	const { refetch: refetchCutout, isFetching: isFetchingCutout } =
 		useCounterpartCutout({
 			selectedFootprintId,
@@ -84,6 +81,22 @@ function CutoutPosition() {
 			cutoutParams,
 			enabled: false,
 		});
+	const { data: worldCoordinates, isSuccess: isWorldCoordinatesSuccess } =
+		useWorldCoordinates({
+			selectedFootprintId,
+			cutoutParams,
+			enabled: true,
+		});
+	const onConfirm = () => {
+		setCutoutParams(cutoutParamsInput);
+		setIsPixelDirty(false);
+	};
+	useEffect(() => {
+		if (!isPixelDirty) {
+			setCutoutParamsInput(cutoutParams);
+		}
+	}, [cutoutParams, isPixelDirty, setCutoutParamsInput]);
+
 	const onRetrieveCutout = () => {
 		if (!selectedFootprintId || !filterRGB.r) {
 			toaster.error({
@@ -92,7 +105,7 @@ function CutoutPosition() {
 			});
 			return;
 		}
-		if (isDirty) {
+		if (isPixelDirty) {
 			toaster.error({
 				title: "Unsaved changes",
 				description:
@@ -103,20 +116,13 @@ function CutoutPosition() {
 		refetchCutout();
 	};
 
-	const { data: worldCoordinates, isSuccess: isWorldCoordinatesSuccess } =
-		useWorldCoordinates({
-			selectedFootprintId,
-			cutoutParams,
-			enabled: true,
-		});
-
 	const handleFieldChange =
 		(key: keyof CutoutParams) =>
 		({ valueAsNumber }: { valueAsNumber: number }) => {
 			setCutoutParamsInput((draft) => {
 				draft[key] = Number.isNaN(valueAsNumber) ? 0 : valueAsNumber;
 			});
-			setIsDirty(true);
+			setIsPixelDirty(true);
 		};
 	const positionFields: Array<{ label: string; key: keyof CutoutParams }> = [
 		{ label: "x0", key: "x0" },
@@ -190,9 +196,22 @@ function CutoutPosition() {
 						size="sm"
 						onClick={onConfirm}
 						variant="outline"
-						disabled={!isDirty}
+						disabled={!isPixelDirty}
 					>
 						Confirm
+					</Button>
+				</Tooltip>
+				<Tooltip
+					ids={{ trigger: goToId }}
+					content="Go to cutout center position on the counterpart image"
+				>
+					<Button
+						size="sm"
+						onClick={() => setGoToCutoutRequested(true)}
+						variant="outline"
+						disabled={isPixelDirty}
+					>
+						Go to
 					</Button>
 				</Tooltip>
 				<Tooltip

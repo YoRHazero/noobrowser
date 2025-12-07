@@ -14,14 +14,14 @@ import { defaultStyles, useTooltip, useTooltipInPortal } from "@visx/tooltip";
 import { type ScaleLinear, scaleLinear } from "d3-scale";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useColorModeValue } from "@/components/ui/color-mode";
 import { useWavelengthDisplay } from "@/hook/transformation-hook";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
-import { useColorModeValue } from "@/components/ui/color-mode";
 import type { FitGaussianModel, FitLinearModel } from "@/stores/stores-types";
-import type { Spectrum1D } from "@/utils/extraction";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
 import { sampleModel, sampleModelFromWave } from "@/utils/plot";
+import type { Spectrum1D } from "@/utils/util-types";
 import { findNearestWavelengthIndex } from "@/utils/wavelength";
 
 type Anchor = {
@@ -76,7 +76,7 @@ const Spectrum1DSliceChart = memo(function Spectrum1DSliceChart(
 					dy: -5,
 					fill: strokeColor,
 				}}
-				labelProps={{"fill": strokeColor}}
+				labelProps={{ fill: strokeColor }}
 				stroke={strokeColor}
 				tickStroke={strokeColor}
 			/>
@@ -92,8 +92,8 @@ const Spectrum1DSliceChart = memo(function Spectrum1DSliceChart(
 					const n = typeof v === "number" ? v : Number(v.valueOf());
 					return formatter(n);
 				}}
-				tickLabelProps={{'fill': strokeColor}}
-				labelProps={{"fill": strokeColor}}
+				tickLabelProps={{ fill: strokeColor }}
+				labelProps={{ fill: strokeColor }}
 				stroke={strokeColor}
 				tickStroke={strokeColor}
 			/>
@@ -377,10 +377,18 @@ function GaussianHandle(props: GaussianHandleProps) {
 					onPointerDown={(e) => {
 						e.stopPropagation();
 						(e.currentTarget as Element).setPointerCapture(e.pointerId);
-						setDrag({ type: "gauss-sigma-left", id: model.id, lastX: e.clientX });
+						setDrag({
+							type: "gauss-sigma-left",
+							id: model.id,
+							lastX: e.clientX,
+						});
 					}}
 					onPointerMove={(e) => {
-						if (!drag || drag.type !== "gauss-sigma-left" || drag.id !== model.id)
+						if (
+							!drag ||
+							drag.type !== "gauss-sigma-left" ||
+							drag.id !== model.id
+						)
 							return;
 						const dx = e.clientX - drag.lastX;
 						if (dx === 0) return;
@@ -391,7 +399,11 @@ function GaussianHandle(props: GaussianHandleProps) {
 						setDrag({ ...drag, lastX: e.clientX });
 					}}
 					onPointerUp={(e) => {
-						if (!drag || drag.type !== "gauss-sigma-left" || drag.id !== model.id)
+						if (
+							!drag ||
+							drag.type !== "gauss-sigma-left" ||
+							drag.id !== model.id
+						)
 							return;
 						(e.currentTarget as Element).releasePointerCapture(e.pointerId);
 						setDrag(null);
@@ -411,10 +423,18 @@ function GaussianHandle(props: GaussianHandleProps) {
 					onPointerDown={(e) => {
 						e.stopPropagation();
 						(e.currentTarget as Element).setPointerCapture(e.pointerId);
-						setDrag({ type: "gauss-sigma-right", id: model.id, lastX: e.clientX });
+						setDrag({
+							type: "gauss-sigma-right",
+							id: model.id,
+							lastX: e.clientX,
+						});
 					}}
 					onPointerMove={(e) => {
-						if (!drag || drag.type !== "gauss-sigma-right" || drag.id !== model.id)
+						if (
+							!drag ||
+							drag.type !== "gauss-sigma-right" ||
+							drag.id !== model.id
+						)
 							return;
 						const dx = e.clientX - drag.lastX;
 						if (dx === 0) return;
@@ -425,7 +445,11 @@ function GaussianHandle(props: GaussianHandleProps) {
 						setDrag({ ...drag, lastX: e.clientX });
 					}}
 					onPointerUp={(e) => {
-						if (!drag || drag.type !== "gauss-sigma-right" || drag.id !== model.id)
+						if (
+							!drag ||
+							drag.type !== "gauss-sigma-right" ||
+							drag.id !== model.id
+						)
 							return;
 						(e.currentTarget as Element).releasePointerCapture(e.pointerId);
 						setDrag(null);
@@ -461,22 +485,16 @@ function LinearHandle(props: LinearHandleProps) {
 	} = props;
 	const x0X = xScale(model.x0); // x pixel at x0
 	const x0Y = yScale(model.b); // y pixel at x0
-	const x0InChart =
-		x0X !== undefined &&
-		x0Y !== undefined;
+	const x0InChart = x0X !== undefined && x0Y !== undefined;
 	// k handle, left side (at min x)
 	const leftX = xScale(model.range.min);
 	const leftY = yScale(model.k * (model.range.min - model.x0) + model.b);
-	const leftInChart =
-		leftX !== undefined &&
-		leftY !== undefined;
-	
+	const leftInChart = leftX !== undefined && leftY !== undefined;
+
 	// k handle, right side (at max x)
 	const rightX = xScale(model.range.max);
 	const rightY = yScale(model.k * (model.range.max - model.x0) + model.b);
-	const rightInChart =
-		rightX !== undefined &&
-		rightY !== undefined;
+	const rightInChart = rightX !== undefined && rightY !== undefined;
 	return (
 		<g pointerEvents="visiblePainted">
 			{x0InChart && (
@@ -537,7 +555,10 @@ function LinearHandle(props: LinearHandleProps) {
 							return;
 						const dy = e.clientY - drag.lastY;
 						if (dy === 0) return;
-						const newK = model.k + (yScale.invert(dy) - yScale.invert(0)) / (model.range.min - model.x0);
+						const newK =
+							model.k +
+							(yScale.invert(dy) - yScale.invert(0)) /
+								(model.range.min - model.x0);
 						updateModel(model.id, { k: newK });
 						setDrag({ ...drag, lastY: e.clientY });
 					}}
@@ -569,7 +590,10 @@ function LinearHandle(props: LinearHandleProps) {
 							return;
 						const dy = e.clientY - drag.lastY;
 						if (dy === 0) return;
-						const newK = model.k + (yScale.invert(dy) - yScale.invert(0)) / (model.range.max - model.x0);
+						const newK =
+							model.k +
+							(yScale.invert(dy) - yScale.invert(0)) /
+								(model.range.max - model.x0);
 						updateModel(model.id, { k: newK });
 						setDrag({ ...drag, lastY: e.clientY });
 					}}

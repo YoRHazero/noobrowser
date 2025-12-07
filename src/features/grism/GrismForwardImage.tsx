@@ -20,7 +20,13 @@ export default function GrismForwardImage({
 		(state) => state.selectedFootprintId,
 	);
 	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
-	const { forwardWaveRange, apertureSize, grismNorm, extractedSpecSortedArray, setExtractedSpecSortedArray } = useGrismStore(
+	const {
+		forwardWaveRange,
+		apertureSize,
+		grismNorm,
+		extractedSpecSortedArray,
+		setExtractedSpecSortedArray,
+	} = useGrismStore(
 		useShallow((state) => ({
 			apertureSize: state.apertureSize,
 			forwardWaveRange: state.forwardWaveRange,
@@ -49,7 +55,7 @@ export default function GrismForwardImage({
 		}
 		const sorted = sort2DArray(extractSpectrumData.spectrum_2d);
 		setExtractedSpecSortedArray(sorted);
-	}, [extractSpectrumData]);
+	}, [extractSpectrumData, setExtractedSpecSortedArray]);
 
 	const [grismTexture, setGrismTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
@@ -67,7 +73,12 @@ export default function GrismForwardImage({
 			}
 			return texture;
 		});
-	}, [extractSpectrumData, extractedSpecSortedArray, grismNorm.pmin, grismNorm.pmax]);
+	}, [
+		extractSpectrumData,
+		extractedSpecSortedArray,
+		grismNorm.pmin,
+		grismNorm.pmax,
+	]);
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {

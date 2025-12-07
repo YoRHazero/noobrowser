@@ -43,7 +43,7 @@ export default function CutoutImage() {
 		}
 		const sortedData = sort2DArray(cutoutData.cutout_data);
 		setCutoutSortedArray(sortedData);
-	}, [cutoutData]);
+	}, [cutoutData, setCutoutSortedArray]);
 
 	const [cutoutTexture, setCutoutTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
@@ -70,7 +70,7 @@ export default function CutoutImage() {
 		cutoutSortedArray,
 		cutoutParams.width,
 		cutoutParams.height,
-		cutoutNorm
+		cutoutNorm,
 	]);
 	// Cleanup on unmount
 	useEffect(() => {

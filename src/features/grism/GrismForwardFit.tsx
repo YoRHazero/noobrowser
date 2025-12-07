@@ -573,7 +573,10 @@ function LinearModelCard(props: LinearModelCardProps) {
 				/>
 
 				<HStack gap={1} align="center">
-					<TabbedColorPicker value={model.color} onValueChange={handleColorChange} />
+					<TabbedColorPicker
+						value={model.color}
+						onValueChange={handleColorChange}
+					/>
 					<Tooltip ids={{ trigger: activeSwitchId }} content={tooltipLabel}>
 						<Switch.Root
 							size="sm"
@@ -932,7 +935,10 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 				/>
 
 				<HStack gap={1} align="center">
-					<TabbedColorPicker value={model.color} onValueChange={handleColorChange} />
+					<TabbedColorPicker
+						value={model.color}
+						onValueChange={handleColorChange}
+					/>
 					<Tooltip ids={{ trigger: activeSwitchId }} content={tooltipLabel}>
 						<Switch.Root
 							size="sm"

@@ -83,12 +83,14 @@ function NormPercentageInput({
 	value,
 	onValueChange,
 	width,
+	step = 0.01,
 	orientation = "vertical",
 }: {
 	label: string;
 	value: number;
 	onValueChange: (value: number) => void;
 	width?: string;
+	step?: number;
 	orientation?: "horizontal" | "vertical";
 }) {
 	return (
@@ -96,7 +98,7 @@ function NormPercentageInput({
 			<Field.Label>{label}</Field.Label>
 			<NumberInput.Root
 				value={value.toString()}
-				step={0.1}
+				step={step}
 				min={0}
 				max={100}
 				onValueChange={(details) => {

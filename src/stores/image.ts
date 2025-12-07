@@ -52,7 +52,9 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 	setFilterRGB: (patch) =>
 		set((state) => ({ filterRGB: { ...state.filterRGB, ...patch } })),
 	setCounterpartNorm: (patch) =>
-		set((state) => ({ counterpartNorm: { ...state.counterpartNorm, ...patch } })),
+		set((state) => ({
+			counterpartNorm: { ...state.counterpartNorm, ...patch },
+		})),
 	setCounterpartPosition: (patch) =>
 		set((state) => ({
 			counterpartPosition: { ...state.counterpartPosition, ...patch },
@@ -63,7 +65,8 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 		set((state) => ({ cutoutNorm: { ...state.cutoutNorm, ...patch } })),
 	setCutoutSortedArray: (array) => set({ cutoutSortedArray: array }),
 	setShowCutout: (show) => set({ showCutout: show }),
-	setGoToCutoutRequested: (requested) => set({ goToCutoutRequested: requested }),
+	setGoToCutoutRequested: (requested) =>
+		set({ goToCutoutRequested: requested }),
 }));
 
 interface GrismState {
@@ -124,7 +127,8 @@ export const useGrismStore = create<GrismState>()(
 			setZRedshift: (z) => set({ zRedshift: z }),
 			setGrismNorm: (patch) =>
 				set((state) => ({ grismNorm: { ...state.grismNorm, ...patch } })),
-			setExtractedSpecSortedArray: (array) => set({ extractedSpecSortedArray: array }),
+			setExtractedSpecSortedArray: (array) =>
+				set({ extractedSpecSortedArray: array }),
 			setForwardWaveRange: (patch) =>
 				set((state) => ({
 					forwardWaveRange: { ...state.forwardWaveRange, ...patch },

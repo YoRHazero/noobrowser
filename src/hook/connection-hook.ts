@@ -8,6 +8,7 @@ import {
 import axios from "axios";
 import { useConnectionStore } from "@/stores/connection";
 import { useGlobeStore } from "@/stores/footprints";
+import { useCounterpartStore } from "@/stores/image";
 
 type QueryAxiosParams<T = any> = {
 	queryKey: Array<any>;
@@ -94,7 +95,9 @@ export function useWorldCoordinates({
 	if ((x === null || y === null) && cutoutParams === null) {
 		throw new Error("Either (x, y) or cutoutParams must be provided");
 	}
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const queryX =
 		x ?? (cutoutParams ? cutoutParams.x0 + cutoutParams.width / 2 : null);
@@ -133,7 +136,9 @@ export function usePixelCoordinates({
 	dec: number;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const query = useQueryAxiosGet<PixelCoordinates>({
 		queryKey: ["pixel_coordinates", group_id, ra, dec],
@@ -167,7 +172,9 @@ export function useCounterpartFootprint({
 	selectedFootprintId?: string | null;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const query = useQueryAxiosGet<CounterpartFootprint>({
 		queryKey: ["counterpart_footprint", group_id],
@@ -180,22 +187,35 @@ export function useCounterpartFootprint({
 
 export function useCounterpartImage({
 	selectedFootprintId = null,
-	filter,
+	r = null,
+	g = null,
+	b = null,
+
 	normParams,
 	enabled = false,
 }: {
 	selectedFootprintId?: string | null;
-	filter: string;
+	r?: string | null;
+	g?: string | null;
+	b?: string | null;
 	normParams: Record<string, number>;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
+	const ZustandFilterRGB = useCounterpartStore((state) => state.filterRGB);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const filterRGB = {
+		r: r ?? ZustandFilterRGB.r,
+		g: g ?? ZustandFilterRGB.g,
+		b: b ?? ZustandFilterRGB.b,
+	};
 	const query = useQueryAxiosGet<Blob>({
-		queryKey: ["counterpart_image", group_id, filter, normParams],
+		queryKey: ["counterpart_image", group_id, filterRGB, normParams],
 		path: `/image/counterpart_image/${group_id}`,
 		axiosGetParams: {
-			params: { filter: filter, ...normParams },
+			params: { ...filterRGB, ...normParams },
 			responseType: "blob",
 		},
 		enabled: enabled,
@@ -220,7 +240,9 @@ export function useCounterpartCutout({
 	cutoutParams: Record<string, number>;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const query = useQueryAxiosGet<CounterpartCutout>({
 		queryKey: [
@@ -264,25 +286,34 @@ export function useGrismOffsets({
 	basenameList?: string[];
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const footprints = useGlobeStore((state) => state.footprints);
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 	let targetBasenameList: string[];
 	if (!basenameList || basenameList.length === 0) {
-		const footprint = footprints.find((f) => f.id === group_id);
-		targetBasenameList = footprint?.meta?.included_files ?? [];
+		if (group_id) {
+			const footprint = footprints.find((f) => f.id === group_id);
+			targetBasenameList = footprint?.meta?.included_files ?? [];
+		} else {
+			targetBasenameList = [];
+		}
 	} else {
 		targetBasenameList = basenameList;
 	}
 	const results = useQueries({
 		queries: targetBasenameList.map((basename) => ({
-			queryKey: ["grism_offset", basename],
-			enabled: enabled,
+			queryKey: ["grism_offset", basename, group_id],
+			enabled: enabled && !!group_id,
 			queryFn: async () => {
-				const response = await axios.get(`${backendUrl}/wfss/grism_offset/`, {
-					params: { basename },
-				});
+				const response = await axios.get(
+					`${backendUrl}/wfss/grism_offsets/${group_id}`,
+					{
+						params: { basename },
+					},
+				);
 				return response.data as GrismOffset;
 			},
 		})),
@@ -315,12 +346,14 @@ export function useGrismData({
 	enabled?: boolean;
 }) {
 	const footprints = useGlobeStore((state) => state.footprints);
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 
 	let targetBasenameList: string[];
-	if (basenameList.length === 0) {
-		if (selectedFootprintId) {
+	if (!basenameList || basenameList.length === 0) {
+		if (group_id) {
 			const footprint = footprints.find((f) => f.id === group_id);
 			targetBasenameList = footprint?.meta?.included_files ?? [];
 		} else {
@@ -334,7 +367,7 @@ export function useGrismData({
 	const results = useQueries({
 		queries: targetBasenameList.map((basename) => ({
 			queryKey: ["grism_data", basename],
-			enabled: enabled,
+			enabled: enabled && targetBasenameList.length > 0,
 			queryFn: async () => {
 				const response = await axios.get(`${backendUrl}/wfss/grism_data/`, {
 					params: { basename },
@@ -376,11 +409,13 @@ export function useGrismErr({
 	enabled?: boolean;
 }) {
 	const footprints = useGlobeStore((state) => state.footprints);
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	let targetBasenameList: string[];
-	if (basenameList.length === 0) {
-		if (selectedFootprintId) {
+	if (!basenameList || basenameList.length === 0) {
+		if (group_id) {
 			const footprint = footprints.find((f) => f.id === group_id);
 			targetBasenameList = footprint?.meta?.included_files ?? [];
 		} else {
@@ -393,7 +428,7 @@ export function useGrismErr({
 	const results = useQueries({
 		queries: targetBasenameList.map((basename) => ({
 			queryKey: ["grism_err", basename],
-			enabled: enabled,
+			enabled: enabled && targetBasenameList.length > 0,
 			queryFn: async () => {
 				const response = await axios.get(`${backendUrl}/wfss/grism_err/`, {
 					params: { basename },
@@ -451,7 +486,9 @@ export function useExtractSpectrum({
 	if (apertureSize === null && cutoutParams === null) {
 		throw new Error("Either apertureSize or cutoutParams must be provided");
 	}
-	const ZustandFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const queryX =
 		x ?? (cutoutParams ? cutoutParams.x0 + cutoutParams.width / 2 : null);
@@ -461,13 +498,7 @@ export function useExtractSpectrum({
 		apertureSize ??
 		(cutoutParams ? Math.max(cutoutParams.width, cutoutParams.height) : null);
 	const query = useQueryAxiosGet<ExtractedSpectrum>({
-		queryKey: [
-			"extract_spectrum",
-			group_id,
-			queryX,
-			queryY,
-			aperture,
-		],
+		queryKey: ["extract_spectrum", group_id, queryX, queryY, aperture],
 		path: "/wfss/extract_spectrum/",
 		enabled: enabled,
 		axiosGetParams: {

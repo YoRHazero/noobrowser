@@ -20,19 +20,22 @@ export default function CounterpartImageLayer({
 }: {
 	layerRef: React.RefObject<RenderLayerInstance | null>;
 }) {
-	const { counterpartPosition, setCounterpartPosition, counterpartNorm, filterRGB } =
-		useCounterpartStore(
-			useShallow((state) => ({
-				counterpartPosition: state.counterpartPosition,
-				setCounterpartPosition: state.setCounterpartPosition,
-				counterpartNorm: state.counterpartNorm,
-				filterRGB: state.filterRGB,
-			})),
-		);
+	const {
+		counterpartPosition,
+		setCounterpartPosition,
+		counterpartNorm,
+		filterRGB,
+	} = useCounterpartStore(
+		useShallow((state) => ({
+			counterpartPosition: state.counterpartPosition,
+			setCounterpartPosition: state.setCounterpartPosition,
+			counterpartNorm: state.counterpartNorm,
+			filterRGB: state.filterRGB,
+		})),
+	);
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
-	const filterRed = filterRGB.r;
 	/* Determine counterpart position */
 	const { data: footprintData, isSuccess: isFootprintSuccess } =
 		useCounterpartFootprint({
@@ -53,7 +56,6 @@ export default function CounterpartImageLayer({
 	/* Load counterpart image */
 	const counterpartImageQuery = useCounterpartImage({
 		selectedFootprintId,
-		filter: filterRed,
 		normParams: counterpartNorm,
 	});
 	const [counterpartTexture, setCounterpartTexture] = useState<Texture>(
@@ -89,15 +91,16 @@ export default function CounterpartImageLayer({
 	// Attach to the RenderLayer
 	const spriteRef = useRef<Sprite | null>(null);
 	useEffect(() => {
+		if (counterpartTexture === Texture.EMPTY) return;
 		const layer = layerRef.current;
 		const node = spriteRef.current;
 		if (!layer || !node) return;
-
+		layer.zIndex = 0;
 		layer.attach(node);
 		return () => {
 			layer.detach(node);
 		};
-	}, [layerRef]);
+	}, [layerRef, counterpartTexture]);
 
 	return (
 		<pixiContainer>

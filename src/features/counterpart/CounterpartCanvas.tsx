@@ -4,8 +4,8 @@ import { Container, Graphics, RenderLayer } from "pixi.js";
 import { useRef } from "react";
 
 import Viewport from "@/components/pixi/Viewport";
+import CutoutLayer from "@/features/counterpart/CounterpartCutoutLayer";
 import CounterpartImageLayer from "@/features/counterpart/CounterpartImageLayer";
-import CutoutLayer from "@/features/counterpart/CutoutLayer";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 
 extend({
@@ -33,6 +33,8 @@ export default function CounterpartCanvas() {
 				autoDensity={true}
 			>
 				<Viewport passiveWheel={false}>
+					<pixiRenderLayer ref={cutoutLayerRef} />
+					<pixiRenderLayer ref={imageLayerRef} />
 					<CounterpartImageLayer layerRef={imageLayerRef} />
 					<CutoutLayer layerRef={cutoutLayerRef} />
 				</Viewport>

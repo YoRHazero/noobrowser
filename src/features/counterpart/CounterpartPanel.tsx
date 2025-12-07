@@ -134,7 +134,6 @@ export default function CounterpartPanel() {
 		error: imageError,
 	} = useCounterpartImage({
 		selectedFootprintId,
-		filter: filterRGB.r,
 		normParams: counterpartNorm,
 	});
 	useEffect(() => {
@@ -243,10 +242,10 @@ export default function CounterpartPanel() {
 								});
 								return;
 							}
-							if (!filterRGB.r) {
+							if (!filterRGB.r || !filterRGB.g || !filterRGB.b) {
 								toaster.error({
 									title: "No filter selected",
-									description: "Please select at least the red filter.",
+									description: "Please select all RGB filters.",
 								});
 								return;
 							}

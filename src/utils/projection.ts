@@ -1,3 +1,4 @@
+import type { Projected } from "@/utils/util-types";
 /**
  * Converts an angle from degrees to radians.
  * @param deg - Angle in degrees.
@@ -35,13 +36,6 @@ export function wrapDeg360(deg: number): number {
 export function clamp(value: number, min: number, max: number): number {
 	return Math.max(min, Math.min(max, value));
 }
-
-export type Projected = {
-	x: number;
-	y: number;
-	z: number;
-	visible: boolean;
-};
 
 /**
  * Projects right ascension and declination into a 3D camera space after applying yaw and pitch rotations.

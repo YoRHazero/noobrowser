@@ -1,14 +1,8 @@
 import type { ExtractedSpectrum } from "@/hook/connection-hook";
 import type { CollapseWindow } from "@/stores/stores-types";
 import { clamp } from "@/utils/projection";
-export type { CollapseWindow };
-export type Spectrum1D = {
-	wavelength: number;
-	flux: number;
-	error: number;
-	fluxPlusErr: number;
-	fluxMinusErr: number;
-};
+import type { Spectrum1D } from "@/utils/util-types";
+
 export function getWavelengthSliceIndices(
 	wavelength: number[],
 	waveMin: number,

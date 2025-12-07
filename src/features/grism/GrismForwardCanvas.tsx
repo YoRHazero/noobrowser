@@ -1,7 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import { Application, extend } from "@pixi/react";
 import { RenderLayer } from "pixi.js";
-import { useRef, useCallback } from "react";
+import { useCallback, useRef } from "react";
 import Viewport from "@/components/pixi/Viewport";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 
