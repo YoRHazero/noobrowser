@@ -1,12 +1,13 @@
 import { extend } from "@pixi/react";
 import { Sprite, Texture } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useExtractSpectrum } from "@/hook/connection-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import textureFromData, { sort2DArray } from "@/utils/plot";
+import { getWavelengthSliceIndices } from "@/utils/extraction";
 
 extend({ Sprite });
 
@@ -25,12 +26,16 @@ export default function GrismForwardImage({
 		apertureSize,
 		grismNorm,
 		extractedSpecSortedArray,
+		normInWindow,
+		collapseWindow,
 		setExtractedSpecSortedArray,
 	} = useGrismStore(
 		useShallow((state) => ({
 			apertureSize: state.apertureSize,
 			forwardWaveRange: state.forwardWaveRange,
 			grismNorm: state.grismNorm,
+			normInWindow: state.normInWindow,
+			collapseWindow: state.collapseWindow,
 			extractedSpecSortedArray: state.extractedSpecSortedArray,
 			setExtractedSpecSortedArray: state.setExtractedSpecSortedArray,
 		})),
@@ -44,18 +49,45 @@ export default function GrismForwardImage({
 		enabled: false,
 	});
 
+	/* -------------------------------------------------------------------------- */
+	/*                           Update the sorted array                          */
+	/* -------------------------------------------------------------------------- */
+
+	const fullSorted = useMemo(() => {
+		if (!extractSpectrumData || !extractSpectrumData.covered) return null;
+		return sort2DArray(extractSpectrumData.spectrum_2d);
+	}, [extractSpectrumData]);
+
+	const windowSorted = useMemo(() => {
+		if (!extractSpectrumData || !extractSpectrumData.covered) return null;
+		if (!normInWindow) return null;
+		const spec2D = extractSpectrumData.spectrum_2d;
+		const wavelength = extractSpectrumData.wavelength;
+		const { startIdx: colStart, endIdx: colEnd } = getWavelengthSliceIndices(
+			wavelength,
+			collapseWindow.waveMin,
+			collapseWindow.waveMax,
+		);
+		const rowStart = Math.floor(collapseWindow.spatialMin);
+		const rowEnd = Math.ceil(collapseWindow.spatialMax);
+		const sliced2D = spec2D
+			.slice(rowStart, rowEnd + 1)
+			.map((row) => row.slice(colStart, colEnd + 1));
+		return sort2DArray(sliced2D);
+	}, [extractSpectrumData, normInWindow, collapseWindow]);
+
 	useEffect(() => {
-		if (!extractSpectrumData) {
-			setExtractedSpecSortedArray(null);
-			return;
+		if (normInWindow) {
+			setExtractedSpecSortedArray(windowSorted);
+		} else {
+			setExtractedSpecSortedArray(fullSorted);
 		}
-		if (!extractSpectrumData.covered) {
-			setExtractedSpecSortedArray(null);
-			return;
-		}
-		const sorted = sort2DArray(extractSpectrumData.spectrum_2d);
-		setExtractedSpecSortedArray(sorted);
-	}, [extractSpectrumData, setExtractedSpecSortedArray]);
+	}, [
+		normInWindow,
+		windowSorted,
+		fullSorted,
+		setExtractedSpecSortedArray,
+	]);
 
 	const [grismTexture, setGrismTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {

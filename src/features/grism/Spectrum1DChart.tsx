@@ -618,7 +618,7 @@ interface Spectrum1DHoverLayerProps {
 	yScale: ScaleLinear<number, number>;
 	onHover: (data: TooltipData | null) => void;
 }
-export function Spectrum1DHoverLayer(props: Spectrum1DHoverLayerProps) {
+function Spectrum1DHoverLayer(props: Spectrum1DHoverLayerProps) {
 	const { spectrum1D, width, height, xScale, yScale, onHover } = props;
 	const waveArray = useMemo(
 		() => spectrum1D.map((d) => d.wavelength),
@@ -1117,3 +1117,5 @@ export default function Spectrum1DChart(props: Spectrum1DBrushChartProps) {
 		</Box>
 	);
 }
+
+export {Spectrum1DAllChart, Spectrum1DSliceChart}

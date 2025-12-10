@@ -1,7 +1,7 @@
 import { Box } from "@chakra-ui/react";
 import { Application, extend } from "@pixi/react";
 import { RenderLayer } from "pixi.js";
-import { useCallback, useRef } from "react";
+import { useRef } from "react";
 import Viewport from "@/components/pixi/Viewport";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 
@@ -14,7 +14,7 @@ export default function GrismForwardCanvas() {
 	const imageLayerRef = useRef<RenderLayerInstance | null>(null);
 	const helperLayerRef = useRef<RenderLayerInstance | null>(null);
 	return (
-		<Box ref={parentRef} height={"120px"} w={900} border={"1px solid black"}>
+		<Box ref={parentRef} height={"120px"} w={900}>
 			<Application
 				resizeTo={parentRef}
 				backgroundColor={0xf2f2f2}

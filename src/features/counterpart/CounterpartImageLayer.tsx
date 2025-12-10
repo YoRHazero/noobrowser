@@ -24,13 +24,11 @@ export default function CounterpartImageLayer({
 		counterpartPosition,
 		setCounterpartPosition,
 		counterpartNorm,
-		filterRGB,
 	} = useCounterpartStore(
 		useShallow((state) => ({
 			counterpartPosition: state.counterpartPosition,
 			setCounterpartPosition: state.setCounterpartPosition,
 			counterpartNorm: state.counterpartNorm,
-			filterRGB: state.filterRGB,
 		})),
 	);
 	const selectedFootprintId = useGlobeStore(

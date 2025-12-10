@@ -1,6 +1,7 @@
 import { type PixiReactElementProps } from "@pixi/react";
 import { type Application } from "pixi.js";
 import { PropsWithChildren } from "react";
+import type { GrismMaterialProps } from "@/components/three/GrismMaterial";
 /*
 import { ViewportWrapper } from "@/components/pixi/Viewport";
 import { FootprintContainer } from "@/features/footprint/FootprintManager";
@@ -11,6 +12,9 @@ declare global {
 	namespace React {
 		namespace JSX {
 			interface IntrinsicElements {
+				/* -------------------------------------------------------------------------- */
+				/*                                    Pixi                                    */
+				/* -------------------------------------------------------------------------- */
 				pixiViewportWrapper: PropsWithChildren<
 					PixiReactElementProps<ViewportWrapper>
 				> & {
@@ -22,6 +26,11 @@ declare global {
 				pixiGraticuleGraphics: PixiReactElementProps<GraticuleGraphics>;
 
 				pixiGlobeBackgroundGraphics: PixiReactElementProps<GlobeBackgroundGraphics>;
+
+				/* -------------------------------------------------------------------------- */
+				/*                                    Three                                   */
+				/* -------------------------------------------------------------------------- */
+				grismMaterial: GrismMaterialProps;
 			}
 		}
 	}

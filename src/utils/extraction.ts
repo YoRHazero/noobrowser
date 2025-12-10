@@ -3,6 +3,14 @@ import type { CollapseWindow } from "@/stores/stores-types";
 import { clamp } from "@/utils/projection";
 import type { Spectrum1D } from "@/utils/util-types";
 
+/**
+ * Get the start and end indices for slicing the wavelength array
+ * based on the given waveMin and waveMax.
+ * @param wavelength The wavelength array (must be sorted ascending).
+ * @param waveMin The minimum wavelength of the slice.
+ * @param waveMax The maximum wavelength of the slice.
+ * @returns The start and end indices for slicing.
+ */
 export function getWavelengthSliceIndices(
 	wavelength: number[],
 	waveMin: number,
