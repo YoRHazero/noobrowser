@@ -7,7 +7,7 @@ import type { RenderLayerInstance } from "@/types/pixi-react";
 
 extend({ RenderLayer });
 
-import CollapseWindowLayer from "@/features/grism/CollapseWindowLayer";
+import CollapseWindowLayer from "@/features/grism/GrismForwardCollapseWindowLayer";
 import GrismForwardImage from "@/features/grism/GrismForwardImage";
 export default function GrismForwardCanvas() {
 	const parentRef = useRef<HTMLDivElement | null>(null);

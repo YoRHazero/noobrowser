@@ -1,13 +1,13 @@
 import { Accordion, Span } from "@chakra-ui/react";
 import GrismForward from "@/features/grism/GrismForward";
-import GrismInspector from "@/features/grism/GrismInspector";
+import GrismBackward from "@/features/grism/GrismBackward";
 export default function Grism() {
 	const items = [
 		{ value: "forward", title: "Grism Forward", item: <GrismForward /> },
 		{
 			value: "backward",
 			title: "Grism Backward",
-			item: <GrismInspector />,
+			item: <GrismBackward />,
 		},
 	];
 	return (

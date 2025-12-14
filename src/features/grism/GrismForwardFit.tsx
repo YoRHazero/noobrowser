@@ -28,7 +28,7 @@ import {
 import { useShallow } from "zustand/react/shallow";
 import { TabbedColorPicker } from "@/components/ui/color-chooser";
 import { Tooltip } from "@/components/ui/tooltip";
-import GrismWavelengthControl from "@/features/grism/GrismWavelengthControl";
+import GrismWavelengthControl from "@/features/grism/GrismForwardWavelengthControl";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 import type {

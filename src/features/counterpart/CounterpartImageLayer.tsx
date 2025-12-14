@@ -1,14 +1,14 @@
 import { extend } from "@pixi/react";
-import { Assets, Container, Sprite, Texture } from "pixi.js";
+import { Container, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
 	useCounterpartFootprint,
 	useCounterpartImage,
 } from "@/hook/connection-hook";
-import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
 import type { RenderLayerInstance } from "@/types/pixi-react";
+import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
 
 extend({
 	Sprite,
@@ -22,35 +22,14 @@ export default function CounterpartImageLayer({
 }) {
 	const {
 		counterpartPosition,
-		setCounterpartPosition,
 		counterpartNorm,
 	} = useCounterpartStore(
 		useShallow((state) => ({
 			counterpartPosition: state.counterpartPosition,
-			setCounterpartPosition: state.setCounterpartPosition,
 			counterpartNorm: state.counterpartNorm,
 		})),
 	);
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
-	/* Determine counterpart position */
-	const { data: footprintData, isSuccess: isFootprintSuccess } =
-		useCounterpartFootprint({
-			selectedFootprintId,
-		});
-	useEffect(() => {
-		if (!isFootprintSuccess) return;
-		const vertex_marker: Array<[number, number]> =
-			footprintData.footprint.vertex_marker;
-		setCounterpartPosition({
-			x0: vertex_marker[0][0],
-			y0: vertex_marker[0][1],
-			width: vertex_marker[2][0] - vertex_marker[0][0],
-			height: vertex_marker[2][1] - vertex_marker[0][1],
-		});
-	}, [footprintData, isFootprintSuccess, setCounterpartPosition]);
-
+	const { selectedFootprintId } = useIdSyncCounterpartPosition();
 	/* Load counterpart image */
 	const counterpartImageQuery = useCounterpartImage({
 		selectedFootprintId,
@@ -60,29 +39,34 @@ export default function CounterpartImageLayer({
 		Texture.EMPTY,
 	);
 	useEffect(() => {
-		if (!counterpartImageQuery.isSuccess) return;
+		if (!counterpartImageQuery.isSuccess || !counterpartImageQuery.data) return;
 		const blob = counterpartImageQuery.data;
-		const imageUrl = URL.createObjectURL(blob);
 		let canceled = false;
-		(async () => {
+		const loadTexture = async () => {
 			try {
-				const texture = await Assets.load({
-					src: imageUrl,
-					format: "png",
-					parser: "texture",
+				const bitmap = await createImageBitmap(blob, {
+					premultiplyAlpha: "none"
 				});
 				if (canceled) {
-					Assets.unload(imageUrl);
+					bitmap.close();
 					return;
 				}
+				const texture = Texture.from(bitmap, true);
 				setCounterpartTexture(texture);
-			} finally {
-				URL.revokeObjectURL(imageUrl);
+				
+			} catch (error) {
+				console.error("Failed to create image bitmap for counterpart image:", error);
 			}
-		})();
+		};
+		loadTexture();
 		return () => {
 			canceled = true;
-			Assets.unload(imageUrl);
+			setCounterpartTexture((prevTexture) => {
+				if (prevTexture !== Texture.EMPTY) {
+					prevTexture.destroy(true);
+				}
+				return Texture.EMPTY;
+			})
 		};
 	}, [counterpartImageQuery.isSuccess, counterpartImageQuery.data]);
 

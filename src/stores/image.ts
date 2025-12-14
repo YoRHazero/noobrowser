@@ -5,14 +5,17 @@ import type {
 	CounterpartPosition,
 	CutoutParams,
 	NormParams,
-	rgbSet,
+	RGBSet,
 	WaveUnit,
-	waveRange,
+	WaveRange,
+	RoiState,
 } from "./stores-types.js";
-
+import { clamp } from "@/utils/projection.js";
 interface CounterpartState {
 	availableFilters: string[];
-	filterRGB: rgbSet;
+	filterRGB: RGBSet;
+	displayMode: "rgb" | "r" | "g" | "b";
+	opacity: number;
 	counterpartNorm: NormParams;
 	cutoutParams: CutoutParams;
 	cutoutNorm: NormParams;
@@ -21,7 +24,9 @@ interface CounterpartState {
 	showCutout: boolean;
 	goToCutoutRequested: boolean;
 	setAvailableFilters: (filters: string[]) => void;
-	setFilterRGB: (patch: Partial<rgbSet>) => void;
+	setFilterRGB: (patch: Partial<RGBSet>) => void;
+	setDisplayMode: (mode: "rgb" | "r" | "g" | "b") => void;
+	setOpacity: (opacity: number) => void;
 	setCounterpartNorm: (params: Partial<NormParams>) => void;
 	setCounterpartPosition: (patch: Partial<CounterpartPosition>) => void;
 	setCutoutParams: (patch: Partial<CutoutParams>) => void;
@@ -34,6 +39,8 @@ interface CounterpartState {
 export const useCounterpartStore = create<CounterpartState>()((set) => ({
 	availableFilters: [],
 	filterRGB: { r: "", g: "", b: "" },
+	displayMode: "rgb",
+	opacity: 1.0,
 	counterpartNorm: { pmin: 1, pmax: 99 },
 	counterpartPosition: { x0: 0, y0: 0, width: 3000, height: 0 },
 	cutoutParams: {
@@ -51,6 +58,11 @@ export const useCounterpartStore = create<CounterpartState>()((set) => ({
 	setAvailableFilters: (filters) => set({ availableFilters: filters }),
 	setFilterRGB: (patch) =>
 		set((state) => ({ filterRGB: { ...state.filterRGB, ...patch } })),
+	setDisplayMode: (mode) => set({ displayMode: mode }),
+	setOpacity: (opacity) => {
+		const clampedOpacity = clamp(opacity, 0, 1);
+		set({ opacity: clampedOpacity });
+	},
 	setCounterpartNorm: (patch) =>
 		set((state) => ({
 			counterpartNorm: { ...state.counterpartNorm, ...patch },
@@ -76,26 +88,37 @@ interface GrismState {
 	grismNorm: NormParams;
 	extractedSpecSortedArray: number[] | null;
 	normInWindow: boolean;
-	forwardWaveRange: waveRange;
-	slice1DWaveRange: waveRange;
+	forwardWaveRange: WaveRange;
+	slice1DWaveRange: WaveRange;
 	collapseWindow: CollapseWindow;
 	emissionLines: Record<string, number>;
 	selectedEmissionLines: Record<string, number>;
 	showTraceOnSpectrum2D: boolean;
+	backwardGlobalNorm: NormParams;
+	backwardRoiNorm: NormParams;
+	backwardNormIndependent: boolean;
+	roiState: RoiState;
+	roiCollapseWindow: CollapseWindow;
 	setWaveUnit: (unit: WaveUnit) => void;
 	setApertureSize: (size: number) => void;
 	setZRedshift: (z: number) => void;
 	setGrismNorm: (patch: Partial<NormParams>) => void;
 	setExtractedSpecSortedArray: (array: number[] | null) => void;
 	setNormInWindow: (inWindow: boolean) => void;
-	setForwardWaveRange: (patch: Partial<waveRange>) => void;
-	setSlice1DWaveRange: (patch: Partial<waveRange>) => void;
+	setForwardWaveRange: (patch: Partial<WaveRange>) => void;
+	setSlice1DWaveRange: (patch: Partial<WaveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
 	setEmissionLines: (lines: Record<string, number>) => void;
 	addEmissionLine: (name: string, wavelength: number) => void;
 	removeEmissionLine: (name: string) => void;
 	setSelectedEmissionLines: (lines: Record<string, number>) => void;
 	switchShowTraceOnSpectrum2D: () => void;
+	setBackwardGlobalNorm: (patch: Partial<NormParams>) => void;
+	setBackwardRoiNorm: (patch: Partial<NormParams>) => void;
+	setBackwardNormIndependent: (independent: boolean) => void;
+	syncBackwardNorms: () => void;
+	setRoiState: (patch: Partial<RoiState>) => void;
+	setRoiCollapseWindow: (patch: Partial<CollapseWindow>) => void;
 }
 
 export const useGrismStore = create<GrismState>()(
@@ -125,6 +148,16 @@ export const useGrismStore = create<GrismState>()(
 			},
 			selectedEmissionLines: {},
 			showTraceOnSpectrum2D: true,
+			backwardGlobalNorm: { pmin: 1, pmax: 99 },
+			backwardRoiNorm: { pmin: 1, pmax: 99 },
+			backwardNormIndependent: false,
+			roiState: { x: 0, y: 0, width: 256, height: 128 },
+			roiCollapseWindow: {
+				waveMin: 0,
+				waveMax: 256,
+				spatialMin: 128/2 - 5,
+				spatialMax: 128/2 + 5,
+			},
 			setWaveUnit: (unit) => set({ waveUnit: unit }),
 			setApertureSize: (size) => set({ apertureSize: size }),
 			setZRedshift: (z) => set({ zRedshift: z }),
@@ -177,6 +210,28 @@ export const useGrismStore = create<GrismState>()(
 			switchShowTraceOnSpectrum2D: () =>
 				set((state) => ({
 					showTraceOnSpectrum2D: !state.showTraceOnSpectrum2D,
+				})),
+			setBackwardGlobalNorm: (patch) =>
+				set((state) => ({
+					backwardGlobalNorm: { ...state.backwardGlobalNorm, ...patch },
+				})),
+			setBackwardRoiNorm: (patch) =>
+				set((state) => ({
+					backwardRoiNorm: { ...state.backwardRoiNorm, ...patch },
+				})),
+			setBackwardNormIndependent: (independent) =>
+				set({ backwardNormIndependent: independent }),
+			syncBackwardNorms: () =>
+				set((state) => ({
+					backwardRoiNorm: { ...state.backwardGlobalNorm },
+				})),
+			setRoiState: (patch) =>
+				set((state) => ({
+					roiState: { ...state.roiState, ...patch },
+				})),
+			setRoiCollapseWindow: (patch) =>
+				set((state) => ({
+					roiCollapseWindow: { ...state.roiCollapseWindow, ...patch },
 				})),
 		}),
 

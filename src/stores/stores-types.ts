@@ -62,7 +62,7 @@ export type CollapseWindow = {
 	spatialMax: number;
 };
 
-export type rgbSet = { r: string; g: string; b: string };
+export type RGBSet = { r: string; g: string; b: string };
 
 export type NormParams = {
 	pmin: number;
@@ -71,7 +71,14 @@ export type NormParams = {
 	vmax?: number;
 };
 
-export type waveRange = { min: number; max: number };
+export type WaveRange = { min: number; max: number };
+
+export type RoiState = {
+	x: number;
+	y: number;
+	width: number;
+	height: number;
+};
 
 /* -------------------------------------------------------------------------- */
 /*                               Footprint type                               */

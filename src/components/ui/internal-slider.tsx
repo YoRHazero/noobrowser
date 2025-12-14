@@ -4,10 +4,13 @@ import {
   NumberInput, 
   Slider, 
   HStack, 
+  Text,
 } from "@chakra-ui/react";
 
-// 🎨 主题配置
-const UI_THEME = {
+/* -------------------------------------------------------------------------- */
+/*                                 Nrom Slider                                */
+/* -------------------------------------------------------------------------- */
+const NORM_THEME = {
   maxColor: "pink.400",
   minColor: "cyan.400",
   // 向右的渐变
@@ -23,6 +26,8 @@ interface HorizontalNormRangeSliderProps {
   onPmaxChange: (val: number) => void;
   onVminChange: (val: number) => void;
   onVmaxChange: (val: number) => void;
+  onPminInputChange?: (val: number) => void;
+  onPmaxInputChange?: (val: number) => void;
 }
 
 export function HorizontalNormRangeSlider({
@@ -34,6 +39,8 @@ export function HorizontalNormRangeSlider({
   onPmaxChange,
   onVminChange,
   onVmaxChange,
+  onPmaxInputChange,
+  onPminInputChange,
 }: HorizontalNormRangeSliderProps) {
   
   const handleSliderDrag = (details: { value: number[] }) => {
@@ -41,7 +48,8 @@ export function HorizontalNormRangeSlider({
     onPminChange(newMin);
     onPmaxChange(newMax);
   };
-
+  const handlePmaxInputChange = onPmaxInputChange || onPmaxChange;
+  const handlePminInputChange = onPminInputChange || onPminChange;
   return (
     <HStack
       w="100%"
@@ -55,8 +63,8 @@ export function HorizontalNormRangeSlider({
         <CompactInput
           label="Min %"
           value={pmin}
-          onChange={onPminChange}
-          color={UI_THEME.minColor}
+          onChange={handlePminInputChange}
+          color={NORM_THEME.minColor}
           step={0.1}
           width="55px"
         />
@@ -64,7 +72,7 @@ export function HorizontalNormRangeSlider({
           label="Vmin"
           value={vmin}
           onChange={onVminChange}
-          color={UI_THEME.minColor}
+          color={NORM_THEME.minColor}
           width="65px"
         />
       </HStack>
@@ -81,10 +89,10 @@ export function HorizontalNormRangeSlider({
         >
             <Slider.Control>
                 <Slider.Track bg="blackAlpha.200" height="4px" borderRadius="full">
-                    <Slider.Range bgGradient={UI_THEME.gradient} />
+                    <Slider.Range bgGradient={NORM_THEME.gradient} />
                 </Slider.Track>
-                <StyledThumb index={0} color={UI_THEME.minColor} />
-                <StyledThumb index={1} color={UI_THEME.maxColor} />
+                <StyledThumb index={0} color={NORM_THEME.minColor} />
+                <StyledThumb index={1} color={NORM_THEME.maxColor} />
             </Slider.Control>
         </Slider.Root>
       </Box>
@@ -95,14 +103,14 @@ export function HorizontalNormRangeSlider({
           label="Vmax"
           value={vmax}
           onChange={onVmaxChange}
-          color={UI_THEME.maxColor}
+          color={NORM_THEME.maxColor}
           width="65px"
         />
         <CompactInput
           label="Max %"
           value={pmax}
-          onChange={onPmaxChange}
-          color={UI_THEME.maxColor}
+          onChange={handlePmaxInputChange}
+          color={NORM_THEME.maxColor}
           step={0.1}
           width="55px"
         />
@@ -110,6 +118,66 @@ export function HorizontalNormRangeSlider({
     </HStack>
   );
 }
+
+/* -------------------------------------------------------------------------- */
+/*                               Opacity Slider                               */
+/* -------------------------------------------------------------------------- */
+interface HorizontalOpacitySliderProps {
+  opacity: number;
+  onOpacityChange: (val: number) => void;
+  onOpacityInputChange?: (val: number) => void;
+  color?: string;
+  label?: string;
+}
+
+export function HorizontalOpacitySlider({
+  opacity,
+  onOpacityChange,
+  onOpacityInputChange,
+  color = "pink.400",
+  label = "Opacity",
+}: HorizontalOpacitySliderProps) {
+    const handleInputChange = onOpacityInputChange? onOpacityInputChange : onOpacityChange;
+    return (
+        <HStack w="100%" gap={3} align="center">
+            {label && (
+                <Text fontSize="xs" color={color} fontWeight="semibold" w="50px">
+                    {label}
+                </Text>
+            )}
+
+            <Box flex="1" position="relative" px={2} pt={2}>
+                <Slider.Root
+                    value={[opacity]}
+                    onValueChange={(e) => onOpacityChange(e.value[0])}
+                    min={0}
+                    max={1}
+                    step={0.01}
+                >
+                    <Slider.Control>
+                        <Slider.Track bg="whiteAlpha.200" height="4px" borderRadius="full">
+                            <Slider.Range bg={color} />
+                        </Slider.Track>
+                        <StyledThumb index={0} color={color} />
+                    </Slider.Control>
+                </Slider.Root>
+            </Box>
+
+            <HStack gap={1}>
+                <CompactInput 
+                    value={opacity}
+                    onChange={handleInputChange}
+                    color={color}
+                    width="45px"
+                    label={label}
+                    step={0.01}
+                />
+            </HStack>
+        </HStack>
+    );
+}
+
+
 
 // ✨ 紧凑型输入框
 function CompactInput({

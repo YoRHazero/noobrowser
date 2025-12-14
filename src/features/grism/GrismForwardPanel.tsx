@@ -21,7 +21,7 @@ import { useShallow } from "zustand/react/shallow";
 import { Slider } from "@/components/ui/slider";
 import { InfoTip } from "@/components/ui/toggle-tip";
 import { Tooltip } from "@/components/ui/tooltip";
-import GrismWavelengthControl from "@/features/grism/GrismWavelengthControl";
+import GrismWavelengthControl from "@/features/grism/GrismForwardWavelengthControl";
 import { useExtractSpectrum } from "@/hook/connection-hook";
 import { useFitStore } from "@/stores/fit";
 import { useGlobeStore } from "@/stores/footprints";

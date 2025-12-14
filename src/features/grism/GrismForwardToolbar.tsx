@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useId } from "react";
-import { HorizontalNormRangeSlider } from "@/components/ui/internal-norm-slider";
+import { HorizontalNormRangeSlider } from "@/components/ui/internal-slider";
 import { percentileFromSortedArray } from "@/utils/plot";
 import { Tooltip } from "@/components/ui/tooltip";
 import { clamp } from "@/utils/projection";

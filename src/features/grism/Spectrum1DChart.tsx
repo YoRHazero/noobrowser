@@ -46,8 +46,8 @@ interface TooltipData {
 
 interface Spectrum1DSliceChartProps {
 	spectrum1D: Spectrum1D[];
-	width: number;
-	height: number;
+	width: number; // inner chart width excluding margins
+	height: number; // inner chart height excluding margins
 	xScale: ScaleLinear<number, number>;
 	yScale: ScaleLinear<number, number>;
 	anchor: Anchor;

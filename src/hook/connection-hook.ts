@@ -9,6 +9,7 @@ import axios from "axios";
 import { useConnectionStore } from "@/stores/connection";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
+import type { RoiState } from "@/hook/hotkey-hook";
 
 type QueryAxiosParams<T = any> = {
 	queryKey: Array<any>;
@@ -219,6 +220,9 @@ export function useCounterpartImage({
 			responseType: "blob",
 		},
 		enabled: enabled,
+		queryOptions: {
+			gcTime: 1000 * 60, // garbage collect after 1 minute of inactivity
+		},
 	});
 	return query;
 }
@@ -453,6 +457,54 @@ export function useGrismErr({
 		},
 	});
 	return results;
+}
+
+export type PercentileData = {
+	group_id: number;
+	percentiles: number[];
+	q: number[];
+}
+
+export function useFluxPercentiles({
+	selectedFootprintId = null,
+	q = [],
+	roi = null,
+	enabled = false,
+}: {
+	selectedFootprintId?: string | null;
+	q?: number[];
+	roi?: RoiState | null;
+	enabled?: boolean;
+}) {
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
+	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const queryParams: Record<string, any> = {}
+	if (q.length > 0) {
+		queryParams.percentage = q
+	}
+	if (roi !== null) {
+		queryParams.roi_x = roi.x;
+		queryParams.roi_y = roi.y;
+		queryParams.roi_width = roi.width;
+		queryParams.roi_height = roi.height;
+	}
+	const query = useQueryAxiosGet<PercentileData>({
+		queryKey: ["percentile_flux", group_id, {q, roi}],
+		path: `/wfss/percentile_flux/${group_id}`,
+		axiosGetParams: {
+			params: queryParams,
+			paramsSerializer: {
+				indexes: null
+			}
+		},
+		enabled: enabled && group_id !== null,
+		queryOptions: {
+			gcTime: 1000, // garbage collect after 1 second of inactivity
+		}
+	});
+	return query;
 }
 
 export type ExtractedSpectrum = {
