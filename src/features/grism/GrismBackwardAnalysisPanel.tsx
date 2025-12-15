@@ -14,7 +14,7 @@ import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
 import { RoiCameraRig, CollapseRegionIndicator } from "@/components/three/RoiComponent"
 import GrismImageLayer from "@/components/three/GrismImageLayer";
 import GrismBackward1DChart from "@/features/grism/GrismBackward1DChart";
-
+import { TraceLinesLayer } from "@/features/grism/GrismBackwardTraceLayer";
 export default function GrismBackwardAnalysisPanel({currentBasename}: {currentBasename: string | undefined}) {
     return (
         <VStack h="100%" align="stretch" gap={0} bg="gray.800" borderLeft="1px solid #222">
@@ -85,8 +85,8 @@ function RoiZoomView({currentBasename}: {currentBasename: string | undefined}) {
             </Text>
             <Canvas>
                 <OrthographicCamera 
-                    makeDefault 
-                    position={[0, 0, 10]}
+                    makeDefault
+                    position={[0, 0, 100]}
                     left={-roiState.width / 2}
                     right={roiState.width / 2}
                     top={roiState.height / 2}
@@ -112,14 +112,10 @@ function RoiZoomView({currentBasename}: {currentBasename: string | undefined}) {
                             y={roiState.y}
                             width={roiState.width}
                             height={roiState.height}
-                            imgWidth={currentGrismData.width}
-                            imgHeight={currentGrismData.height}
                         />
 
-                        <CollapseRegionIndicator 
-                            imgWidth={currentGrismData.width}
-                            imgHeight={currentGrismData.height}
-                        />
+                        <CollapseRegionIndicator />
+                        <TraceLinesLayer />
                     </>
                 )}
             </Canvas>
@@ -140,15 +136,19 @@ function ShortcutLegend() {
                 SHORTCUTS
             </Text>
             <Grid templateColumns="auto 1fr" gap={2} fontSize="xs" color="gray.400">
-                <GridItem><Kbd>Shift</Kbd>+<Kbd>q</Kbd></GridItem>
-                <GridItem>Previous Image</GridItem>
-                <GridItem><Kbd>Shift</Kbd>+<Kbd>e</Kbd></GridItem>
-                <GridItem>Next Image</GridItem>
+                <GridItem><Kbd>Shift</Kbd> + <Kbd>q</Kbd> / <Kbd>Shift</Kbd> + <Kbd>e</Kbd></GridItem>
+                <GridItem>Previous Image / Next Image</GridItem>
                 
+                <GridItem><Kbd>Shift</Kbd> + <Kbd>c</Kbd></GridItem>
+                <GridItem>Center Camera on ROI</GridItem>
+
                 <GridItem><Kbd>↑</Kbd> / <Kbd>↓</Kbd> / <Kbd>←</Kbd> / <Kbd>→</Kbd></GridItem>
                 <GridItem>Move ROI (1px)</GridItem>
+
+                <GridItem><Kbd>Shift</Kbd> + <Kbd>↑</Kbd> / <Kbd>Shift</Kbd> + <Kbd>↓</Kbd> / <Kbd>Shift</Kbd> + <Kbd>←</Kbd> / <Kbd>Shift</Kbd> + <Kbd>→</Kbd></GridItem>
+                <GridItem>Move ROI (10px)</GridItem>
                 
-                <GridItem><Kbd>⌘</Kbd>+<Kbd>↑</Kbd> / <Kbd>⌘</Kbd>+<Kbd>↓</Kbd> / <Kbd>⌘</Kbd>+<Kbd>←</Kbd> / <Kbd>⌘</Kbd>+<Kbd>→</Kbd></GridItem>
+                <GridItem><Kbd>⌘</Kbd> + <Kbd>↑</Kbd> / <Kbd>⌘</Kbd> + <Kbd>↓</Kbd> / <Kbd>⌘</Kbd> + <Kbd>←</Kbd> / <Kbd>⌘</Kbd> + <Kbd>→</Kbd></GridItem>
                 <GridItem>Move ROI By Half Size</GridItem>
             </Grid>
         </Box>

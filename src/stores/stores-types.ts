@@ -117,3 +117,23 @@ export type GridState = {
 	meridianStep: number;
 	parallelStep: number;
 };
+/* -------------------------------------------------------------------------- */
+/*                                Sources Type                                */
+/* -------------------------------------------------------------------------- */
+
+export type TraceSource = {
+	id: string;
+	x: number;
+	y: number;
+	color: string;
+	spectrumReady: boolean;
+	ra?: number;
+	dec?: number;
+	raHms?: string;
+	decDms?: string;
+	groupId?: string | null;
+	roi?: {
+		roiState: RoiState;
+		collapseWindow: CollapseWindow;
+	},
+};

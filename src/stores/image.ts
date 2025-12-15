@@ -99,6 +99,7 @@ interface GrismState {
 	backwardNormIndependent: boolean;
 	roiState: RoiState;
 	roiCollapseWindow: CollapseWindow;
+	counterpartVisible: boolean;
 	setWaveUnit: (unit: WaveUnit) => void;
 	setApertureSize: (size: number) => void;
 	setZRedshift: (z: number) => void;
@@ -119,6 +120,7 @@ interface GrismState {
 	syncBackwardNorms: () => void;
 	setRoiState: (patch: Partial<RoiState>) => void;
 	setRoiCollapseWindow: (patch: Partial<CollapseWindow>) => void;
+	setCounterpartVisible: (visible: boolean) => void;
 }
 
 export const useGrismStore = create<GrismState>()(
@@ -158,6 +160,7 @@ export const useGrismStore = create<GrismState>()(
 				spatialMin: 128/2 - 5,
 				spatialMax: 128/2 + 5,
 			},
+			counterpartVisible: false,
 			setWaveUnit: (unit) => set({ waveUnit: unit }),
 			setApertureSize: (size) => set({ apertureSize: size }),
 			setZRedshift: (z) => set({ zRedshift: z }),
@@ -233,6 +236,7 @@ export const useGrismStore = create<GrismState>()(
 				set((state) => ({
 					roiCollapseWindow: { ...state.roiCollapseWindow, ...patch },
 				})),
+			setCounterpartVisible: (visible) => set({ counterpartVisible: visible }),
 		}),
 
 		{

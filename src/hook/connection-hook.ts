@@ -18,6 +18,7 @@ type QueryAxiosParams<T = any> = {
 	axiosGetParams?: Record<string, any>;
 	returnType?: "response" | "data";
 	queryOptions?: Omit<UseQueryOptions<T>, "queryKey" | "queryFn" | "enabled">;
+	checkParamsNull?: boolean;
 };
 /**
  * Hook to perform axios GET request with react-query
@@ -28,6 +29,7 @@ type QueryAxiosParams<T = any> = {
  * @param params.axiosGetParams Parameters to pass to axios.get
  * @param params.returnType 'response' to return full response, 'data' to return response data (default: 'data')
  * @param params.queryOptions Additional react-query options
+ * @param params.checkParamsNull Whether to check for null/undefined in axiosGetParams.params (default: true)
  * @returns useQuery result
  */
 export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
@@ -37,10 +39,11 @@ export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
 		axiosGetParams = {},
 		returnType = "data",
 		queryOptions = {},
+		checkParamsNull = true,
 	} = params;
 	const isConnected = useConnectionStore((state) => state.isConnected);
 	let enabled = (params.enabled ?? true) && isConnected;
-	if (axiosGetParams?.params) {
+	if (axiosGetParams?.params && checkParamsNull) {
 		const paramsHasNull = Object.values(axiosGetParams.params).some(
 			(v) => v === null || v === undefined,
 		);
@@ -107,7 +110,7 @@ export function useWorldCoordinates({
 	const query = useQueryAxiosGet<WorldCoordinates>({
 		queryKey: ["world_coordinates", group_id, queryX, queryY],
 		enabled: enabled,
-		path: "/wfss/world_coordinates/",
+		path: "/source/world_coordinates/",
 		axiosGetParams: {
 			params: {
 				group_id: group_id,
@@ -144,7 +147,7 @@ export function usePixelCoordinates({
 	const query = useQueryAxiosGet<PixelCoordinates>({
 		queryKey: ["pixel_coordinates", group_id, ra, dec],
 		enabled: enabled,
-		path: "/wfss/pixel_coordinates/",
+		path: "/source/pixel_coordinates/",
 		axiosGetParams: {
 			params: {
 				group_id: group_id,
@@ -191,7 +194,6 @@ export function useCounterpartImage({
 	r = null,
 	g = null,
 	b = null,
-
 	normParams,
 	enabled = false,
 }: {
@@ -199,13 +201,15 @@ export function useCounterpartImage({
 	r?: string | null;
 	g?: string | null;
 	b?: string | null;
-	normParams: Record<string, number>;
+	normParams?: Record<string, number> | undefined;
 	enabled?: boolean;
 }) {
 	const ZustandFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
 	const ZustandFilterRGB = useCounterpartStore((state) => state.filterRGB);
+	const ZustandCounterpartNorm = useCounterpartStore((state) => state.counterpartNorm);
+	const queryNormParams = normParams ?? ZustandCounterpartNorm;
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const filterRGB = {
 		r: r ?? ZustandFilterRGB.r,
@@ -213,10 +217,10 @@ export function useCounterpartImage({
 		b: b ?? ZustandFilterRGB.b,
 	};
 	const query = useQueryAxiosGet<Blob>({
-		queryKey: ["counterpart_image", group_id, filterRGB, normParams],
+		queryKey: ["counterpart_image", group_id, filterRGB, queryNormParams],
 		path: `/image/counterpart_image/${group_id}`,
 		axiosGetParams: {
-			params: { ...filterRGB, ...normParams },
+			params: { ...filterRGB, ...queryNormParams },
 			responseType: "blob",
 		},
 		enabled: enabled,
@@ -551,7 +555,7 @@ export function useExtractSpectrum({
 		(cutoutParams ? Math.max(cutoutParams.width, cutoutParams.height) : null);
 	const query = useQueryAxiosGet<ExtractedSpectrum>({
 		queryKey: ["extract_spectrum", group_id, queryX, queryY, aperture],
-		path: "/wfss/extract_spectrum/",
+		path: "/source/extract_spectrum/",
 		enabled: enabled,
 		axiosGetParams: {
 			params: {
@@ -565,6 +569,69 @@ export function useExtractSpectrum({
 		},
 		queryOptions: {
 			placeholderData: keepPreviousData,
+		},
+	});
+	return query;
+}
+
+export type DispersionTrace = {
+	group_id: number | null;
+	basename: string | null;
+	input_x: number;
+	input_y: number;
+	wavelengths: number[];
+	trace_xs: number[];
+	trace_ys: number[];
+	mean_pixel_scale: number;
+}
+
+export function useDispersionTrace({
+	selectedFootprintId,
+	basename,
+	x,
+	y,
+	waveMin,
+	waveMax,
+	enabled = false,
+}: {
+	selectedFootprintId?: string | undefined;
+	basename?: string | undefined;
+	x?: number | undefined;
+	y?: number | undefined;
+	waveMin?: number | undefined;
+	waveMax?: number | undefined;
+	enabled?: boolean;
+}) {
+	const ZustandFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
+	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const queryParams: Record<string, string | number> = {
+		...(group_id !== null ? { group_id } : {}),
+		...(basename !== undefined ? { basename } : {}),
+		...(x !== undefined ? { x } : {}),
+		...(y !== undefined ? { y } : {}),
+		...(waveMin !== undefined ? { wavemin: waveMin } : {}),
+		...(waveMax !== undefined ? { wavemax: waveMax } : {}),
+	};
+	
+	const query = useQueryAxiosGet<DispersionTrace>({
+		queryKey: [
+			"dispersion_trace",
+			group_id,
+			basename,
+			x,
+			y,
+			waveMin,
+			waveMax,
+		],
+		path: "/source/dispersion_trace/",
+		enabled: enabled && (!!group_id || !!basename),
+		axiosGetParams: {
+			params: queryParams,
+		},
+		queryOptions: {
+			gcTime: 1000 * 10, // garbage collect after 10 seconds of inactivity
 		},
 	});
 	return query;

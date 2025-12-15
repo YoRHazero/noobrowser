@@ -1,16 +1,22 @@
 import { Box, Text } from "@chakra-ui/react";
-import  { useMemo } from "react";
+import  { useMemo, useRef } from "react";
 import { Canvas } from "@react-three/fiber";
 import { OrthographicCamera, MapControls } from "@react-three/drei";
+import type  { MapControls as MapControlsType } from "three-stdlib";
 import { useShallow } from "zustand/react/shallow";
 
 import { useGlobeStore } from "@/stores/footprints";
 import { useGrismStore } from "@/stores/image";
 import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
+import { useCameraCenteringOnRoi } from "@/hook/hotkey-hook";
 import { RoiIndicator } from "@/components/three/RoiComponent";
 import GrismImageLayer from "@/components/three/GrismImageLayer";
+import GrismBackwardCounterpartImageLayer from "@/features/grism/GrismBackwardCounterpartImageLayer";
 import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
-import GrismBackwardFetchControl from "./GrismBackwardFetchControl";
+import GrismBackwardFetchControl from "@/features/grism/GrismBackwardFetchControl";
+import GrismBackwardTraceLayer from "@/features/grism/GrismBackwardTraceLayer";
+// import TraceSourceDrawer from "@/features/grism/TraceSourceDrawer";
+import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
 
 export default function GrismBackwardMainCanvas({ currentBasename }: { currentBasename: string | undefined }) {
     /* -------------------------------------------------------------------------- */
@@ -39,6 +45,7 @@ export default function GrismBackwardMainCanvas({ currentBasename }: { currentBa
     /* -------------------------------------------------------------------------- */
     /*                                 Render View                                */
     /* -------------------------------------------------------------------------- */
+    const controlRef = useRef<MapControlsType>(null);
     return (
         <Box position="relative" w="100%" h="100%" overflow="hidden" bg="black">
             <Canvas>
@@ -50,12 +57,16 @@ export default function GrismBackwardMainCanvas({ currentBasename }: { currentBa
                     far={1000} 
                 />
                 <MapControls 
+                    ref={controlRef}
                     enableRotate={false} 
                     screenSpacePanning 
                     minZoom={0.1} 
                     maxZoom={20} 
                 />
+                <CanvasController controlRef={controlRef} />
                 <color attach="background" args={["#050505"]} />
+                <GrismBackwardCounterpartImageLayer/>
+                <GrismBackwardTraceLayer />
 
                 {currentGrismData && currentGrismOffsets && (
                     <>
@@ -74,8 +85,6 @@ export default function GrismBackwardMainCanvas({ currentBasename }: { currentBa
                             y={roiState.y}
                             width={roiState.width}
                             height={roiState.height}
-                            imgWidth={currentGrismData.width}
-                            imgHeight={currentGrismData.height}
                         />
                     </>
                 )}
@@ -83,8 +92,14 @@ export default function GrismBackwardMainCanvas({ currentBasename }: { currentBa
             <GrismBackwardToolbar />
             <InfoLegend currentBasename={currentBasename} />
             <GrismBackwardFetchControl />
+            <GrismTraceSourceDrawer />
         </Box>
     )
+}
+
+function CanvasController({ controlRef }: { controlRef: React.RefObject<MapControlsType | null> }) {
+    useCameraCenteringOnRoi(controlRef);
+    return null;
 }
 
 function InfoLegend({currentBasename}: {currentBasename: string | undefined}) {

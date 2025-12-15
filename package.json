@@ -33,6 +33,7 @@
     "@tanstack/react-router-devtools": "^1.139.10",
     "@tanstack/router-plugin": "^1.139.10",
     "@types/three": "^0.181.0",
+    "@types/uuid": "^10.0.0",
     "@use-gesture/react": "^10.3.1",
     "@visx/axis": "^4.0.1-alpha.0",
     "@visx/brush": "^4.0.1-alpha.0",
@@ -46,6 +47,7 @@
     "axios": "^1.13.2",
     "gsap": "^3.13.0",
     "immer": "^11.0.0",
+    "lucide-react": "^0.561.0",
     "next-themes": "^0.4.6",
     "ogl": "^1.0.11",
     "pixi-viewport": "^6.0.3",
@@ -57,6 +59,7 @@
     "three": "^0.181.2",
     "use-debounce": "^10.0.6",
     "use-immer": "^0.11.0",
+    "uuid": "^13.0.0",
     "zustand": "^5.0.8"
   },
   "devDependencies": {

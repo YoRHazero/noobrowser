@@ -1,0 +1,178 @@
+import { useEffect, useMemo, useState } from "react";
+import {
+    ClampToEdgeWrapping,
+    DoubleSide,
+    LinearFilter,
+    SRGBColorSpace,
+    Texture,
+} from "three";
+import type { ThreeEvent } from "@react-three/fiber";
+import { useShallow } from "zustand/react/shallow";
+import { useCounterpartImage } from "@/hook/connection-hook";
+import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import { useSourcesStore } from "@/stores/sources";
+import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
+import { toaster } from "@/components/ui/toaster";
+
+import "@/components/three/CounterpartMaterial";
+
+export default function GrismBackwardCounterpartImageLayer({
+    visible,
+}: {
+    visible?: boolean;
+}) {
+    // --------------------------------------------------------------------------
+    // 1. 数据同步与 Store
+    // --------------------------------------------------------------------------
+    const { 
+        counterpartPosition, 
+        displayMode, 
+        opacity 
+    } = useCounterpartStore(
+        useShallow((state) => ({
+            counterpartPosition: state.counterpartPosition,
+            displayMode: state.displayMode,
+            opacity: state.opacity,
+        }))
+    );
+
+    const {
+        counterpartVisible,
+        roiState, 
+        roiCollapseWindow
+    } = useGrismStore(
+        useShallow((state) => ({
+            counterpartVisible: state.counterpartVisible,
+            roiState: state.roiState,
+            roiCollapseWindow: state.roiCollapseWindow,
+        }))
+    );
+    const isVisible = visible ?? counterpartVisible;
+
+    const {
+        traceMode,
+        mainTraceSourceId,
+        addTraceSource,
+        updateMainTraceSource,
+        removeTraceSource,
+    } = useSourcesStore(
+        useShallow((state) => ({
+            traceMode: state.traceMode,
+            mainTraceSourceId: state.mainTraceSourceId,
+            addTraceSource: state.addTraceSource,
+            updateMainTraceSource: state.updateMainTraceSource,
+            removeTraceSource: state.removeTraceSource,
+        }))
+    );
+    const { selectedFootprintId } = useIdSyncCounterpartPosition();
+
+    // --------------------------------------------------------------------------
+    // 2. 加载图片 (ImageBitmap)
+    // --------------------------------------------------------------------------
+    const counterpartImageQuery = useCounterpartImage({});
+
+    const [texture, setTexture] = useState<Texture | null>(null);
+
+    useEffect(() => {
+        if (!counterpartImageQuery.isSuccess || !counterpartImageQuery.data) return;
+
+        const blob = counterpartImageQuery.data;
+        let isCancelled = false;
+
+        const loadTexture = async () => {
+            try {
+                // 使用 ImageBitmap 异步解码，无阻塞
+                const bitmap = await createImageBitmap(blob, {
+                    imageOrientation: "flipY", // 适配 Three.js 坐标系
+                    premultiplyAlpha: "none",  // 保持科学数据的纯净性
+                    colorSpaceConversion: "default",
+                });
+
+                if (isCancelled) {
+                    bitmap.close();
+                    return;
+                }
+
+                const newTexture = new Texture(bitmap);
+                
+                // 纹理设置
+                newTexture.colorSpace = SRGBColorSpace; 
+                newTexture.minFilter = LinearFilter;
+                newTexture.magFilter = LinearFilter;
+                newTexture.wrapS = ClampToEdgeWrapping;
+                newTexture.wrapT = ClampToEdgeWrapping;
+                newTexture.needsUpdate = true;
+
+                setTexture(newTexture);
+            } catch (e) {
+                queueMicrotask(() => {
+                    toaster.error({ title: "Failed to load counterpart image", description: (e as Error).message });
+                });
+            }
+        };
+
+        loadTexture();
+
+        return () => {
+            isCancelled = true;
+            setTexture((prev) => {
+                if (prev) prev.dispose();
+                return null;
+            });
+        };
+    }, [counterpartImageQuery.data, counterpartImageQuery.isSuccess]);
+
+    // --------------------------------------------------------------------------
+    // 3. 计算位置与渲染参数
+    // --------------------------------------------------------------------------
+    const modeInt = useMemo(() => {
+        switch (displayMode) {
+            case "r": return 1;
+            case "g": return 2;
+            case "b": return 3;
+            default: return 0;
+        }
+    }, [displayMode]);
+
+
+    if (!isVisible || !texture || !counterpartPosition.height || !counterpartPosition.width) return null;
+    const {x0, y0, width, height} = counterpartPosition;
+    const meshX = x0 + width / 2;
+    const meshY = -y0 - height / 2;
+    const meshZ = 0.05;
+
+    const handleContextMenu = (event: ThreeEvent<MouseEvent>) => {
+        if (!traceMode) return;
+        event.nativeEvent.preventDefault();
+        event.stopPropagation();
+
+        const {x, y} = event.point;
+        const isShiftPressed = event.nativeEvent.shiftKey;
+        const isModPressed = event.nativeEvent.metaKey || event.nativeEvent.ctrlKey;
+
+        if (isShiftPressed) {
+            addTraceSource(x, -y, selectedFootprintId, { roiState, collapseWindow: roiCollapseWindow });
+        } else if (isModPressed) {
+            if (mainTraceSourceId) {
+                removeTraceSource(mainTraceSourceId);
+            }
+        } else {
+            updateMainTraceSource({ x, y: -y });
+        }
+    }
+
+    return (
+        <mesh position={[meshX, meshY, meshZ]} onContextMenu={handleContextMenu}>
+            <planeGeometry args={[width, height]} />
+            {/* 使用自定义的 counterpartMaterial */}
+            <counterpartMaterial
+                uTexture={texture}
+                uMode={modeInt}
+                uOpacity={opacity}
+                transparent={true}
+                side={DoubleSide}
+                depthWrite={false}
+            />
+        </mesh>
+    );
+}

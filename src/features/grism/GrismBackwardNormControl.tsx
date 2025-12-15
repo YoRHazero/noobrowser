@@ -79,7 +79,7 @@ export default function GrismBackwardNormControls() {
             {/* Header and Toggle */}
             <HStack justify="space-between">
                 <Text fontSize="xs" fontWeight="bold" color="gray.400" letterSpacing="wider">
-                    Normalization
+                    Grism
                 </Text>
                 <HStack gap={2}>
                     <Text fontSize="xs" color={backwardNormIndependent ? "teal.300" : "gray.500"}>

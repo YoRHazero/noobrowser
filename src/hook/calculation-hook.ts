@@ -85,7 +85,7 @@ export function useRoiSpectrum1D(basename: string | undefined) {
         }
         return result;
     }, [basename, grismDataQuery, grismErrQuery, grismOffsetsQuery, roiCollapseWindow, roiState]);
-    return spectrum1D;
+    return {spectrum1D, roiCollapseWindow, roiState};
 }
 
 export function useIdSyncCounterpartPosition() {

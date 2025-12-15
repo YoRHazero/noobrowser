@@ -1,6 +1,7 @@
-import { memo, useMemo, useState, useEffect } from "react";
-import { useFrame, useThree } from "@react-three/fiber";
-import { PlaneGeometry, OrthographicCamera } from "three";
+import { memo, useMemo, useState, useEffect, useLayoutEffect } from "react";
+import { useThree } from "@react-three/fiber";
+import { OrthographicCamera } from "three";
+import  { Line } from "@react-three/drei"
 import { useGrismStore } from "@/stores/image";
 import { useShallow } from "zustand/react/shallow";
 import { useDrag } from "@use-gesture/react";
@@ -10,31 +11,41 @@ const RoiIndicator = memo(function RoiIndicator({
     y,
     width,
     height,
-    imgWidth,
-    imgHeight,
     strokeColor = "#ff0000",
-    strokeWidth = 4,
+    strokeWidth = 2,
+    dashed = false,
 }: {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-    imgWidth: number;
-    imgHeight: number;
+    x: number; // top-left corner x in ref coordinates
+    y: number; // top-left corner y in ref coordinates
+    width: number; // width of the ROI
+    height: number; // height of the ROI
     strokeColor?: string;
-    strokeWidth?: number;
+    strokeWidth?: number; // pixels in screen space
+    dashed?: boolean;
 }) {
+    const groupX = x;
+    const groupY = -y;
+    const points = useMemo(() => {
+        return [
+            [0, 0, 0], // top-left
+            [width, 0, 0], // top-right
+            [width, -height, 0], // bottom-right
+            [0, -height, 0], // bottom-left
+            [0, 0, 0], // back to top-left
+        ] as [number, number, number][];
+    }, [width, height]);
 
-    const worldX = -imgWidth / 2 + x + width / 2;
-    const worldY = imgHeight / 2 - y - height / 2;
-    
     return (
-        <mesh position={[worldX, worldY, 1]} >
-            <lineSegments>
-                <edgesGeometry args={[new PlaneGeometry(width, height)]} />
-                <lineBasicMaterial color={strokeColor} linewidth={strokeWidth}/>
-            </lineSegments>
-        </mesh>
+        <group position={[groupX, groupY, 10]}>
+            <Line
+                points={points}
+                color={strokeColor}
+                lineWidth={strokeWidth}
+                dashed={dashed}
+                dashSize={10}
+                gapSize={5}
+            />
+        </group>
     );
 })
 
@@ -44,34 +55,41 @@ function RoiCameraRig({
     y,
     width,
     height,
-    imgWidth,
-    imgHeight,
+    dx=0,
+    dy=0,
 }: {
     x: number;
     y: number;
     width: number;
     height: number;
-    imgWidth: number;
-    imgHeight: number;
+    dx?: number;
+    dy?: number;
 }) {
     const { camera } = useThree();
 
-    useFrame(() => {
-        const worldX = -imgWidth / 2 + x + width / 2;
-        const worldY = imgHeight / 2 - y - height / 2;
-        camera.position.set(worldX, worldY, 10);
-        camera.updateProjectionMatrix();
-    });
+    useLayoutEffect(() => {
+        const centerX = dx + x + width / 2;
+        const centerY = - (dy + y + height / 2);
+
+        camera.position.set(centerX, centerY, 100);
+        camera.updateMatrixWorld();
+    }, [x, y, width, height, dx, dy, camera]);
     
     return null;
 }
 
 function CollapseRegionIndicator({
-    imgWidth,
-    imgHeight,
+    dx=0,
+    dy=0,
+    lineColor="#00aaaa",
+    lineWidth=2,
+    dashed=false,
 }: {
-    imgWidth: number;
-    imgHeight: number;
+    dx?: number; // if used, make sure this is consistent with RoiCameraRig
+    dy?: number; // if used, make sure this is consistent with RoiCameraRig
+    lineColor?: string;
+    lineWidth?: number;
+    dashed?: boolean;
 }) {
     const { camera, size } = useThree();
     const { roiState, roiCollapseWindow, setRoiCollapseWindow } = useGrismStore(
@@ -85,33 +103,42 @@ function CollapseRegionIndicator({
     const geometryData = useMemo(() => {
         const { waveMin, waveMax, spatialMin, spatialMax } = roiCollapseWindow;
         
-        const width = waveMax - waveMin;
-        const height = spatialMax - spatialMin;
+        const rectWidth = waveMax - waveMin;
+        const rectHeight = spatialMax - spatialMin;
+
+        if (rectWidth <= 0 || rectHeight <= 0) return null;
+
+        const groupX = dx + roiState.x + waveMin; // top-left corner x in ref coordinates
+        const groupY = - (dy + roiState.y + spatialMin); // top-left corner y in ref coordinates
         
-        if (width <= 0 || height <= 0) return null;
 
-        const localCenterX = (waveMin + waveMax) / 2;
-        const localCenterY = (spatialMin + spatialMax) / 2;
+        return { groupX, groupY, rectWidth, rectHeight };
+    }, [roiState.x, roiState.y, roiCollapseWindow, dx, dy]);
+    const points = useMemo(() => {
+        if (!geometryData) return [] as [number, number, number][];
+        return [
+            [0, 0, 0], // top-left
+            [geometryData.rectWidth, 0, 0], // top-right
+            [geometryData.rectWidth, -geometryData.rectHeight, 0], // bottom-right
+            [0, -geometryData.rectHeight, 0], // bottom-left
+            [0, 0, 0], // back to top-left
+        ] as [number, number, number][];
+    }, [geometryData?.rectWidth, geometryData?.rectHeight]);
 
-        const absolutePixelX = roiState.x + localCenterX;
-        const absolutePixelY = roiState.y + localCenterY;
-        const worldX = -imgWidth / 2 + absolutePixelX;
-        const worldY = imgHeight / 2 - absolutePixelY;
-
-        return { worldX, worldY, width, height };
-    }, [roiState, roiCollapseWindow, imgWidth, imgHeight]);
-
+    const [isDragging, setIsDragging] = useState(false);
     const handleDrag = (delta: [number, number], mode: "move" | "top" | "bottom" | "left" | "right", isLast: boolean) => {
-        const [dx, dy] = delta;
+        const [dragDx, dragDy] = delta;
+        setIsDragging(!isLast);
 
         // Calculate (Pixel to World) ratio
         const orthoCam = camera as OrthographicCamera;
-        const visibleWorldHeight = (orthoCam.top - orthoCam.bottom) / orthoCam.zoom;
-        const pixelToWorldRatio = visibleWorldHeight / size.height;
+        const visibleWorldHeight = Math.abs(orthoCam.top - orthoCam.bottom) / orthoCam.zoom;
+        const visibleWorldWidth = Math.abs(orthoCam.right - orthoCam.left) / orthoCam.zoom;
+        const pixelToWorldRatioX = visibleWorldWidth / size.width;
+        const pixelToWorldRatioY = visibleWorldHeight / size.height;
         
-        const dataDeltaX = dx * pixelToWorldRatio;
-        const dataDeltaY = dy * pixelToWorldRatio;
-
+        const dataDeltaX = dragDx * pixelToWorldRatioX;
+        const dataDeltaY = dragDy * pixelToWorldRatioY;
         const { spatialMax, spatialMin, waveMax, waveMin } = roiCollapseWindow;
         const roiHeight = roiState.height;
         const roiWidth = roiState.width;
@@ -212,7 +239,9 @@ function CollapseRegionIndicator({
     });
 
     const [hoveredPart, setHoveredPart] = useState<null | "move" | "ns-edge" | "ew-edge">(null);
+    
     useEffect(() => {
+        if (isDragging) return;
         if (hoveredPart === "move") document.body.style.cursor = "grab";
         else if (hoveredPart === "ns-edge") document.body.style.cursor = "ns-resize";
         else if (hoveredPart === "ew-edge") document.body.style.cursor = "ew-resize";
@@ -224,75 +253,82 @@ function CollapseRegionIndicator({
 
     if (!geometryData) return null;
 
-    const hitAreaThickness = 6;
+    const hitAreaThickness = 4;
+
 
     return (
-        <group position={[geometryData.worldX, geometryData.worldY, 2]}>
+        <group position={[geometryData.groupX, geometryData.groupY, 2]}>
             {/* Visualization of collapse region */}
             <mesh> 
-                <lineSegments>
-                    <edgesGeometry args={[new PlaneGeometry(geometryData.width, geometryData.height)]} />
-                    <lineBasicMaterial color={0x00ffff} linewidth={2} />
-                </lineSegments>
+                <Line
+                    points={points}
+                    color={lineColor}
+                    lineWidth={lineWidth}
+                    dashed={dashed}
+                    dashSize={10}
+                    gapSize={5}
+                    depthTest={false}
+                    renderOrder={999}
+                    raycast={() => null} // Disable raycast on the line itself
+                />
             </mesh>
 
             {/* Interaction hit areas */}
             {/* Center Move Area */}
             <mesh
                 {...bindMove()}
+                position={[geometryData.rectWidth / 2, -geometryData.rectHeight / 2, 0]}
                 onPointerOver={() => setHoveredPart("move")}
                 onPointerOut={() => setHoveredPart(null)}
-                visible={false}
             >
-                <planeGeometry args={[geometryData.width, Math.max(0, geometryData.height - hitAreaThickness * 2)]} />
-                <meshBasicMaterial color="red" />
+                <planeGeometry args={[
+                    Math.max(0, geometryData.rectWidth - hitAreaThickness), 
+                    Math.max(0, geometryData.rectHeight - hitAreaThickness)
+                    ]} />
+                <meshBasicMaterial opacity={0} transparent depthWrite={false} />
             </mesh>
             {/* Top Edge */}
             <mesh
                 {...bindTop()}
-                position={[0, geometryData.height / 2, 0]}
+                position={[geometryData.rectWidth / 2, 0, 0.01]}
                 onPointerOver={() => setHoveredPart("ns-edge")}
                 onPointerOut={() => setHoveredPart(null)}
-                visible={false}
             >
-                <planeGeometry args={[Math.max(0, geometryData.width - hitAreaThickness), hitAreaThickness]} />
-                <meshBasicMaterial color="green" />
+                <planeGeometry args={[Math.max(0, geometryData.rectWidth - hitAreaThickness), hitAreaThickness]} />
+                <meshBasicMaterial opacity={0} transparent depthWrite={false} />
             </mesh>
 
             {/* Bottom Edge */}
             <mesh
                 {...bindBottom()}
-                position={[0, -geometryData.height / 2, 0]}
+                position={[geometryData.rectWidth / 2, -geometryData.rectHeight, 0.01]}
                 onPointerOver={() => setHoveredPart("ns-edge")}
                 onPointerOut={() => setHoveredPart(null)}
-                visible={false}
             >
-                <planeGeometry args={[Math.max(0, geometryData.width - hitAreaThickness), hitAreaThickness]} />
-                <meshBasicMaterial color="blue" />
+                <planeGeometry args={[Math.max(0, geometryData.rectWidth - hitAreaThickness), hitAreaThickness]} />
+                <meshBasicMaterial opacity={0} transparent depthWrite={false} />
             </mesh>
 
             {/* Left Edge */}
             <mesh
                 {...bindLeft()}
-                position={[-geometryData.width / 2, 0, 0]}
+                position={[0, -geometryData.rectHeight / 2, 0.01]}
                 onPointerOver={() => setHoveredPart("ew-edge")}
                 onPointerOut={() => setHoveredPart(null)}
-                visible={false}
             >
-                <planeGeometry args={[hitAreaThickness, Math.max(0, geometryData.height - hitAreaThickness)]} />
-                <meshBasicMaterial color="yellow" />
+                <planeGeometry args={[hitAreaThickness, Math.max(0, geometryData.rectHeight - hitAreaThickness)]} />
+                <meshBasicMaterial opacity={0} transparent depthWrite={false} />
             </mesh>
 
             {/* Right Edge */}
             <mesh
                 {...bindRight()}
-                position={[geometryData.width / 2, 0, 0]}
+                position={[geometryData.rectWidth, -geometryData.rectHeight / 2, 0.01]}
                 onPointerOver={() => setHoveredPart("ew-edge")}
                 onPointerOut={() => setHoveredPart(null)}
-                visible={false}
             >
-                <planeGeometry args={[hitAreaThickness, Math.max(0, geometryData.height - hitAreaThickness)]} />
-                <meshBasicMaterial color="purple" />
+                <planeGeometry args={[hitAreaThickness, Math.max(0, geometryData.rectHeight - hitAreaThickness)]} />
+                <meshBasicMaterial opacity={0} transparent depthWrite={false} />
             </mesh>
         </group>
     );

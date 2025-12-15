@@ -3,7 +3,6 @@ import { Container, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import {
-	useCounterpartFootprint,
 	useCounterpartImage,
 } from "@/hook/connection-hook";
 import { useCounterpartStore } from "@/stores/image";

@@ -2,6 +2,7 @@ import { type PixiReactElementProps } from "@pixi/react";
 import { type Application } from "pixi.js";
 import { PropsWithChildren } from "react";
 import type { GrismMaterialProps } from "@/components/three/GrismMaterial";
+import type { CounterpartMaterialProps } from "@/components/three/CounterpartMaterial";
 /*
 import { ViewportWrapper } from "@/components/pixi/Viewport";
 import { FootprintContainer } from "@/features/footprint/FootprintManager";
@@ -31,6 +32,7 @@ declare global {
 				/*                                    Three                                   */
 				/* -------------------------------------------------------------------------- */
 				grismMaterial: GrismMaterialProps;
+				counterpartMaterial: CounterpartMaterialProps;
 			}
 		}
 	}

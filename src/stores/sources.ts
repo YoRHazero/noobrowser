@@ -1,0 +1,83 @@
+import { create } from "zustand"
+import { produce } from "immer"
+import { v4 as uuidv4 } from "uuid"
+import type { TraceSource, RoiState, CollapseWindow } from "@/stores/stores-types"
+import { generateColor } from "@/stores/stores-utils"
+
+
+interface SourcesState {
+    traceMode: boolean;
+    traceSources: TraceSource[];
+    mainTraceSourceId: string | null;
+    setTraceMode: (mode: boolean) => void;
+    addTraceSource: (x: number, y: number, groupId: string | null, roi: {roiState: RoiState; collapseWindow: CollapseWindow}) => void;
+    updateTraceSource: (id: string, patch: Partial<TraceSource>) => void;
+    updateMainTraceSource: (patch: Partial<TraceSource>) => void;
+    setMainTraceSource: (id: string | null) => void;
+    removeTraceSource: (id: string) => void;
+    reassignTraceSourceColor: () => void;
+    clearTraceSources: () => void;
+    applyRoiToAllTraceSources: (roi: {roiState: RoiState; collapseWindow: CollapseWindow}) => void;
+}
+
+export const useSourcesStore = create<SourcesState>()((set, get) => ({
+    traceMode: false,
+    traceSources: [],
+    mainTraceSourceId: null,
+    setTraceMode: (mode) => set({ traceMode: mode }),
+    addTraceSource: (
+        x,
+        y,
+        groupId,
+        roi,
+    ) => set(produce((state: SourcesState) => {
+        const newSource: TraceSource = {
+            id: uuidv4(),
+            x,
+            y,
+            groupId: groupId,
+            color: generateColor(state.traceSources.length),
+            spectrumReady: false,
+            roi: {
+                roiState: {...roi.roiState},
+                collapseWindow: {...roi.collapseWindow}
+            }
+        };
+        state.traceSources.push(newSource);
+        state.mainTraceSourceId = newSource.id;
+    })),
+    updateTraceSource: (id, patch) => set(produce((state: SourcesState) => {
+        const source = state.traceSources.find(source => source.id === id);
+        if (source) {
+            Object.assign(source, patch);
+        }
+    })),
+    updateMainTraceSource: (patch) => {
+        const mainId = get().mainTraceSourceId;
+        if (mainId) {
+            get().updateTraceSource(mainId, patch);
+        }
+    },
+    setMainTraceSource: (id) => set({ mainTraceSourceId: id }),
+    removeTraceSource: (id) => set(produce((state: SourcesState) => {
+        state.traceSources = state.traceSources.filter(source => source.id !== id);
+        if (state.mainTraceSourceId === id) {
+            state.mainTraceSourceId = state.traceSources.length > 0 ? state.traceSources[0].id : null;
+        }
+        get().reassignTraceSourceColor();
+    })),
+    reassignTraceSourceColor: () => set(produce((state: SourcesState) => {
+        state.traceSources.forEach((source, index) => {
+            source.color = generateColor(index);
+        });
+    })),
+    clearTraceSources: () => set({ traceSources: [], mainTraceSourceId: null }),
+    applyRoiToAllTraceSources: (roiData: {roiState: RoiState; collapseWindow: CollapseWindow}) => set(produce((state: SourcesState) => {
+        state.traceSources.forEach((source) => {
+            source.roi = {
+                roiState: {...roiData.roiState},
+                collapseWindow: {...roiData.collapseWindow},
+            }
+        });
+    })),
+}));
