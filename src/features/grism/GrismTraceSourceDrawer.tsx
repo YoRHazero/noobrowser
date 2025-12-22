@@ -2,6 +2,7 @@ import {
 	Badge,
 	Box,
 	Button,
+	CloseButton,
 	Drawer,
 	Flex,
 	Heading,
@@ -220,8 +221,8 @@ const SourceCard = ({
 	// 3. Extract Spectrum Query (手动控制)
 	const spectrumQuery = useExtractSpectrum({
 		selectedFootprintId: source.groupId,
-		x: source.x,
-		y: source.y,
+		x: Math.round(source.x),
+		y: Math.round(source.y),
 		apertureSize: settings.apertureSize,
 		waveMin: settings.waveMin,
 		waveMax: settings.waveMax,
@@ -517,17 +518,31 @@ export default function GrismTraceSourceDrawer() {
 			applyRoiToAllTraceSources: state.applyRoiToAllTraceSources,
 		})),
 	);
-	const { roiState, collapseWindow } = useGrismStore(
+	const { roiState, collapseWindow, apertureSize, setApertureSize, forwardWaveRange, setForwardWaveRange } = useGrismStore(
 		useShallow((state) => ({
 			roiState: state.roiState,
 			collapseWindow: state.roiCollapseWindow,
+			apertureSize: state.apertureSize,
+			setApertureSize: state.setApertureSize,
+			forwardWaveRange: state.forwardWaveRange,
+			setForwardWaveRange: state.setForwardWaveRange,
 		})),
 	);
-	const [settings, setSettings] = useState<GlobalSettings>({
-		apertureSize: 50,
-		waveMin: 3.8,
-		waveMax: 5.0,
-	});
+	const settings: GlobalSettings = {
+		apertureSize: apertureSize,
+		waveMin: forwardWaveRange.min,
+		waveMax: forwardWaveRange.max,
+	};
+    const setSettings: React.Dispatch<React.SetStateAction<GlobalSettings>> = (value) => {
+        const nextSettings = typeof value === 'function'
+            ? (value as (prevState: GlobalSettings) => GlobalSettings)(settings)
+            : value;
+        setApertureSize(nextSettings.apertureSize);
+        setForwardWaveRange({ 
+            min: nextSettings.waveMin, 
+            max: nextSettings.waveMax 
+        });
+    };
 
 	const triggerProps = traceMode
 		? ({
@@ -578,9 +593,7 @@ export default function GrismTraceSourceDrawer() {
 								</Heading>
 							</HStack>
 							<Drawer.CloseTrigger asChild>
-								<IconButton size="sm" variant="ghost" color="gray.400">
-									Close
-								</IconButton>
+								<CloseButton size="md"/>
 							</Drawer.CloseTrigger>
 						</HStack>
 					</Drawer.Header>

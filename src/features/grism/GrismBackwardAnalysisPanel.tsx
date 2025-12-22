@@ -8,6 +8,8 @@ import {
 } from "@chakra-ui/react";
 import { Canvas } from "@react-three/fiber";
 import { OrthographicCamera } from "@react-three/drei";
+import { useThree } from "@react-three/fiber";
+import type { OrthographicCamera as OrthographicCameraType } from "three";
 import { useGrismStore } from "@/stores/image";
 import { useShallow } from "zustand/react/shallow";
 import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
@@ -15,6 +17,9 @@ import { RoiCameraRig, CollapseRegionIndicator } from "@/components/three/RoiCom
 import GrismImageLayer from "@/components/three/GrismImageLayer";
 import GrismBackward1DChart from "@/features/grism/GrismBackward1DChart";
 import { TraceLinesLayer } from "@/features/grism/GrismBackwardTraceLayer";
+import type { RoiState } from "@/stores/stores-types";
+import { useLayoutEffect } from "react";
+
 export default function GrismBackwardAnalysisPanel({currentBasename}: {currentBasename: string | undefined}) {
     return (
         <VStack h="100%" align="stretch" gap={0} bg="gray.800" borderLeft="1px solid #222">
@@ -86,6 +91,7 @@ function RoiZoomView({currentBasename}: {currentBasename: string | undefined}) {
             <Canvas>
                 <OrthographicCamera 
                     makeDefault
+                    manual
                     position={[0, 0, 100]}
                     left={-roiState.width / 2}
                     right={roiState.width / 2}
@@ -113,18 +119,14 @@ function RoiZoomView({currentBasename}: {currentBasename: string | undefined}) {
                             width={roiState.width}
                             height={roiState.height}
                         />
-
                         <CollapseRegionIndicator />
                         <TraceLinesLayer />
                     </>
                 )}
             </Canvas>
-
         </Box>
     )
-
 }
-
 
 /* -------------------------------------------------------------------------- */
 /*                               Shortcut Region                              */

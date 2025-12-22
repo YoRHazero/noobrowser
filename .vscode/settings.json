@@ -1,13 +1,30 @@
 {
 	"files.watcherExclude": {
-		"**/routeTree.gen.ts": true
+		"**/routeTree.gen.ts": true,
+		"**/node_modules/**": true,
+		"**/dist/**": true,
+		"**/build/**": true,
+		"**/out/**": true,
+		"**/src-tauri/target/**": true
 	},
 	"search.exclude": {
-		"**/routeTree.gen.ts": true
+		"**/routeTree.gen.ts": true,
+		"**/node_modules/**": true,
+		"**/dist/**": true,
+		"**/build/**": true,
+		"**/out/**": true,
+		"**/src-tauri/target/**": true
 	},
 	"files.readonlyInclude": {
 		"**/routeTree.gen.ts": true
 	},
+	"rust-analyzer.files.exclude": [
+		"node_modules",
+		"dist",
+		"src-tauri/target",
+		"src"
+	],
+	"rust-analyzer.linkedProjects": ["src-tauri/Cargo.toml"],
 	"typescript.preferences.importModuleSpecifier": "non-relative",
 	"javascript.preferences.importModuleSpecifier": "non-relative",
 	"[javascript]": {

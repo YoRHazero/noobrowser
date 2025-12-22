@@ -26,7 +26,7 @@ interface GlobeState {
 	setFootprintMeta: (id: string, key: string, value: any) => void;
 }
 
-export const useGlobeStore = create<GlobeState>()((set) => ({
+export const useGlobeStore = create<GlobeState>()((set, get) => ({
 	footprints: [],
 	view: { yawDeg: 0, pitchDeg: 0, scale: 1 },
 	globeBackground: { centerX: 200, centerY: 200, initialRadius: 200 },
@@ -61,4 +61,14 @@ export const useGlobeStore = create<GlobeState>()((set) => ({
 					: fp,
 			),
 		})),
+	getBasenameList: (id: string): string[] => {
+		const footprint = get().footprints.find((fp) => fp.id === id);
+		return footprint?.meta?.included_files ?? [];
+	},
+	getSelectedBasenameList: (): string[] => {
+		const selectedId = get().selectedFootprintId;
+		if (!selectedId) return [];
+		const footprint = get().footprints.find((fp) => fp.id === selectedId);
+		return footprint?.meta?.included_files ?? [];
+	},
 }));

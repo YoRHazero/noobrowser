@@ -1,6 +1,29 @@
+/* -------------------------------------------------------------------------- */
+/*                                   Common                                   */
+/* -------------------------------------------------------------------------- */
 export type WaveFrame = "observe" | "rest";
 
 export type WaveUnit = "µm" | "Å";
+
+export type RaDec = {
+	ra: number;
+	dec: number;
+};
+
+export type XY = {
+	x: number;
+	y: number;
+};
+
+
+export type MetaPosition = {
+	ra?: number;
+	dec?: number;
+	x?: number;
+	y?: number;
+	ref_basename?: string;
+	group_id?: string;
+}
 
 /* -------------------------------------------------------------------------- */
 /*                               Fit Model Type                               */
@@ -22,14 +45,14 @@ export interface BaseFitModel {
 	color: string; // Hex color code
 }
 
-export interface FitLinearModel extends BaseFitModel {
+export interface FitLinearModel extends BaseFitModel { // k(x - x0) + b
 	kind: "linear";
 	k: number;
 	b: number;
 	x0: number; // observed frame, µm
 }
 
-export interface FitGaussianModel extends BaseFitModel {
+export interface FitGaussianModel extends BaseFitModel { // A * exp(-0.5 * ((x - µ) / σ)^2)
 	kind: "gaussian";
 	amplitude: number;
 	mu: number; // observed frame, µm
@@ -80,19 +103,10 @@ export type RoiState = {
 	height: number;
 };
 
+
 /* -------------------------------------------------------------------------- */
 /*                               Footprint type                               */
 /* -------------------------------------------------------------------------- */
-
-export type RaDec = {
-	ra: number;
-	dec: number;
-};
-
-export type XY = {
-	x: number;
-	y: number;
-};
 
 export type Footprint = {
 	id: string;

@@ -156,6 +156,7 @@ function ExtractionControls() {
 		collapseWindow,
 		setCollapseWindow,
 		forwardWaveRange,
+		forwardSourcePosition,
 		apertureSize,
 		slice1DWaveRange,
 		setSlice1DWaveRange,
@@ -168,6 +169,7 @@ function ExtractionControls() {
 			collapseWindow: state.collapseWindow,
 			setCollapseWindow: state.setCollapseWindow,
 			forwardWaveRange: state.forwardWaveRange,
+			forwardSourcePosition: state.forwardSourcePosition,
 			apertureSize: state.apertureSize,
 			slice1DWaveRange: state.slice1DWaveRange,
 			setSlice1DWaveRange: state.setSlice1DWaveRange,
@@ -183,7 +185,6 @@ function ExtractionControls() {
 		})),
 	);
 
-	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
@@ -192,7 +193,8 @@ function ExtractionControls() {
 		selectedFootprintId,
 		waveMin: forwardWaveRange.min,
 		waveMax: forwardWaveRange.max,
-		cutoutParams,
+		x: forwardSourcePosition.x,
+		y: forwardSourcePosition.y,
 		apertureSize,
 		enabled: false,
 	});

@@ -117,14 +117,13 @@ interface Spectrum1DSliceChartProps {
     children?: React.ReactNode;
 }
 
-// 🎨 样式常量配置 (Dark Theme)
 const THEME = {
     axisStroke: "#718096",    // gray.500
     gridStroke: "#2D3748",    // gray.700
     tickLabel: "#A0AEC0",     // gray.400
     axisLabel: "#CBD5E0",     // gray.300
-    lineFlux: "#4FD1C5",      // teal.300 (高亮主线)
-    areaError: "#38B2AC",     // teal.400 (误差填充基色)
+    lineFlux: "#4FD1C5",      // teal.300
+    areaError: "#38B2AC",     // teal.400
     crosshair: "#EDF2F7",     // gray.100
 };
 

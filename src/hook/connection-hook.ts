@@ -317,7 +317,7 @@ export function useGrismOffsets({
 			enabled: enabled && !!group_id,
 			queryFn: async () => {
 				const response = await axios.get(
-					`${backendUrl}/wfss/grism_offsets/${group_id}`,
+					`${backendUrl}/wfss/grism_offset/${group_id}`,
 					{
 						params: { basename },
 					},
@@ -536,9 +536,6 @@ export function useExtractSpectrum({
 	cutoutParams?: Record<string, number> | null;
 	enabled?: boolean;
 }) {
-	if ((x === null || y === null) && cutoutParams === null) {
-		throw new Error("Either (x, y) or cutoutParams must be provided");
-	}
 	if (apertureSize === null && cutoutParams === null) {
 		throw new Error("Either apertureSize or cutoutParams must be provided");
 	}

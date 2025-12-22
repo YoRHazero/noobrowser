@@ -65,13 +65,18 @@ function RoiCameraRig({
     dx?: number;
     dy?: number;
 }) {
-    const { camera } = useThree();
+    const { camera } = useThree() as { camera: OrthographicCamera };
 
     useLayoutEffect(() => {
         const centerX = dx + x + width / 2;
         const centerY = - (dy + y + height / 2);
-
         camera.position.set(centerX, centerY, 100);
+
+        camera.left = -width / 2;
+        camera.right = width / 2;
+        camera.top = height / 2;
+        camera.bottom = -height / 2;
+        camera.updateProjectionMatrix();
         camera.updateMatrixWorld();
     }, [x, y, width, height, dx, dy, camera]);
     

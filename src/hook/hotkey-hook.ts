@@ -1,6 +1,6 @@
 import { useHotkeys } from "react-hotkeys-hook";
 import { useState } from "react";
-import { useGrismStore } from "@/stores/image";
+import { useGrismStore, useCounterpartStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
 import { useThree } from "@react-three/fiber";
 import type { MapControls } from "three-stdlib"
@@ -26,6 +26,8 @@ export function useGrismNavigation(
     const [currentImageIndex, setCurrentImageIndex] = useState(0);
     const setRoi = useGrismStore(state => state.setRoiState);
     const setTraceMode = useSourcesStore(state => state.setTraceMode);
+    const setOpacity = useCounterpartStore(state => state.setOpacity);
+    const setDisplayMode = useCounterpartStore(state => state.setDisplayMode);
 
     const moveStep = moveConfig?.moveStep ?? 1;
     const jumpFactor = moveConfig?.jumpFactor ?? 0.5;
@@ -48,6 +50,22 @@ export function useGrismNavigation(
     useHotkeys("shift+t", (e) => {
         e.preventDefault();
         setTraceMode(!useSourcesStore.getState().traceMode);
+    }, hotkeyConfig);
+    useHotkeys("shift+j", (e) => {
+        e.preventDefault();
+        setOpacity(useCounterpartStore.getState().opacity - 0.1);
+    }, hotkeyConfig);
+    useHotkeys("shift+k", (e) => {
+        e.preventDefault();
+        setOpacity(useCounterpartStore.getState().opacity + 0.1);
+    }, hotkeyConfig);
+    useHotkeys("shift+r", (e) => {
+        e.preventDefault();
+        const currentMode = useCounterpartStore.getState().displayMode;
+        const nextMode = currentMode === "rgb" ? "r" :
+                         currentMode === "r" ? "g" :
+                         currentMode === "g" ? "b" : "rgb";
+        setDisplayMode(nextMode);
     }, hotkeyConfig);
     /* ------------------------------ Single arrow ------------------------------ */
     useHotkeys("up", (e) => {

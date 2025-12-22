@@ -14,7 +14,7 @@ function RouteComponent() {
 		<VStack align="start" p={4} gap={4} gapY={20} height="100%" overflow="auto">
 			<Title />
 			<Footprint />
-			<Counterpart />
+{/*			<Counterpart /> */}
 			<Grism />
 		</VStack>
 	);

@@ -8,7 +8,8 @@ import type {
 	FitModelType,
 	FitRange,
 	WaveFrame,
-} from "./stores-types";
+} from "@/stores/stores-types";
+import { normalizeModels, normalizeRange } from "@/stores/stores-utils";
 
 export interface FitState {
 	waveFrame: WaveFrame;
@@ -36,67 +37,6 @@ export interface FitState {
 	filterActivatedModel: () => FitModel[];
 }
 
-/* ------------------------------ helpers ----------------------------------- */
-
-function normalizeRange(range: FitRange): FitRange {
-	const min = Math.min(range.min, range.max);
-	const max = Math.max(range.min, range.max);
-	return { min, max };
-}
-
-function isAutoName(name: string, base: "Linear" | "Gaussian"): boolean {
-	const re = new RegExp(`^${base} \\d+$`);
-	return re.test(name);
-}
-
-/**
- * Normalize:
- * - linear models first, then gaussian models
- * - reassign id as 1..N
- * - auto rename "Linear N" / "Gaussian N"
- * - custom names stay untouched
- */
-function normalizeModels(models: FitModel[]): FitModel[] {
-	const linears = models.filter((m) => m.kind === "linear") as FitLinearModel[];
-	const gaussians = models.filter(
-		(m) => m.kind === "gaussian",
-	) as FitGaussianModel[];
-
-	let nextId = 1;
-	let linearIndex = 1;
-	let gaussianIndex = 1;
-
-	const result: FitModel[] = [];
-
-	for (const m of linears) {
-		const id = nextId++;
-		const idx = linearIndex++;
-		const name = isAutoName(m.name, "Linear") ? `Linear ${idx}` : m.name;
-		result.push({
-			...m,
-			id,
-			name,
-			kind: "linear",
-			range: normalizeRange(m.range),
-		});
-	}
-
-	for (const m of gaussians) {
-		const id = nextId++;
-		const idx = gaussianIndex++;
-		const name = isAutoName(m.name, "Gaussian") ? `Gaussian ${idx}` : m.name;
-		result.push({
-			...m,
-			id,
-			name,
-			kind: "gaussian",
-			range: normalizeRange(m.range),
-		});
-	}
-
-	return result;
-}
-
 /* -------------------------------- store ----------------------------------- */
 
 export const useFitStore = create<FitState>()((set, get) => ({
@@ -105,7 +45,6 @@ export const useFitStore = create<FitState>()((set, get) => ({
 
 	setWaveFrame: (frame) => set({ waveFrame: frame }),
 
-	// 使用 addLinearModel / addGaussianModel 来初始化
 	ensureInitialModels: (range) => {
 		const state = get();
 		if (state.models.length > 0) return;

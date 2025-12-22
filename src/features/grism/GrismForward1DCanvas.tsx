@@ -10,12 +10,12 @@ export default function Grism1DCanvas() {
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
-	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
-	const { forwardWaveRange, apertureSize, collapseWindow } = useGrismStore(
+	const { forwardWaveRange, apertureSize, collapseWindow, forwardSourcePosition } = useGrismStore(
 		useShallow((state) => ({
 			forwardWaveRange: state.forwardWaveRange,
 			apertureSize: state.apertureSize,
 			collapseWindow: state.collapseWindow,
+			forwardSourcePosition: state.forwardSourcePosition,
 		})),
 	);
 
@@ -23,7 +23,8 @@ export default function Grism1DCanvas() {
 		selectedFootprintId,
 		waveMin: forwardWaveRange.min,
 		waveMax: forwardWaveRange.max,
-		cutoutParams,
+		x: forwardSourcePosition.x,
+		y: forwardSourcePosition.y,
 		apertureSize,
 		enabled: false,
 	});

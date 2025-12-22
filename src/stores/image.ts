@@ -9,6 +9,7 @@ import type {
 	WaveUnit,
 	WaveRange,
 	RoiState,
+	XY,
 } from "./stores-types.js";
 import { clamp } from "@/utils/projection.js";
 interface CounterpartState {
@@ -88,6 +89,7 @@ interface GrismState {
 	grismNorm: NormParams;
 	extractedSpecSortedArray: number[] | null;
 	normInWindow: boolean;
+	forwardSourcePosition: XY;
 	forwardWaveRange: WaveRange;
 	slice1DWaveRange: WaveRange;
 	collapseWindow: CollapseWindow;
@@ -106,6 +108,7 @@ interface GrismState {
 	setGrismNorm: (patch: Partial<NormParams>) => void;
 	setExtractedSpecSortedArray: (array: number[] | null) => void;
 	setNormInWindow: (inWindow: boolean) => void;
+	setForwardSourcePosition: (pos: XY) => void;
 	setForwardWaveRange: (patch: Partial<WaveRange>) => void;
 	setSlice1DWaveRange: (patch: Partial<WaveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
@@ -132,6 +135,7 @@ export const useGrismStore = create<GrismState>()(
 			grismNorm: { pmin: 1, pmax: 99 },
 			extractedSpecSortedArray: null,
 			normInWindow: false,
+			forwardSourcePosition: { x: 0, y: 0 },
 			forwardWaveRange: { min: 3.8, max: 5.0 },
 			slice1DWaveRange: { min: 3.8, max: 5.0 },
 			collapseWindow: {
@@ -145,6 +149,7 @@ export const useGrismStore = create<GrismState>()(
 				// units in microns
 				"H⍺": 0.6563,
 				Hβ: 0.4861,
+				"[OIII]λ4959": 0.4959,
 				"[OIII]λ5007": 0.5007,
 				Paβ: 1.2818,
 			},
@@ -160,7 +165,7 @@ export const useGrismStore = create<GrismState>()(
 				spatialMin: 128/2 - 5,
 				spatialMax: 128/2 + 5,
 			},
-			counterpartVisible: false,
+			counterpartVisible: true,
 			setWaveUnit: (unit) => set({ waveUnit: unit }),
 			setApertureSize: (size) => set({ apertureSize: size }),
 			setZRedshift: (z) => set({ zRedshift: z }),
@@ -169,6 +174,8 @@ export const useGrismStore = create<GrismState>()(
 			setExtractedSpecSortedArray: (array) =>
 				set({ extractedSpecSortedArray: array }),
 			setNormInWindow: (inWindow) => set({ normInWindow: inWindow }),
+			setForwardSourcePosition: (pos) =>
+				set({ forwardSourcePosition: pos }),
 			setForwardWaveRange: (patch) =>
 				set((state) => ({
 					forwardWaveRange: { ...state.forwardWaveRange, ...patch },

@@ -20,9 +20,9 @@ export default function GrismForwardImage({
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
-	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
 	const {
 		forwardWaveRange,
+		forwardSourcePosition,
 		apertureSize,
 		grismNorm,
 		extractedSpecSortedArray,
@@ -33,6 +33,7 @@ export default function GrismForwardImage({
 		useShallow((state) => ({
 			apertureSize: state.apertureSize,
 			forwardWaveRange: state.forwardWaveRange,
+			forwardSourcePosition: state.forwardSourcePosition,
 			grismNorm: state.grismNorm,
 			normInWindow: state.normInWindow,
 			collapseWindow: state.collapseWindow,
@@ -44,7 +45,8 @@ export default function GrismForwardImage({
 		selectedFootprintId,
 		waveMin: forwardWaveRange.min,
 		waveMax: forwardWaveRange.max,
-		cutoutParams,
+		x: forwardSourcePosition.x,
+		y: forwardSourcePosition.y,
 		apertureSize,
 		enabled: false,
 	});

@@ -22,15 +22,16 @@ export default function CollapseWindowLayer({
 	const selectedFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
-	const cutoutParams = useCounterpartStore((state) => state.cutoutParams);
 	const {
 		forwardWaveRange,
+		forwardSourcePosition,
 		apertureSize,
 		collapseWindow,
 		showTraceOnSpectrum2D,
 	} = useGrismStore(
 		useShallow((state) => ({
 			forwardWaveRange: state.forwardWaveRange,
+			forwardSourcePosition: state.forwardSourcePosition,
 			apertureSize: state.apertureSize,
 			collapseWindow: state.collapseWindow,
 			showTraceOnSpectrum2D: state.showTraceOnSpectrum2D,
@@ -54,7 +55,8 @@ export default function CollapseWindowLayer({
 		selectedFootprintId,
 		waveMin: forwardWaveRange.min,
 		waveMax: forwardWaveRange.max,
-		cutoutParams,
+		x: forwardSourcePosition.x,
+		y: forwardSourcePosition.y,
 		apertureSize,
 		enabled: false,
 	});

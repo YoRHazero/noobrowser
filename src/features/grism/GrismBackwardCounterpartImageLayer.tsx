@@ -21,9 +21,6 @@ export default function GrismBackwardCounterpartImageLayer({
 }: {
     visible?: boolean;
 }) {
-    // --------------------------------------------------------------------------
-    // 1. 数据同步与 Store
-    // --------------------------------------------------------------------------
     const { 
         counterpartPosition, 
         displayMode, 
@@ -66,9 +63,9 @@ export default function GrismBackwardCounterpartImageLayer({
     );
     const { selectedFootprintId } = useIdSyncCounterpartPosition();
 
-    // --------------------------------------------------------------------------
-    // 2. 加载图片 (ImageBitmap)
-    // --------------------------------------------------------------------------
+    /* -------------------------------------------------------------------------- */
+    /*                         Load image with ImageBitmap                        */
+    /* -------------------------------------------------------------------------- */
     const counterpartImageQuery = useCounterpartImage({});
 
     const [texture, setTexture] = useState<Texture | null>(null);
@@ -81,10 +78,9 @@ export default function GrismBackwardCounterpartImageLayer({
 
         const loadTexture = async () => {
             try {
-                // 使用 ImageBitmap 异步解码，无阻塞
                 const bitmap = await createImageBitmap(blob, {
-                    imageOrientation: "flipY", // 适配 Three.js 坐标系
-                    premultiplyAlpha: "none",  // 保持科学数据的纯净性
+                    imageOrientation: "flipY", // png y axis is flipped
+                    premultiplyAlpha: "none",
                     colorSpaceConversion: "default",
                 });
 
@@ -95,7 +91,6 @@ export default function GrismBackwardCounterpartImageLayer({
 
                 const newTexture = new Texture(bitmap);
                 
-                // 纹理设置
                 newTexture.colorSpace = SRGBColorSpace; 
                 newTexture.minFilter = LinearFilter;
                 newTexture.magFilter = LinearFilter;
@@ -122,9 +117,6 @@ export default function GrismBackwardCounterpartImageLayer({
         };
     }, [counterpartImageQuery.data, counterpartImageQuery.isSuccess]);
 
-    // --------------------------------------------------------------------------
-    // 3. 计算位置与渲染参数
-    // --------------------------------------------------------------------------
     const modeInt = useMemo(() => {
         switch (displayMode) {
             case "r": return 1;
@@ -134,8 +126,13 @@ export default function GrismBackwardCounterpartImageLayer({
         }
     }, [displayMode]);
 
+    /* -------------------------------------------------------------------------- */
+    /*                  Return Null if not visible or no texture                  */
+    /* -------------------------------------------------------------------------- */
 
     if (!isVisible || !texture || !counterpartPosition.height || !counterpartPosition.width) return null;
+
+
     const {x0, y0, width, height} = counterpartPosition;
     const meshX = x0 + width / 2;
     const meshY = -y0 - height / 2;
@@ -149,7 +146,6 @@ export default function GrismBackwardCounterpartImageLayer({
         const {x, y} = event.point;
         const isShiftPressed = event.nativeEvent.shiftKey;
         const isModPressed = event.nativeEvent.metaKey || event.nativeEvent.ctrlKey;
-
         if (isShiftPressed) {
             addTraceSource(x, -y, selectedFootprintId, { roiState, collapseWindow: roiCollapseWindow });
         } else if (isModPressed) {
@@ -164,7 +160,6 @@ export default function GrismBackwardCounterpartImageLayer({
     return (
         <mesh position={[meshX, meshY, meshZ]} onContextMenu={handleContextMenu}>
             <planeGeometry args={[width, height]} />
-            {/* 使用自定义的 counterpartMaterial */}
             <counterpartMaterial
                 uTexture={texture}
                 uMode={modeInt}
