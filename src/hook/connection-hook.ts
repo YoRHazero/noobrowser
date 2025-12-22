@@ -74,85 +74,66 @@ export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
 	return query;
 }
 
-type WorldCoordinates = {
-	group_id: number;
+type SourcePosition = {
 	x: number;
 	y: number;
 	ra: number;
 	dec: number;
 	ra_hms: string;
 	dec_dms: string;
-};
-export function useWorldCoordinates({
+	ref_basename: string;
+	group_id?: string;
+}
+export function useSourcePosition({
 	selectedFootprintId,
-	x = null,
-	y = null,
-	cutoutParams = null,
+	x,
+	y,
+	ra,
+	dec,
+	ref_basename,
 	enabled = false,
 }: {
-	selectedFootprintId?: string | null;
-	x?: number | null;
-	y?: number | null;
-	cutoutParams?: Record<string, number> | null;
+	selectedFootprintId?: string;
+	x?: number;
+	y?: number;
+	ra?: number;
+	dec?: number;
+	ref_basename?: string;
 	enabled?: boolean;
 }) {
-	if ((x === null || y === null) && cutoutParams === null) {
-		throw new Error("Either (x, y) or cutoutParams must be provided");
+	if ((x === undefined) !== (y === undefined)) {
+		throw new Error("Both x and y must be provided together");
+	}
+	if ((ra === undefined) !== (dec === undefined)) {
+		throw new Error("Both ra and dec must be provided together");
+	}
+	if (x === undefined && ra === undefined) {
+		throw new Error("Either (x, y) or (ra, dec) must be provided");
 	}
 	const ZustandFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
-	const queryX =
-		x ?? (cutoutParams ? cutoutParams.x0 + cutoutParams.width / 2 : null);
-	const queryY =
-		y ?? (cutoutParams ? cutoutParams.y0 + cutoutParams.height / 2 : null);
-	const query = useQueryAxiosGet<WorldCoordinates>({
-		queryKey: ["world_coordinates", group_id, queryX, queryY],
+	const query = useQueryAxiosGet<SourcePosition>({
+		queryKey: [
+			"source_position",
+			group_id,
+			x,
+			y,
+			ra,
+			dec,
+			ref_basename,
+		],
 		enabled: enabled,
-		path: "/source/world_coordinates/",
+		path: "/source/source_position/",
 		axiosGetParams: {
 			params: {
 				group_id: group_id,
-				x: queryX,
-				y: queryY,
-			},
-		},
-	});
-	return query;
-}
-
-type PixelCoordinates = {
-	group_id: number;
-	ra: number;
-	dec: number;
-	x: number;
-	y: number;
-};
-export function usePixelCoordinates({
-	selectedFootprintId = null,
-	ra,
-	dec,
-	enabled = false,
-}: {
-	selectedFootprintId?: string | null;
-	ra: number;
-	dec: number;
-	enabled?: boolean;
-}) {
-	const ZustandFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
-	const query = useQueryAxiosGet<PixelCoordinates>({
-		queryKey: ["pixel_coordinates", group_id, ra, dec],
-		enabled: enabled,
-		path: "/source/pixel_coordinates/",
-		axiosGetParams: {
-			params: {
-				group_id: group_id,
+				x: x,
+				y: y,
 				ra: ra,
 				dec: dec,
+				ref_basename: ref_basename,
 			},
 		},
 	});

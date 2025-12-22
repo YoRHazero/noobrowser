@@ -20,8 +20,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import {
 	useCounterpartCutout,
 	useExtractSpectrum,
-	usePixelCoordinates,
-	useWorldCoordinates,
+	useSourcePosition
 } from "@/hook/connection-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
@@ -81,10 +80,10 @@ function CutoutPosition() {
 			cutoutParams,
 			enabled: false,
 		});
-	const { data: worldCoordinates, isSuccess: isWorldCoordinatesSuccess } =
-		useWorldCoordinates({
-			selectedFootprintId,
-			cutoutParams,
+	const { data: sourcePosition, isSuccess: isSourcePositionSuccess } =
+		useSourcePosition({
+			x: cutoutParams.x0 + cutoutParams.width / 2,
+			y: cutoutParams.y0 + cutoutParams.height / 2,
 			enabled: true,
 		});
 	const onConfirm = () => {
@@ -174,17 +173,17 @@ function CutoutPosition() {
 			<HStack justify={"space-between"}>
 				<Text textStyle="sm">
 					RA:{" "}
-					{isWorldCoordinatesSuccess
-						? `${worldCoordinates.ra.toFixed(6)}°`
+					{isSourcePositionSuccess
+						? `${sourcePosition.ra.toFixed(6)}°`
 						: "--"}
-					{isWorldCoordinatesSuccess ? ` [${worldCoordinates.ra_hms}]` : ""}
+					{isSourcePositionSuccess ? ` [${sourcePosition.ra_hms}]` : ""}
 				</Text>
 				<Text textStyle="sm">
 					Dec:{" "}
-					{isWorldCoordinatesSuccess
-						? `${worldCoordinates.dec.toFixed(6)}°`
+					{isSourcePositionSuccess
+						? `${sourcePosition.dec.toFixed(6)}°`
 						: "--"}
-					{isWorldCoordinatesSuccess ? ` [${worldCoordinates.dec_dms}]` : ""}
+					{isSourcePositionSuccess ? ` [${sourcePosition.dec_dms}]` : ""}
 				</Text>
 			</HStack>
 			<HStack justify={"flex-end"}>

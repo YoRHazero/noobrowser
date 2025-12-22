@@ -31,7 +31,7 @@ import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
 import {
 	useExtractSpectrum,
-	useWorldCoordinates,
+	useSourcePosition
 } from "@/hook/connection-hook";
 // Store Imports
 import { useSourcesStore } from "@/stores/sources";
@@ -211,8 +211,7 @@ const SourceCard = ({
 	// 2. World Coordinates Query (只Fetch一次)
 	// 只要 store 里没有 RA，就尝试获取
 	const shouldFetchCoords = source.ra === undefined || source.ra === null;
-	const worldQuery = useWorldCoordinates({
-		selectedFootprintId: source.groupId,
+	const sourcePositionQuery = useSourcePosition({
 		x: source.x,
 		y: source.y,
 		enabled: shouldFetchCoords,
@@ -231,18 +230,18 @@ const SourceCard = ({
 
 	// --- Effect: 处理 World Coordinates 返回 ---
 	useEffect(() => {
-		if (worldQuery.data) {
+		if (sourcePositionQuery.data) {
 			// 使用 queueMicrotask 确保状态更新安全
 			queueMicrotask(() => {
 				onUpdateSource(source.id, {
-					ra: worldQuery.data.ra,
-					dec: worldQuery.data.dec,
-					raHms: worldQuery.data.ra_hms,
-					decDms: worldQuery.data.dec_dms,
+					ra: sourcePositionQuery.data.ra,
+					dec: sourcePositionQuery.data.dec,
+					raHms: sourcePositionQuery.data.ra_hms,
+					decDms: sourcePositionQuery.data.dec_dms,
 				});
 			});
 		}
-	}, [worldQuery.data, source.id, onUpdateSource]);
+	}, [sourcePositionQuery.data, source.id, onUpdateSource]);
 
 	// --- Effect: 处理 Spectrum 返回 ---
 	useEffect(() => {
