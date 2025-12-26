@@ -4,14 +4,8 @@ import { useGrismStore, useCounterpartStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
 import { useThree } from "@react-three/fiber";
 import type { MapControls } from "three-stdlib"
+import type { RoiState } from "@/stores/stores-types";
 import gsap from "gsap";
-
-export type RoiState = {
-    x: number;
-    y: number;
-    width: number;
-    height: number;
-};
 
 export type MoveConfig = {
     moveStep: number;

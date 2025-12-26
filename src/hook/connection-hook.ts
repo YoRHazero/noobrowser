@@ -1,15 +1,21 @@
+import { useEffect } from "react";
 import {
 	keepPreviousData,
 	type UseQueryOptions,
 	type UseQueryResult,
 	useQueries,
 	useQuery,
+	useMutation
 } from "@tanstack/react-query";
 import axios from "axios";
 import { useConnectionStore } from "@/stores/connection";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
-import type { RoiState } from "@/hook/hotkey-hook";
+import { useFitStore } from "@/stores/fit";
+import { useSourcesStore } from "@/stores/sources";
+import type { FitModel, RoiState, JobStatus } from "@/stores/stores-types";
+import { useShallow } from "zustand/react/shallow";
+import { toaster } from "@/components/ui/toaster";
 
 type QueryAxiosParams<T = any> = {
 	queryKey: Array<any>;
@@ -614,3 +620,226 @@ export function useDispersionTrace({
 	});
 	return query;
 }
+
+
+/* -------------------------------------------------------------------------- */
+/*                             Submit Fitting Job                             */
+/* -------------------------------------------------------------------------- */
+
+/* ----------------------------- Request Schemas ---------------------------- */
+export type ExtractionBackendConfiguration = {
+	aperture_size: number;
+	extraction_mode: "GRISMR" | "GRISMC";
+	wavelength_range?: {
+		min: number;
+		max: number;
+	};
+}
+
+export type SourceMetaBackend = {
+	source_id: string;
+	ra?: number;
+	dec?: number;
+	x?: number;
+	y?: number;
+	ref_basename?: string;
+	group_id?: string | null;
+}
+
+export type ExtractionBodyRequest = {
+	extraction_config: ExtractionBackendConfiguration;
+	source_meta: SourceMetaBackend;
+}
+
+export type FitBackendConfiguration = {
+	model_name: string;
+	models: FitModel[];
+}
+
+export type FitBodyRequest = {
+	extraction: ExtractionBodyRequest;
+	fit: FitBackendConfiguration[];
+}
+
+/* ---------------------------- Response Schemas ---------------------------- */
+export type SingleModelFitResult = {
+	model_name: string;
+	waic: number;
+	waic_se: number;
+	fitted_models: FitModel[];
+	trace_filename: string;
+	plot_file_url: string;
+}
+
+export type FitResultPayload = {
+	results: Record<string, SingleModelFitResult>;
+	best_model_name: string;
+}
+
+
+
+export type FitJobResponse = {
+	job_id: string;
+	status: JobStatus;
+	result?: FitResultPayload;
+	error?: string;
+}
+
+/* --------------------------- Query and Mutation --------------------------- */
+type SubmitMutationVariables = {
+	sourceId: string;
+	sourceMeta?: SourceMetaBackend;
+	extractionConfig?: ExtractionBackendConfiguration;
+	fitConfigs?: FitBackendConfiguration[];
+}
+
+
+export function useSubmitFitJobMutation() {
+	const backendUrl = useConnectionStore((state) => state.backendUrl);
+
+	const traceSources = useSourcesStore((state => state.traceSources));
+	const updateTraceSource = useSourcesStore((state) => state.updateTraceSource);
+	const storedConfiguration = useFitStore((state) => state.configurations);
+
+	return useMutation<FitJobResponse, Error, SubmitMutationVariables> ({
+		mutationFn: async (variables) => {
+			const {
+				sourceId,
+				sourceMeta,
+				extractionConfig,
+				fitConfigs,
+			} = variables;
+
+			const finalExtractionConfig: ExtractionBackendConfiguration = extractionConfig ?? {
+				aperture_size: 5,
+				extraction_mode: "GRISMR",
+			};
+			const finalFitConfigs: FitBackendConfiguration[] = fitConfigs ??
+				storedConfiguration
+					.filter((config) => config.selected)
+					.map((config) => ({
+						model_name: config.name,
+						models: config.models,
+					}));
+			if (finalFitConfigs.length === 0) {
+				throw new Error("No fit configurations selected. Please select at least one configuration.");
+			}
+			let finalSourceMeta: SourceMetaBackend;
+			if (sourceMeta) {
+				finalSourceMeta = sourceMeta;
+			} else {
+				const traceSource = traceSources.find((s) => s.id === sourceId);
+				if (!traceSource) {
+					throw new Error(`Trace source with ID ${sourceId} not found.`);
+				}
+				finalSourceMeta = {
+					source_id: traceSource.id,
+					ra: traceSource.ra,
+					dec: traceSource.dec,
+					x: traceSource.x,
+					y: traceSource.y,
+					group_id: traceSource.groupId,
+				};
+			}
+			const payload: FitBodyRequest = {
+				extraction: {
+					extraction_config: finalExtractionConfig,
+					source_meta: finalSourceMeta,
+				},
+				fit: finalFitConfigs,
+			};
+			try {
+				const response = await axios.post(
+					`${backendUrl}/fit/submit/`,
+					payload,
+				);
+				return response.data as FitJobResponse;
+			} catch (error) {
+				if (axios.isAxiosError(error) && error.response) {
+					const data = error.response.data;
+					let errorMsg = "Unknown error";
+
+					// 1. 优先检查 FastAPI 的 detail 字段
+					if (data?.detail) {
+						if (Array.isArray(data.detail)) {
+							// 情况 A: Pydantic 校验错误 (数组)
+							// 将其转换为: "body.fit.0.models.0.sigma -> field required"
+							errorMsg = data.detail
+								.map((err: any) => `${err.loc.join(".")} -> ${err.msg}`)
+								.join("\n");
+						} else if (typeof data.detail === "object") {
+							// 情况 B: detail 是个对象 (罕见，但以防万一)
+							errorMsg = JSON.stringify(data.detail);
+						} else {
+							// 情况 C: detail 是普通字符串
+							errorMsg = String(data.detail);
+						}
+					} 
+					// 2. 检查是否有 message 字段 (其他框架常见)
+					else if (data?.message) {
+						errorMsg = data.message;
+					} 
+					// 3. 回退到 HTTP 状态文本
+					else {
+						errorMsg = error.message;
+					}
+					throw new Error(`Fit job submission failed:\n${errorMsg}`);
+				}
+				throw error;
+			}
+		},
+		onSuccess: (data, variables) => {
+			toaster.success({ title: "Fit Job Submitted", description: `Job ID: ${data.job_id.slice(0, 8)}` });
+			updateTraceSource(variables.sourceId, {
+				fitState: {
+					jobId: data.job_id,
+					jobStatus: data.status,
+				}
+			});
+		},
+		onError: (error) => {
+			toaster.error({ title: "Fit Job Submission Failed", description: error.message });
+		}
+	})
+}
+
+export function useFitJobStatusQuery(sourceId: string) {
+	const { jobId, jobStatus } = useSourcesStore(
+		useShallow((state) => {
+			const traceSource = state.traceSources.find((s) => s.id === sourceId);
+			return {
+				jobId: traceSource?.fitState?.jobId ?? null,
+				jobStatus: traceSource?.fitState?.jobStatus ?? null,
+			}
+		})
+	)
+
+	const query = useQueryAxiosGet<FitJobResponse>({
+		queryKey: ["fit_job_status", jobId],
+		path: `/fit/status/${jobId}/`,
+		enabled: !!jobId,
+		queryOptions: {
+			refetchInterval: (query) => {
+				const status = query.state.data?.status;
+				if (status === "completed" || status === "failed") {
+					return false;
+				}
+				return 5000; // refetch every 5 seconds
+			},
+		},
+	});
+	// Synchronize job status back to the source store
+	const newData = query.data;
+	const updateTraceSource = useSourcesStore((state) => state.updateTraceSource);
+	useEffect(() => {
+		if (newData && sourceId && (newData.status !== jobStatus)) {
+			updateTraceSource(sourceId, {
+				fitState: {
+					jobId: newData.job_id,
+					jobStatus: newData.status,
+				}
+			});
+		}
+	}, [newData, sourceId, jobId, jobStatus, updateTraceSource]);
+	return query;
+} 

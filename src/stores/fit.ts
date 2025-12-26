@@ -1,5 +1,7 @@
 // stores/fit.ts
 import { create } from "zustand";
+import { persist } from "zustand/middleware";
+import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
 import type {
 	FitGaussianModel,
@@ -8,13 +10,14 @@ import type {
 	FitModelType,
 	FitRange,
 	WaveFrame,
+	FitConfiguration,
 } from "@/stores/stores-types";
 import { normalizeModels, normalizeRange } from "@/stores/stores-utils";
 
 export interface FitState {
 	waveFrame: WaveFrame;
 	models: FitModel[];
-
+	configurations: FitConfiguration[];
 	setWaveFrame: (frame: WaveFrame) => void;
 
 	ensureInitialModels: (range: FitRange) => void;
@@ -35,142 +38,199 @@ export interface FitState {
 	filterGaussianModel: () => FitGaussianModel[];
 	filterLinearModel: () => FitLinearModel[];
 	filterActivatedModel: () => FitModel[];
+
+	saveCurrentConfiguration: () => void;
+	removeConfiguration: (id: string) => void;
+	toggleConfigurationSelection: (id: string) => void;
+	loadConfigurationToDraft: (id: string) => void;
+	getSelectedConfiguration: () => FitConfiguration[];
+	setConfigurationName: (id: string, name: string) => void;
 }
 
 /* -------------------------------- store ----------------------------------- */
 
-export const useFitStore = create<FitState>()((set, get) => ({
-	waveFrame: "observe",
-	models: [],
+export const useFitStore = create<FitState>()(
+	persist(
+		(set, get) => ({
+			waveFrame: "observe",
+			models: [],
+			configurations: [],
 
-	setWaveFrame: (frame) => set({ waveFrame: frame }),
+			setWaveFrame: (frame) => set({ waveFrame: frame }),
 
-	ensureInitialModels: (range) => {
-		const state = get();
-		if (state.models.length > 0) return;
+			ensureInitialModels: (range) => {
+				const state = get();
+				if (state.models.length > 0) return;
 
-		state.addLinearModel(range);
-		state.addGaussianModel(range);
-	},
+				state.addLinearModel(range);
+				state.addGaussianModel(range);
+			},
 
-	addLinearModel: (range) =>
-		set((state) => {
-			const r = normalizeRange(range);
-			const center = 0.5 * (r.min + r.max);
-			const model: FitLinearModel = {
-				id: 0,
-				kind: "linear",
-				name: "Linear 1",
-				active: true,
-				subtracted: false,
-				k: 0,
-				b: 0,
-				x0: center,
-				range: r,
-				color: DEFAULT_COLOR,
-			};
-			const merged = [...state.models, model];
-			return { models: normalizeModels(merged) };
-		}),
-
-	addGaussianModel: (range) =>
-		set((state) => {
-			const r = normalizeRange(range);
-			const center = 0.5 * (r.min + r.max);
-			const model: FitGaussianModel = {
-				id: 0,
-				kind: "gaussian",
-				name: "Gaussian 1",
-				active: true,
-				subtracted: false,
-				amplitude: 0,
-				mu: center,
-				sigma: 0.0005, // 0.0005 µm = 5 Å
-				range: r,
-				color: DEFAULT_COLOR,
-			};
-			const merged = [...state.models, model];
-			return { models: normalizeModels(merged) };
-		}),
-
-	addModel: (kind, range) => {
-		if (kind === "linear") {
-			get().addLinearModel(range);
-		} else {
-			get().addGaussianModel(range);
-		}
-	},
-
-	updateModel: (id, patch) =>
-		set((state) => ({
-			models: state.models.map((model) => {
-				if (model.id !== id) return model;
-				if (model.kind === "linear") {
-					const m: FitLinearModel = {
-						...model,
-						...(patch as Partial<FitLinearModel>),
+			addLinearModel: (range) =>
+				set((state) => {
+					const r = normalizeRange(range);
+					const center = 0.5 * (r.min + r.max);
+					const model: FitLinearModel = {
+						id: 0,
 						kind: "linear",
+						name: "Linear 1",
+						active: true,
+						subtracted: false,
+						k: 0,
+						b: 0,
+						x0: center,
+						range: r,
+						color: DEFAULT_COLOR,
 					};
-					return m;
-				} else {
-					const m: FitGaussianModel = {
-						...model,
-						...(patch as Partial<FitGaussianModel>),
+					const merged = [...state.models, model];
+					return { models: normalizeModels(merged) };
+				}),
+
+			addGaussianModel: (range) =>
+				set((state) => {
+					const r = normalizeRange(range);
+					const center = 0.5 * (r.min + r.max);
+					const model: FitGaussianModel = {
+						id: 0,
 						kind: "gaussian",
+						name: "Gaussian 1",
+						active: true,
+						subtracted: false,
+						amplitude: 0,
+						mu: center,
+						sigma: 0.0005, // 0.0005 µm = 5 Å
+						range: r,
+						color: DEFAULT_COLOR,
+						fwhm_kms_range: [50, 10000], // km/s
 					};
-					return m;
+					const merged = [...state.models, model];
+					return { models: normalizeModels(merged) };
+				}),
+
+			addModel: (kind, range) => {
+				if (kind === "linear") {
+					get().addLinearModel(range);
+				} else {
+					get().addGaussianModel(range);
 				}
+			},
+
+			updateModel: (id, patch) =>
+				set((state) => ({
+					models: state.models.map((model) => {
+						if (model.id !== id) return model;
+						if (model.kind === "linear") {
+							const m: FitLinearModel = {
+								...model,
+								...(patch as Partial<FitLinearModel>),
+								kind: "linear",
+							};
+							return m;
+						} else {
+							const m: FitGaussianModel = {
+								...model,
+								...(patch as Partial<FitGaussianModel>),
+								kind: "gaussian",
+							};
+							return m;
+						}
+					}),
+				})),
+
+			removeModel: (id) =>
+				set((state) => {
+					const remaining = state.models.filter((m) => m.id !== id);
+					return { models: normalizeModels(remaining) };
+				}),
+
+			renameModel: (id, name) =>
+				set((state) => ({
+					models: state.models.map((model) =>
+						model.id === id ? { ...model, name } : model,
+					),
+				})),
+
+			validateModel: () => {
+				// Validate Gaussian sigma > 0
+				set((state) => ({
+					models: state.models.map((model) => {
+						if (model.kind === "gaussian") {
+							const sigma = Math.abs(model.sigma);
+							return { ...model, sigma };
+						}
+						return model;
+					}),
+				}));
+			},
+
+			toggleActive: (id, active) =>
+				set((state) => ({
+					models: state.models.map((model) =>
+						model.id === id ? { ...model, active } : model,
+					),
+				})),
+
+			filterModel: (predicate) => {
+				return get().models.filter(predicate);
+			},
+
+			filterGaussianModel: () => {
+				return get().models.filter(
+					(m) => m.kind === "gaussian",
+				) as FitGaussianModel[];
+			},
+
+			filterLinearModel: () => {
+				return get().models.filter((m) => m.kind === "linear") as FitLinearModel[];
+			},
+
+			filterActivatedModel: () => {
+				return get().models.filter((m) => m.active);
+			},
+			saveCurrentConfiguration: () =>
+				set((state) => {
+					const modelsSnapshot = JSON.parse(JSON.stringify(state.models));
+					const newConfig: FitConfiguration = {
+						id: uuidv4(),
+						name: `Config ${state.configurations.length + 1}`,
+						models: modelsSnapshot,
+						selected: true,
+					};
+					return { configurations: [...state.configurations, newConfig] };
+				}),
+
+			removeConfiguration: (id) =>
+				set((state) => ({
+					configurations: state.configurations.filter((c) => c.id !== id),
+				})),
+
+			toggleConfigurationSelection: (id) =>
+				set((state) => ({
+					configurations: state.configurations.map((c) =>
+						c.id === id ? { ...c, selected: !c.selected } : c,
+					),
+				})),
+
+			loadConfigurationToDraft: (id) => set((state) => {
+				const config = state.configurations.find((c) => c.id === id);
+				if (!config) return {};
+				const modelsCopy = JSON.parse(JSON.stringify(config.models));
+				return { models: modelsCopy };
 			}),
-		})),
-
-	removeModel: (id) =>
-		set((state) => {
-			const remaining = state.models.filter((m) => m.id !== id);
-			return { models: normalizeModels(remaining) };
-		}),
-
-	renameModel: (id, name) =>
-		set((state) => ({
-			models: state.models.map((model) =>
-				model.id === id ? { ...model, name } : model,
-			),
-		})),
-
-	validateModel: () => {
-		// Validate Gaussian sigma > 0
-		set((state) => ({
-			models: state.models.map((model) => {
-				if (model.kind === "gaussian") {
-					const sigma = Math.abs(model.sigma);
-					return { ...model, sigma };
-				}
-				return model;
+			
+			getSelectedConfiguration: () => {
+				return get().configurations.filter((c) => c.selected);
+			},
+			setConfigurationName: (id, name) =>
+				set((state) => ({
+					configurations: state.configurations.map((c) =>
+						c.id === id ? { ...c, name: name } : c,
+					),
+				})),
 			}),
-		}));
-	},
-
-	toggleActive: (id, active) =>
-		set((state) => ({
-			models: state.models.map((model) =>
-				model.id === id ? { ...model, active } : model,
-			),
-		})),
-
-	filterModel: (predicate) => {
-		return get().models.filter(predicate);
-	},
-
-	filterGaussianModel: () => {
-		return get().models.filter(
-			(m) => m.kind === "gaussian",
-		) as FitGaussianModel[];
-	},
-
-	filterLinearModel: () => {
-		return get().models.filter((m) => m.kind === "linear") as FitLinearModel[];
-	},
-
-	filterActivatedModel: () => {
-		return get().models.filter((m) => m.active);
-	},
-}));
+		{
+			name: "noobrowser-fit-store",
+			partialize: (state) => ({ configurations: state.configurations }),
+		}
+	)
+);

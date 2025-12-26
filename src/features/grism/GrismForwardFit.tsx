@@ -48,6 +48,7 @@ import {
 	toDisplayWavelength,
 	toInputValue,
 } from "@/utils/wavelength";
+import { toaster } from "@/components/ui/toaster";
 
 const modelTypeCollection = createListCollection({
 	items: [
@@ -93,11 +94,12 @@ export default function GrismForwardFit() {
 
 function FitHeaderControls() {
 	const syncId = useId();
-	const { addModel, models, updateModel } = useFitStore(
+	const { addModel, models, updateModel, saveCurrentConfiguration } = useFitStore(
 		useShallow((state) => ({
 			addModel: state.addModel,
 			models: state.models,
 			updateModel: state.updateModel,
+			saveCurrentConfiguration: state.saveCurrentConfiguration,
 		})),
 	);
 
@@ -126,6 +128,10 @@ function FitHeaderControls() {
 			}
 		});
 	};
+	const saveConfiguration = () => {
+		saveCurrentConfiguration();
+		toaster.create({ title: "Configuration saved", type: "success", duration: 2000 });
+	}
 
 	return (
 		<HStack justify="space-between" align="center">
@@ -170,6 +176,13 @@ function FitHeaderControls() {
 				>
 					<Button size="xs" variant="outline" onClick={syncModelToWindow}>
 						Sync
+					</Button>
+				</Tooltip>
+				<Tooltip
+					content="Save current models as a new configuration"
+				>
+					<Button size="xs" variant="solid" onClick={saveConfiguration}>
+						Save
 					</Button>
 				</Tooltip>
 			</HStack>
@@ -739,6 +752,8 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 	const [muStep, setMuStep] = useState(waveUnit === "µm" ? 0.001 : 1);
 	const [sigmaStep, setSigmaStep] = useState(waveUnit === "µm" ? 0.001 : 1);
 	const [rangeStep, setRangeStep] = useState(waveUnit === "µm" ? 0.001 : 1);
+	// temporary place to adjust fwhm km/s range
+	const [fwhmStep, setFwhmStep] = useState(100);
 
 	const prevUnitRef = useRef<WaveUnit>(waveUnit);
 	const prevFrameRef = useRef<WaveFrame>(waveFrame);
@@ -829,6 +844,20 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 		});
 	};
 
+	const handleFwhmKmsMinChange = (valueAsNumber: number) => {
+		if (!Number.isFinite(valueAsNumber)) return;
+		const [_, maxKms] = model.fwhm_kms_range;
+		const minKms = Math.min(valueAsNumber, maxKms - 1);
+		props.onUpdate(model.id, { fwhm_kms_range: [minKms, maxKms] });
+	};
+
+	const handleFwhmKmsMaxChange = (valueAsNumber: number) => {
+		if (!Number.isFinite(valueAsNumber)) return;
+		const [minKms, _] = model.fwhm_kms_range;
+		const maxKms = Math.max(valueAsNumber, minKms + 1);
+		props.onUpdate(model.id, { fwhm_kms_range: [minKms, maxKms] });
+	};
+
 	const clampX1OnBlur = () => {
 		const { min, max } = model.range;
 		const sliceMin = slice1DWaveRange.min;
@@ -893,6 +922,12 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 			label: "range step",
 			value: rangeStep,
 			onChange: setRangeStep,
+		},
+		{
+			key: "fwhm_kms",
+			label: "FWHM (km/s) step",
+			value: fwhmStep,
+			onChange: setFwhmStep,
 		},
 	];
 
@@ -1054,6 +1089,40 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 						value={toInputValue(displayX2, waveUnit === "µm" ? 6 : 1)}
 						step={rangeStep}
 						onValueChange={({ valueAsNumber }) => handleX2Change(valueAsNumber)}
+					>
+						<NumberInput.Control />
+						<NumberInput.Input onBlur={clampX2OnBlur} />
+					</NumberInput.Root>
+				</HStack>
+
+				<HStack gap={3} align="center">
+					<Text textStyle="sm" minW="36px">
+						fwhm1
+					</Text>
+					<NumberInput.Root
+						size="xs"
+						maxW="120px"
+						value={toInputValue(model.fwhm_kms_range[0], 1)}
+						step={fwhmStep}
+						onValueChange={({ valueAsNumber }) =>
+							handleFwhmKmsMinChange(valueAsNumber)
+						}
+					>
+						<NumberInput.Control />
+						<NumberInput.Input onBlur={clampX1OnBlur} />
+					</NumberInput.Root>
+
+					<Text textStyle="sm" minW="36px">
+						fwhm2
+					</Text>
+					<NumberInput.Root
+						size="xs"
+						maxW="120px"
+						value={toInputValue(model.fwhm_kms_range[1], 1)}
+						step={fwhmStep}
+						onValueChange={({ valueAsNumber }) =>
+							handleFwhmKmsMaxChange(valueAsNumber)
+						}
 					>
 						<NumberInput.Control />
 						<NumberInput.Input onBlur={clampX2OnBlur} />

@@ -57,9 +57,17 @@ export interface FitGaussianModel extends BaseFitModel { // A * exp(-0.5 * ((x -
 	amplitude: number;
 	mu: number; // observed frame, µm
 	sigma: number; // observed frame, µm
+	fwhm_kms_range: [number, number]; // km/s
 }
 
 export type FitModel = FitLinearModel | FitGaussianModel;
+
+export type FitConfiguration = {
+	id: string; // UUID
+	name: string;
+	models: FitModel[];
+	selected: boolean;
+}
 
 /* -------------------------------------------------------------------------- */
 /*                                 Image Type                                 */
@@ -134,6 +142,7 @@ export type GridState = {
 /* -------------------------------------------------------------------------- */
 /*                                Sources Type                                */
 /* -------------------------------------------------------------------------- */
+export type JobStatus = "pending" | "processing" | "completed" | "failed";
 
 export type TraceSource = {
 	id: string;
@@ -150,4 +159,8 @@ export type TraceSource = {
 		roiState: RoiState;
 		collapseWindow: CollapseWindow;
 	},
+	fitState?: {
+		jobId?: string;
+		jobStatus?: JobStatus;
+	}
 };

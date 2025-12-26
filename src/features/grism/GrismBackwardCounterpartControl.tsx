@@ -52,7 +52,7 @@ export default function GrismBackwardCounterpartControl() {
     /* ------------------------- Fetch Available Filters ------------------------ */
     const { data: filtersData, isSuccess: isFiltersSuccess } = useQueryAxiosGet<Array<string>>({
 		queryKey: ["available_filters"],
-		path: "/image/counterpart_meta",
+		path: "/image/counterpart_meta/",
 	});
     useEffect(() => {
         if (isFiltersSuccess && filtersData) {        
