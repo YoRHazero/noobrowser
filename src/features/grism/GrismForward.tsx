@@ -2,7 +2,7 @@ import { HStack, Stack } from "@chakra-ui/react";
 import Grism1DCanvas from "@/features/grism/GrismForward1DCanvas";
 import GrismForwardCanvas from "@/features/grism/GrismForwardCanvas";
 import GrismForwardTab from "@/features/grism/GrismForwardTab";
-import GrismForwardToolbar from "./GrismForwardToolbar";
+import GrismForwardToolbar from "@/features/grism/GrismForwardToolbar";
 import CanvasWithToolbar from "@/components/layout/CanvasWithToolbar";
 export default function GrismForward() {
 	return (

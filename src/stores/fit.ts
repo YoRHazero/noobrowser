@@ -1,6 +1,6 @@
 // stores/fit.ts
 import { create } from "zustand";
-import { persist } from "zustand/middleware";
+import { persist, devtools } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
 import type {
@@ -11,6 +11,7 @@ import type {
 	FitRange,
 	WaveFrame,
 	FitConfiguration,
+	FitPrior,
 } from "@/stores/stores-types";
 import { normalizeModels, normalizeRange } from "@/stores/stores-utils";
 
@@ -21,11 +22,13 @@ export interface FitState {
 	setWaveFrame: (frame: WaveFrame) => void;
 
 	ensureInitialModels: (range: FitRange) => void;
+	duplicateNameIds: () => number[];
+
+	updateModelPrior: (modelId: number, paramName: string, prior: FitPrior | undefined) => void;
 
 	addModel: (kind: FitModelType, range: FitRange) => void;
 	addLinearModel: (range: FitRange) => void;
 	addGaussianModel: (range: FitRange) => void;
-
 	updateModel: (
 		id: number,
 		patch: Partial<FitLinearModel> | Partial<FitGaussianModel>,
@@ -50,6 +53,7 @@ export interface FitState {
 /* -------------------------------- store ----------------------------------- */
 
 export const useFitStore = create<FitState>()(
+	devtools(
 	persist(
 		(set, get) => ({
 			waveFrame: "observe",
@@ -65,7 +69,44 @@ export const useFitStore = create<FitState>()(
 				state.addLinearModel(range);
 				state.addGaussianModel(range);
 			},
-
+			duplicateNameIds: () => {
+				const models = get().models;
+				const nameCount: Record<string, number> = {};
+				models.forEach((model) => {
+					nameCount[model.name] = (nameCount[model.name] || 0) + 1;
+				});
+				const duplicateIds: number[] = [];
+				models.forEach((model) => {
+					if (nameCount[model.name] > 1) {
+						duplicateIds.push(model.id);
+					}
+				});
+				return duplicateIds;
+			},
+			updateModelPrior: (modelId, paramName, prior) =>
+				set((state) => ({
+					models: state.models.map((model) => {
+						if (model.id !== modelId) return model;
+						let isValidParam = false;
+						if (model.kind === "linear") {
+							isValidParam = ["k", "b"].includes(paramName);
+						} else if (model.kind === "gaussian") {
+							isValidParam = ["amplitude", "mu", "sigma"].includes(paramName);
+						}
+						if (!isValidParam) return model;
+						const currentPriors = model.priors || {};						
+						let updatedPriors: Record<string, FitPrior> | undefined = { ...currentPriors };
+						if (prior === undefined) {
+							delete updatedPriors[paramName];
+						} else {
+							updatedPriors[paramName] = prior;
+						}
+						if (Object.keys(updatedPriors).length === 0) {
+							updatedPriors = undefined;
+						}
+						return { ...model, priors: updatedPriors };
+					}),
+				})),
 			addLinearModel: (range) =>
 				set((state) => {
 					const r = normalizeRange(range);
@@ -232,5 +273,5 @@ export const useFitStore = create<FitState>()(
 			name: "noobrowser-fit-store",
 			partialize: (state) => ({ configurations: state.configurations }),
 		}
-	)
+	))
 );

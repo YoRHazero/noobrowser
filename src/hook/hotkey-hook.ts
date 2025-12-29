@@ -162,3 +162,39 @@ export function useCameraCenteringOnRoi(controlRef: React.RefObject<MapControls 
         controls.update();
     }, [roiState, camera, controlRef]);
 }
+
+export function useFocusWithFlash(
+	ref: React.RefObject<HTMLElement | null>,
+	hotkey: string,
+) {
+	useHotkeys(
+		hotkey,
+		(e) => {
+			e.preventDefault(); // 防止默认行为（如浏览器搜索等）
+			if (ref.current) {
+				// 1. 滚动到可视区域
+				ref.current.scrollIntoView({ behavior: "smooth", block: "center" });
+
+				// 2. GSAP 视觉提示：边框/阴影高亮闪烁
+				// 假设你的组件有边框，我们让它发光一下
+				// 注意：这里使用了 Chakra 的 CSS 变量，也可以用普通颜色 hex
+				gsap.fromTo(
+					ref.current,
+					{
+						borderColor: "var(--chakra-colors-teal-500)",
+						boxShadow: "0 0 0 2px var(--chakra-colors-teal-500)",
+					},
+					{
+						borderColor: "var(--chakra-colors-border-subtle)", // 恢复默认边框色
+						boxShadow: "none",
+						duration: 1.5,
+						ease: "power2.out",
+						clearProps: "all", // 动画结束后清除内联样式，避免污染
+					},
+				);
+			}
+		},
+		{ enableOnFormTags: true }, // 允许在输入框中触发（可选，看你需求）
+		[ref],
+	);
+}
