@@ -20,6 +20,7 @@ import {
 	ANGSTROM_PER_MICRON,
 	SPEED_OF_LIGHT_KM_S,
 	toDisplayWavelength,
+	toInputValue,
 } from "@/utils/wavelength";
 
 interface GaussianModelCardProps {
@@ -66,17 +67,6 @@ export default function GaussianModelCard(props: GaussianModelCardProps) {
 	
 	const handleX1 = createHandler((v) => updateModel(model.id, { range: { ...model.range, min: v } as any }));
 	const handleX2 = createHandler((v) => updateModel(model.id, { range: { ...model.range, max: v } as any }));
-
-	// FWHM (Velocity) handling - stored as [min, max]
-	const handleFwhmMin = (v: number) => {
-		const max = model.fwhm_kms_range[1];
-		updateModel(model.id, { fwhm_kms_range: [Math.min(v, max - 1), max] });
-	};
-	const handleFwhmMax = (v: number) => {
-		const min = model.fwhm_kms_range[0];
-		updateModel(model.id, { fwhm_kms_range: [min, Math.max(v, min + 1)] });
-	};
-
 	// 3. Clamping
 	const { clampMinOnBlur, clampMaxOnBlur } = useFitRangeClamp({
 		modelRange: model.range,
@@ -112,7 +102,6 @@ export default function GaussianModelCard(props: GaussianModelCardProps) {
 				{ key: "mu", label: "μ step", value: steps["mu"], onChange: (v) => setSingleStep("mu", v) },
 				{ key: "sigma", label: "σ step", value: steps["sigma"], onChange: (v) => setSingleStep("sigma", v) },
 				{ key: "range", label: "range step", value: steps["range"], onChange: (v) => setSingleStep("range", v) },
-				{ key: "fwhm_kms", label: "v step", value: steps["fwhm_kms"], onChange: (v) => setSingleStep("fwhm_kms", v) },
 			]}
 			formula={
 				<Text>
@@ -131,14 +120,13 @@ export default function GaussianModelCard(props: GaussianModelCardProps) {
 					<CompactNumberInput label="x2" value={displayX2} step={steps["range"]} onChange={handleX2} onBlur={clampMaxOnBlur} />
 				</Stack>
 				
-				{/* FWHM Constraints */}
-				<Stack direction="row" gap={2} align="center">
-					<CompactNumberInput label="v1" value={model.fwhm_kms_range[0]} step={steps["fwhm_kms"]} onChange={handleFwhmMin} decimalScale={1} inputWidth="80px" />
-					<CompactNumberInput label="v2" value={model.fwhm_kms_range[1]} step={steps["fwhm_kms"]} onChange={handleFwhmMax} decimalScale={1} inputWidth="80px" />
-					<Text textStyle="xs" color="fg.muted" truncate>
-						≈ {fwhmInUnit.toFixed(waveUnit === "µm" ? 4 : 1)} {waveUnit} ({fwhmVelocity.toFixed(0)} km/s)
-					</Text>
-				</Stack>
+				<Text textStyle="xs" color="fg.muted">
+					FWHM ≈{" "}
+					{waveUnit === "µm"
+						? toInputValue(fwhmInUnit, 4)
+						: toInputValue(fwhmInUnit, 1)}{" "}
+					{waveUnit} ({toInputValue(fwhmVelocity, 1)} km/s)
+				</Text>
 			</Stack>
 		</ModelCardShell>
 	);

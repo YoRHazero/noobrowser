@@ -15,7 +15,7 @@ import { type ScaleLinear, scaleLinear } from "d3-scale";
 import { memo, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useColorModeValue } from "@/components/ui/color-mode";
-import { useWavelengthDisplay } from "@/hook/transformation-hook";
+import { useWavelengthDisplay } from "@/hook/wavelength-hook";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 import type { FitGaussianModel, FitLinearModel } from "@/stores/stores-types";

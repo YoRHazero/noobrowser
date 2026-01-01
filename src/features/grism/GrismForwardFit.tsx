@@ -17,7 +17,7 @@ const THEME_STYLES = {
 	container: {
 		direction: "column" as const,
 		// 在 Tab 内部，我们让它填满可用空间，或者给定一个适配屏幕的高度
-		h: "calc(100vh - 100px)", 
+		h: "calc(100vh - 80px)", 
 		gap: 3,
 		p: 3,
 		borderRadius: "md",

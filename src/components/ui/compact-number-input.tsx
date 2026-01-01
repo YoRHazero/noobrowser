@@ -1,4 +1,4 @@
-import { HStack, NumberInput, Text } from "@chakra-ui/react";
+import { Stack, NumberInput, Text } from "@chakra-ui/react";
 
 // --- Theme Constants ---
 const THEME_STYLES = {
@@ -6,7 +6,6 @@ const THEME_STYLES = {
 		textStyle: "2xs",
 		color: "fg.muted",
 		fontWeight: "bold", //稍微加粗一点增强可读性
-		textTransform: "uppercase" as const,
 		letterSpacing: "0.05em",
 		opacity: 0.8,
 	},
@@ -65,6 +64,8 @@ interface CompactNumberInputProps {
 	labelWidth?: string;
 	inputWidth?: string;
 	onBlur?: () => void;
+	labelPos?: "top" | "left";
+	showControls?: boolean;
 	disabled?: boolean;
 }
 
@@ -80,15 +81,19 @@ export function CompactNumberInput(props: CompactNumberInputProps) {
 		labelWidth = "36px",
 		inputWidth = "120px",
 		onBlur,
+		labelPos = "left",
+		showControls = true,
 		disabled,
 	} = props;
 
 	const displayValue = Number.isFinite(value)
 		? value.toFixed(decimalScale).replace(/\.?0+$/, "")
 		: "";
-
+	const stackDirection = labelPos === "top" ? "column" : "row";
+	const gap = labelPos === "top" ? 1 : 2;
+	const alignItems = labelPos === "top" ? "flex-start" : "center";
 	return (
-		<HStack gap={3} align="center">
+		<Stack direction={stackDirection} gap={gap} align={alignItems}>
 			<Text {...THEME_STYLES.label} minW={labelWidth}>
 				{label}
 			</Text>
@@ -107,12 +112,12 @@ export function CompactNumberInput(props: CompactNumberInputProps) {
 					}
 				}}
 			>
-				<NumberInput.Control />
+				{showControls && <NumberInput.Control />}
 				<NumberInput.Input 
 					onBlur={onBlur} 
 					{...THEME_STYLES.inputField}
 				/>
 			</NumberInput.Root>
-		</HStack>
+		</Stack>
 	);
 }
