@@ -2,23 +2,24 @@
 
 import { Button, HStack } from "@chakra-ui/react";
 import { LuRotateCcw, LuSparkles } from "react-icons/lu";
-import { useShallow } from "zustand/react/shallow";
 
 import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
-import { useFitStore } from "@/stores/fit";
+import type { FitModel, FitPrior } from "@/stores/stores-types";
 
-export default function PriorOperations() {
-	const { models, updateModelPrior } = useFitStore(
-		useShallow((s) => ({
-			models: s.models,
-			updateModelPrior: s.updateModelPrior,
-		})),
-	);
+interface PriorOperationsProps {
+	allModels: FitModel[];
+	updateModelPrior: (
+		modelId: number,
+		paramName: string,
+		newPrior: FitPrior | undefined,
+	) => void;
+}
+export default function PriorOperations({ allModels, updateModelPrior }: PriorOperationsProps) {
 
 	const handleClearAll = () => {
 		let count = 0;
-		models.forEach((model) => {
+		allModels.forEach((model) => {
 			if (!model.priors) return;
 			Object.keys(model.priors).forEach((key) => {
 				updateModelPrior(model.id, key, undefined);

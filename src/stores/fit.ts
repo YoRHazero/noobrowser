@@ -13,7 +13,7 @@ import type {
 	FitConfiguration,
 	FitPrior,
 } from "@/stores/stores-types";
-import { normalizeModels, normalizeRange } from "@/stores/stores-utils";
+import { normalizeModels, normalizeRange, updatePriorInModel } from "@/stores/stores-utils";
 
 export interface FitState {
 	waveFrame: WaveFrame;
@@ -25,6 +25,12 @@ export interface FitState {
 	duplicateNameIds: () => number[];
 
 	updateModelPrior: (modelId: number, paramName: string, prior: FitPrior | undefined) => void;
+	updateConfigurationModelPrior: (
+		configId: string,
+		modelId: number,
+		paramName: string,
+		prior: FitPrior | undefined,
+	) => void;
 
 	addModel: (kind: FitModelType, range: FitRange) => void;
 	addLinearModel: (range: FitRange) => void;
@@ -85,26 +91,21 @@ export const useFitStore = create<FitState>()(
 			},
 			updateModelPrior: (modelId, paramName, prior) =>
 				set((state) => ({
-					models: state.models.map((model) => {
-						if (model.id !== modelId) return model;
-						let isValidParam = false;
-						if (model.kind === "linear") {
-							isValidParam = ["k", "b"].includes(paramName);
-						} else if (model.kind === "gaussian") {
-							isValidParam = ["amplitude", "mu", "sigma"].includes(paramName);
-						}
-						if (!isValidParam) return model;
-						const currentPriors = model.priors || {};						
-						let updatedPriors: Record<string, FitPrior> | undefined = { ...currentPriors };
-						if (prior === undefined) {
-							delete updatedPriors[paramName];
-						} else {
-							updatedPriors[paramName] = prior;
-						}
-						if (Object.keys(updatedPriors).length === 0) {
-							updatedPriors = undefined;
-						}
-						return { ...model, priors: updatedPriors };
+					models: updatePriorInModel(state.models, modelId, paramName, prior),
+				})),
+			updateConfigurationModelPrior: (configId, modelId, paramName, prior) =>
+				set((state) => ({
+					configurations: state.configurations.map((config) => {
+						if (config.id !== configId) return config;
+						return {
+							...config,
+							models: updatePriorInModel(
+								config.models,
+								modelId,
+								paramName,
+								prior,
+							),
+						};
 					}),
 				})),
 			addLinearModel: (range) =>

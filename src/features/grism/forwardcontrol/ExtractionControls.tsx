@@ -154,7 +154,7 @@ export default function ExtractionControls() {
 
 	const debouncedSetCollapseWindow = useDebouncedCallback(
 		(updates: Partial<typeof collapseWindow>) => setCollapseWindow(updates),
-		300,
+		20,
 	);
 
 	const handleWaveSliderChange = ({ value }: { value: number[] }) => {

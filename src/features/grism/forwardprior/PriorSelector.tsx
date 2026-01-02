@@ -10,12 +10,12 @@ import {
 } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { LuCheck, LuCircleDot } from "react-icons/lu";
-import { useShallow } from "zustand/react/shallow";
 
-import Latex from "@/components/ui/latex"; // 引入数学公式组件
-import { useFitStore } from "@/stores/fit";
+import Latex from "@/components/ui/latex";
+import type { FitModel } from "@/stores/stores-types";
 
 interface PriorSelectorProps {
+	allModels: FitModel[];
 	selectedModelId: number | null;
 	selectedParam: string | null;
 	onSelectModel: (id: number) => void;
@@ -62,14 +62,12 @@ interface ParamOption {
 }
 
 export default function PriorSelector(props: PriorSelectorProps) {
-	const { selectedModelId, selectedParam, onSelectModel, onSelectParam } = props;
-
-	const models = useFitStore(useShallow((s) => s.models));
+	const { allModels, selectedModelId, selectedParam, onSelectModel, onSelectParam } = props;
 
 	// 1. 创建 Models Collection
 	const modelsCollection = useMemo(() => {
 		return createListCollection<ModelOption>({
-			items: models.map((model) => ({
+			items: allModels.map((model) => ({
 				label: model.name,
 				value: String(model.id),
 				formula: getModelFormula(model.kind),
@@ -78,11 +76,11 @@ export default function PriorSelector(props: PriorSelectorProps) {
 			itemToString: (item) => item.label,
 			itemToValue: (item) => item.value,
 		});
-	}, [models]);
+	}, [allModels]);
 
 	// 2. 创建 Parameters Collection
 	const paramsCollection = useMemo(() => {
-		const selectedModel = models.find((m) => m.id === selectedModelId);
+		const selectedModel = allModels.find((m) => m.id === selectedModelId);
 		const params = selectedModel
 			? selectedModel.kind === "linear"
 				? LINEAR_PARAMS
@@ -102,7 +100,7 @@ export default function PriorSelector(props: PriorSelectorProps) {
 			itemToString: (item) => item.label,
 			itemToValue: (item) => item.value,
 		});
-	}, [models, selectedModelId]);
+	}, [allModels, selectedModelId]);
 
 	return (
 		<Flex w="full" h="full" gap={3}>

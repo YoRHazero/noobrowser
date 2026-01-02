@@ -1,30 +1,25 @@
 "use client";
 
 import { Box, Stack, Text } from "@chakra-ui/react";
-import { useShallow } from "zustand/react/shallow";
-
-import { useFitStore } from "@/stores/fit";
-import type { FitPrior } from "@/stores/stores-types";
+import type { FitModel, FitPrior } from "@/stores/stores-types";
 
 import PriorFormTabs from "@/features/grism/forwardprior/PriorFormTab";
 
 interface PriorFormProps {
+	allModels: FitModel[];
+	updateModelPrior: (
+		modelId: number,
+		paramName: string,
+		newPrior: FitPrior | undefined,
+	) => void;
 	modelId: number;
 	paramName: string;
 }
 
 export default function PriorForm(props: PriorFormProps) {
-	const { modelId, paramName } = props;
+	const { allModels, updateModelPrior, modelId, paramName } = props;
 
-	// 连接 Store
-	const { models, updateModelPrior } = useFitStore(
-		useShallow((s) => ({
-			models: s.models,
-			updateModelPrior: s.updateModelPrior,
-		})),
-	);
-
-	const currentModel = models.find((m) => m.id === modelId);
+	const currentModel = allModels.find((m) => m.id === modelId);
 	if (!currentModel) return null;
 
 	// 获取当前 Config (可能是 undefined)
@@ -42,7 +37,7 @@ export default function PriorForm(props: PriorFormProps) {
 					<PriorFormTabs
 						modelId={modelId}
 						paramName={paramName}
-						allModels={models}
+						allModels={allModels}
 						config={priorConfig} // 传入 undefined 代表 Default
 						onChange={handleConfigChange}
 					/>

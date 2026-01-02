@@ -2,6 +2,7 @@ import type {
     FitGaussianModel,
     FitLinearModel,
     FitModel,
+    FitPrior,
     FitRange,
 } from "./stores-types";
 
@@ -93,6 +94,40 @@ export function normalizeModels(models: FitModel[]): FitModel[] {
             range: normalizeRange(m.range),
         });
     }
-
     return result;
+}
+
+export function updatePriorInModel(
+    models: FitModel[],
+    modelId: number,
+    paramName: string,
+    prior: FitPrior | undefined,
+): FitModel[] {
+    return models.map((model) => {
+        if (model.id !== modelId) return model;
+
+        let isValidParam = false;
+        if (model.kind === "linear") {
+            isValidParam = ["k", "b"].includes(paramName);
+        } else if (model.kind === "gaussian") {
+            isValidParam = ["amplitude", "mu", "sigma"].includes(paramName);
+        }
+        if (!isValidParam) return model;
+
+        const currentPriors = model.priors || {};
+        let updatedPriors: Record<string, FitPrior> | undefined = { ...currentPriors };
+        if (prior === undefined) {
+            delete updatedPriors[paramName];
+        } else {
+            updatedPriors[paramName] = prior;
+        }
+        if (Object.keys(updatedPriors).length === 0) {
+            updatedPriors = undefined;
+        }
+
+        return {
+            ...model,
+            priors: updatedPriors,
+        };
+    });
 }

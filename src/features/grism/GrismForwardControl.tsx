@@ -37,7 +37,7 @@ const THEME_STYLES = {
 	},
 };
 
-export default function GrismForwardPanel() {
+export default function GrismForwardControl() {
 	return (
 		<Flex {...THEME_STYLES.container}>
 			{/* --- Fixed Top Section (Controls) --- */}

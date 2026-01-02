@@ -70,7 +70,7 @@ export default function RedshiftControls() {
 	return (
 		<Stack gap={3}>
 			<HStack align="center">
-				<Heading {...THEME_STYLES.heading}>Redshift Control</Heading>
+				<Heading {...THEME_STYLES.heading}>Redshift</Heading>
 				<InfoTip content="Adjust the redshift (z) to shift the observed wavelength frame." />
 			</HStack>
 
