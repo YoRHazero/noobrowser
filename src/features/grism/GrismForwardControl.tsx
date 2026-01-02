@@ -10,7 +10,7 @@ import EmissionLinesManager from "@/features/grism/forwardcontrol/EmissionLinesM
 const THEME_STYLES = {
 	container: {
 		direction: "column" as const,
-		h: "calc(100vh - 80px)", // 保持高度一致
+		h: "100%", // 保持高度一致
 		gap: 0, // 使用内部 padding 控制间距，确保分割线贴边
 		borderRadius: "md",
 		borderWidth: "1px",

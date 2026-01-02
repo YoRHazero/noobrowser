@@ -43,12 +43,12 @@ export default function GrismForwardTab() {
 	const containerRef = useScrollFocus<HTMLDivElement>(
 		"mod+shift+f",
 		{
-			offset: 20,
+			offset: 0,
 		}
 	);
     return (
-        <Box w="425px" ref={containerRef}>
-            <Tabs.Root defaultValue={TAB_ITEMS[0].value} size="sm" lazyMount={true}>
+        <Box w="425px" h="100vh" ref={containerRef}>
+            <Tabs.Root defaultValue={TAB_ITEMS[0].value} size="sm" lazyMount={true} h="100%">
                 
                 <Tabs.List>
                     {TAB_ITEMS.map((tab) => (
@@ -63,7 +63,7 @@ export default function GrismForwardTab() {
                 </Tabs.List>
 
                 {TAB_ITEMS.map((tab) => (
-                    <Tabs.Content key={tab.value} value={tab.value}>
+                    <Tabs.Content key={tab.value} value={tab.value} h="100%">
                         {tab.content}
                     </Tabs.Content>
                 ))}

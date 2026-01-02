@@ -14,7 +14,7 @@ import TargetSourceList from "@/features/grism/forwardsource/TargetSourceList";
 const THEME_STYLES = {
 	container: {
 		direction: "column" as const,
-		h: "calc(100vh - 80px)", // 保持与 Fit 标签页高度一致
+		h: "100%", // 保持与 Fit 标签页高度一致
 		gap: 0, 
 		borderRadius: "md",
 		borderWidth: "1px",
