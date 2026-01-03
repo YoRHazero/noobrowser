@@ -1,29 +1,21 @@
-import {
-	Button,
-	Heading,
-	HStack,
-	Stack,
-	Switch,
-	Text,
-} from "@chakra-ui/react";
-import { useId, useMemo, useState, useEffect } from "react";
-import { useShallow } from "zustand/react/shallow";
+import { Button, Heading, HStack, Stack, Switch, Text } from "@chakra-ui/react";
+import { useEffect, useId, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-
+import { useShallow } from "zustand/react/shallow";
+import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
 import { InfoTip } from "@/components/ui/toggle-tip";
 import { Tooltip } from "@/components/ui/tooltip";
-import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import GrismWavelengthControl from "@/features/grism/GrismForwardWavelengthControl";
 
 import { useExtractSpectrum } from "@/hook/connection-hook";
-import { useGrismStore } from "@/stores/image";
-import { useGlobeStore } from "@/stores/footprints";
-import { clamp } from "@/utils/projection";
 import {
 	useSliceRangeManager,
 	useWavelengthDisplay,
 } from "@/hook/wavelength-hook";
+import { useGlobeStore } from "@/stores/footprints";
+import { useGrismStore } from "@/stores/image";
+import { clamp } from "@/utils/projection";
 
 // --- Theme Constants ---
 const THEME_STYLES = {
@@ -32,8 +24,6 @@ const THEME_STYLES = {
 		letterSpacing: "wide",
 		fontWeight: "extrabold",
 		textTransform: "uppercase" as const,
-		
-		// 1. 修复标题：白天深灰，晚上渐变
 		color: { base: "gray.700", _dark: "transparent" },
 		bgGradient: { base: "none", _dark: "to-r" },
 		gradientFrom: { _dark: "cyan.400" },
@@ -53,11 +43,7 @@ const THEME_STYLES = {
 		px: 1.5,
 		py: 0.5,
 		borderRadius: "sm",
-		borderWidth: "1px", // 增加边框增强定义感
-
-		// 2. 修复数值显示：
-		// Light Mode: 浅青背景 + 深青文字 + 清晰边框
-		// Dark Mode: 半透明黑背景 + 亮青文字 + 透明边框
+		borderWidth: "1px",
 		bg: { base: "cyan.50", _dark: "blackAlpha.400" },
 		color: { base: "cyan.800", _dark: "cyan.300" },
 		borderColor: { base: "cyan.200", _dark: "transparent" },
@@ -76,7 +62,7 @@ const THEME_STYLES = {
 			// 在暗黑模式下加一点微光
 			boxShadow: { _dark: "0 0 10px rgba(0, 200, 255, 0.3)" },
 		},
-	}
+	},
 };
 
 export default function ExtractionControls() {
@@ -102,7 +88,9 @@ export default function ExtractionControls() {
 		})),
 	);
 
-	const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const selectedFootprintId = useGlobeStore(
+		(state) => state.selectedFootprintId,
+	);
 	const sliceManager = useSliceRangeManager();
 	const { formatterWithUnit, waveUnit } = useWavelengthDisplay();
 
@@ -136,7 +124,12 @@ export default function ExtractionControls() {
 			waveMax: Math.max(wMin, wMax),
 			spatialMax: rows > 0 ? rows - 1 : 0,
 		};
-	}, [hasSpectrum, wavelength, extractSpectrumData?.spectrum_2d, collapseWindow]);
+	}, [
+		hasSpectrum,
+		wavelength,
+		extractSpectrumData?.spectrum_2d,
+		collapseWindow,
+	]);
 
 	const [localWaveRange, setLocalWaveRange] = useState([
 		collapseWindow.waveMin,
@@ -149,7 +142,10 @@ export default function ExtractionControls() {
 
 	useEffect(() => {
 		setLocalWaveRange([collapseWindow.waveMin, collapseWindow.waveMax]);
-		setLocalSpatialRange([collapseWindow.spatialMin, collapseWindow.spatialMax]);
+		setLocalSpatialRange([
+			collapseWindow.spatialMin,
+			collapseWindow.spatialMax,
+		]);
 	}, [collapseWindow]);
 
 	const debouncedSetCollapseWindow = useDebouncedCallback(
@@ -227,7 +223,9 @@ export default function ExtractionControls() {
 							<Text {...THEME_STYLES.valueDisplay}>
 								{formatterWithUnit(localWaveRange[0])}
 							</Text>
-							<Text textStyle="xs" color="fg.subtle">–</Text>
+							<Text textStyle="xs" color="fg.subtle">
+								–
+							</Text>
 							<Text {...THEME_STYLES.valueDisplay}>
 								{formatterWithUnit(localWaveRange[1])}
 							</Text>
@@ -252,7 +250,9 @@ export default function ExtractionControls() {
 						<Text {...THEME_STYLES.label}>Spatial Window (Rows)</Text>
 						<HStack gap={1}>
 							<Text {...THEME_STYLES.valueDisplay}>{localSpatialRange[0]}</Text>
-							<Text textStyle="xs" color="fg.subtle">–</Text>
+							<Text textStyle="xs" color="fg.subtle">
+								–
+							</Text>
 							<Text {...THEME_STYLES.valueDisplay}>{localSpatialRange[1]}</Text>
 						</HStack>
 					</HStack>
@@ -284,7 +284,9 @@ export default function ExtractionControls() {
 						inputWidth="full"
 					/>
 
-					<Text pb={1.5} color="fg.subtle" opacity={0.5}>~</Text>
+					<Text pb={1.5} color="fg.subtle" opacity={0.5}>
+						~
+					</Text>
 
 					<CompactNumberInput
 						label="MAX"
@@ -300,7 +302,7 @@ export default function ExtractionControls() {
 						onClick={sliceManager.applyRange}
 						mb={0.5}
 						minW="50px"
-                        colorPalette="cyan"
+						colorPalette="cyan"
 					>
 						APPLY
 					</Button>

@@ -13,6 +13,7 @@ import { LuCheck, LuCircleDot } from "react-icons/lu";
 
 import Latex from "@/components/ui/latex";
 import type { FitModel } from "@/stores/stores-types";
+import { getModelParamValue } from "@/stores/stores-utils";
 
 interface PriorSelectorProps {
 	allModels: FitModel[];
@@ -22,11 +23,9 @@ interface PriorSelectorProps {
 	onSelectParam: (param: string) => void;
 }
 
-// 定义参数列表
 const LINEAR_PARAMS = ["k", "b"]; // x0 excluded
 const GAUSSIAN_PARAMS = ["amplitude", "mu", "sigma"];
 
-// 参数显示名称映射
 const PARAM_DISPLAY_MAP: Record<string, string> = {
 	amplitude: "A",
 	mu: "µ",
@@ -35,11 +34,10 @@ const PARAM_DISPLAY_MAP: Record<string, string> = {
 	b: "b",
 };
 
-// 获取模型公式 LaTeX
 const getModelFormula = (kind: string) => {
 	switch (kind) {
 		case "linear":
-			return String.raw`y = k(x - x_0) + b`;
+			return `y = k(x - x_0) + b`;
 		case "gaussian":
 			return String.raw`y = A \exp \left( -\frac{(x - \mu)^2}{2\sigma^2} \right)`;
 		default:
@@ -47,7 +45,6 @@ const getModelFormula = (kind: string) => {
 	}
 };
 
-// 定义 Listbox Item 的数据结构
 interface ModelOption {
 	label: string;
 	value: string;
@@ -62,7 +59,13 @@ interface ParamOption {
 }
 
 export default function PriorSelector(props: PriorSelectorProps) {
-	const { allModels, selectedModelId, selectedParam, onSelectModel, onSelectParam } = props;
+	const {
+		allModels,
+		selectedModelId,
+		selectedParam,
+		onSelectModel,
+		onSelectParam,
+	} = props;
 
 	// 1. 创建 Models Collection
 	const modelsCollection = useMemo(() => {
@@ -71,7 +74,7 @@ export default function PriorSelector(props: PriorSelectorProps) {
 				label: model.name,
 				value: String(model.id),
 				formula: getModelFormula(model.kind),
-				hasPriors: model.priors && Object.keys(model.priors).length > 0 ? true : false,
+				hasPriors: !!(model.priors && Object.keys(model.priors).length > 0),
 			})),
 			itemToString: (item) => item.label,
 			itemToValue: (item) => item.value,
@@ -91,11 +94,10 @@ export default function PriorSelector(props: PriorSelectorProps) {
 			items: params.map((param) => ({
 				label: PARAM_DISPLAY_MAP[param] || param,
 				value: param,
-				isConfigured:
+				isConfigured: !!(
 					selectedModel?.priors &&
-					(selectedModel.priors as any)[param] !== undefined
-						? true
-						: false,
+					getModelParamValue(selectedModel, param) !== undefined
+				),
 			})),
 			itemToString: (item) => item.label,
 			itemToValue: (item) => item.value,
@@ -134,7 +136,9 @@ export default function PriorSelector(props: PriorSelectorProps) {
 					<Listbox.Content bg="transparent" flex="1" overflowY="auto" p={1}>
 						{modelsCollection.items.length === 0 ? (
 							<Box p={4} textAlign="center">
-								<Text fontSize="xs" color="fg.muted">No models</Text>
+								<Text fontSize="xs" color="fg.muted">
+									No models
+								</Text>
 							</Box>
 						) : (
 							modelsCollection.items.map((item) => (
@@ -159,7 +163,7 @@ export default function PriorSelector(props: PriorSelectorProps) {
 											<Latex>{item.formula}</Latex>
 										</Box>
 									</Box>
-									
+
 									{/* Prior 状态指示点 */}
 									{item.hasPriors && (
 										<Icon color="teal.500" size="xs" ml={2}>
@@ -204,7 +208,9 @@ export default function PriorSelector(props: PriorSelectorProps) {
 					<Listbox.Content bg="transparent" flex="1" overflowY="auto" p={1}>
 						{!selectedModelId ? (
 							<Box p={4} textAlign="center">
-								<Text fontSize="xs" color="fg.muted">Select a model</Text>
+								<Text fontSize="xs" color="fg.muted">
+									Select a model
+								</Text>
 							</Box>
 						) : (
 							paramsCollection.items.map((item) => (

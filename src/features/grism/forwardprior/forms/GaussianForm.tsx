@@ -11,7 +11,7 @@ import type {
 interface GaussianFamilyFormProps {
 	config: NormalPrior | TruncatedNormalPrior;
 	onChange: (config: NormalPrior | TruncatedNormalPrior) => void;
-	model: FitModel; 
+	model: FitModel;
 	paramName: string;
 }
 

@@ -2,13 +2,13 @@
 
 import {
 	Box,
+	createListCollection,
 	Grid,
 	HStack,
 	Listbox,
 	SegmentGroup,
 	Stack,
 	Text,
-	createListCollection,
 	useListbox,
 } from "@chakra-ui/react";
 import { useMemo } from "react";
@@ -68,19 +68,19 @@ export default function DeterministicForm(props: DeterministicFormProps) {
 					// 核心修改：在 Item 数据对象中设置 disabled
 					disabled:
 						selectedRefModel.id === currentModelId && param.value === paramName,
-			  }));
+				}));
 		return createListCollection({ items });
 	}, [selectedRefModel, currentModelId, paramName]);
 
 	// 3. 处理模型变更
 	const handleModelChange = (details: { value: string[] }) => {
 		const newModelId = Number(details.value[0]);
-		
+
 		// 核心修改：切换模型时，直接将 refParam 置空
 		onChange({
 			...config,
 			refModelId: newModelId,
-			refParam: undefined, 
+			refParam: undefined,
 		});
 	};
 
@@ -128,10 +128,10 @@ export default function DeterministicForm(props: DeterministicFormProps) {
 									key={item.value}
 									item={item}
 									// 核心修改：不再手动传递 disabled，Listbox 会读取 item.disabled
-									_disabled={{ 
-										opacity: 0.5, 
-										cursor: "not-allowed", 
-										textDecoration: "line-through" 
+									_disabled={{
+										opacity: 0.5,
+										cursor: "not-allowed",
+										textDecoration: "line-through",
 									}}
 								>
 									<Listbox.ItemText>{item.label}</Listbox.ItemText>
@@ -181,19 +181,14 @@ export default function DeterministicForm(props: DeterministicFormProps) {
 					/>
 				</Box>
 			</HStack>
-			<HStack
-				bg="bg.muted"
-				justify="space-between"
-			>
-					<Text fontSize="xs">
-						Preview:
-					</Text>
-					<PreviewFormula
-						currentModel={currentModel}
-						paramName={paramName}
-						refModel={selectedRefModel}
-						config={config}
-					/>
+			<HStack bg="bg.muted" justify="space-between">
+				<Text fontSize="xs">Preview:</Text>
+				<PreviewFormula
+					currentModel={currentModel}
+					paramName={paramName}
+					refModel={selectedRefModel}
+					config={config}
+				/>
 			</HStack>
 		</Stack>
 	);
@@ -213,30 +208,35 @@ function PreviewFormula({
 	if (!currentModel) {
 		return <Text fontSize="xs">N/A</Text>;
 	}
-	const currentParamLabel = getModelParams(currentModel.kind).find(p => p.value === paramName)?.label || paramName;
+	const currentParamLabel =
+		getModelParams(currentModel.kind).find((p) => p.value === paramName)
+			?.label || paramName;
 
 	const operationSymbol = config.mode === "add" ? "+" : "×";
 
 	const isRefParamUndefined = !config.refParam;
-	const isValidSameParam = isRefParamUndefined && (refModel?.kind === currentModel.kind) && (refModel?.id !== currentModel.id);
+	const isValidSameParam =
+		isRefParamUndefined &&
+		refModel?.kind === currentModel.kind &&
+		refModel?.id !== currentModel.id;
 
 	return (
 		<Text fontSize="xs">
-			{
-				isRefParamUndefined ? (
-					isValidSameParam ? (
-						<>
-							{currentModel.name}-{currentParamLabel} = {refModel?.name}-{currentParamLabel} {operationSymbol} {config.value}
-						</>
-					) : (
-						"Invalid Reference Parameter, choose a specific parameter."
-					)
+			{isRefParamUndefined ? (
+				isValidSameParam ? (
+					<>
+						{currentModel.name}-{currentParamLabel} = {refModel?.name}-
+						{currentParamLabel} {operationSymbol} {config.value}
+					</>
 				) : (
-				<>
-					{currentParamLabel}@{currentModel.name} = {config.refParam}@{refModel?.name} {operationSymbol} {config.value}
-				</>
+					"Invalid Reference Parameter, choose a specific parameter."
 				)
-			}
+			) : (
+				<>
+					{currentParamLabel}@{currentModel.name} = {config.refParam}@
+					{refModel?.name} {operationSymbol} {config.value}
+				</>
+			)}
 		</Text>
 	);
 }

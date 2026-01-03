@@ -131,3 +131,41 @@ export function updatePriorInModel(
         };
     });
 }
+
+/**
+ * Get the value of a specific parameter from a FitModel.
+ * @param model The FitModel to extract the parameter from.
+ * @param paramName The name of the parameter to retrieve.
+ * @returns The value of the parameter, or undefined if not found.
+ */
+export function getModelParamValue(
+    model: FitModel,
+    paramName: string,
+): number | undefined {
+    switch (model.kind) {
+        case "linear": {
+            switch (paramName) {
+                case "k":
+                    return model.k;
+                case "b":
+                    return model.b;
+                default:
+                    return undefined;
+            }
+        }
+        case "gaussian": {  
+            switch (paramName) {
+                case "amplitude":
+                    return model.amplitude;
+                case "mu":
+                    return model.mu;
+                case "sigma":
+                    return model.sigma;
+                default:
+                    return undefined;
+            }
+        }
+        default:
+            return undefined;
+    }
+}

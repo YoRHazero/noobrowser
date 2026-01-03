@@ -1,11 +1,10 @@
 import { Heading, HStack, Stack } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
 import { useDebouncedCallback } from "use-debounce";
-
+import { useShallow } from "zustand/react/shallow";
+import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
 import { InfoTip } from "@/components/ui/toggle-tip";
-import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { useGrismStore } from "@/stores/image";
 import { clamp } from "@/utils/projection";
 
@@ -16,18 +15,11 @@ const THEME_STYLES = {
 		letterSpacing: "wide",
 		fontWeight: "extrabold",
 		textTransform: "uppercase" as const,
-		
-		// 核心修改：使用响应式对象控制颜色
-		// base (Light Mode): 深灰色文字，无渐变
-		// _dark (Dark Mode): 文字透明以透出背景渐变
 		color: { base: "gray.700", _dark: "transparent" },
-		
+
 		bgGradient: { base: "none", _dark: "to-r" },
 		gradientFrom: { _dark: "cyan.400" },
 		gradientTo: { _dark: "purple.500" },
-		
-		// base: 默认裁剪 (border-box)
-		// _dark: 裁剪到文字 (text) 以显示渐变
 		bgClip: { base: "border-box", _dark: "text" },
 	},
 };

@@ -40,14 +40,8 @@ const TAB_ITEMS: TabConfig[] = [
 ];
 
 export default function GrismForwardTab() {
-	const containerRef = useScrollFocus<HTMLDivElement>(
-		"mod+shift+f",
-		{
-			offset: 0,
-		}
-	);
     return (
-        <Box w="425px" h="100vh" ref={containerRef}>
+        <Box w="425px" h="100vh">
             <Tabs.Root defaultValue={TAB_ITEMS[0].value} size="sm" lazyMount={true} h="100%">
                 
                 <Tabs.List>

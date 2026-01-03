@@ -1,9 +1,8 @@
 "use client";
 
 import { Box, Stack, Text } from "@chakra-ui/react";
-import type { FitModel, FitPrior } from "@/stores/stores-types";
-
 import PriorFormTabs from "@/features/grism/forwardprior/PriorFormTab";
+import type { FitModel, FitPrior } from "@/stores/stores-types";
 
 interface PriorFormProps {
 	allModels: FitModel[];
@@ -22,8 +21,9 @@ export default function PriorForm(props: PriorFormProps) {
 	const currentModel = allModels.find((m) => m.id === modelId);
 	if (!currentModel) return null;
 
-	// 获取当前 Config (可能是 undefined)
-	const priorConfig = (currentModel.priors as Record<string, FitPrior | undefined> | undefined)?.[paramName];
+	const priorConfig = (
+		currentModel.priors as Record<string, FitPrior | undefined> | undefined
+	)?.[paramName];
 
 	const handleConfigChange = (newConfig: FitPrior | undefined) => {
 		updateModelPrior(modelId, paramName, newConfig);

@@ -309,8 +309,8 @@ const SourceCard = ({
 			const queryKey = [
 				"extract_spectrum",
 				source.groupId,
-				source.x,
-				source.y,
+				Math.round(source.x),
+				Math.round(source.y),
 				settings.apertureSize,
 			];
 

@@ -60,30 +60,30 @@ const THEME_STYLES = {
 		},
 		_placeholder: { color: "fg.subtle" },
 	},
-    formulaBox: {
-        textStyle: "xs",
-        fontFamily: "mono",
-        
-        // 文字颜色：白天用深青色，晚上用荧光青
-        color: { base: "cyan.700", _dark: "cyan.300" },
-        
-        // 背景颜色：白天用极浅青色，晚上用半透明黑
-        bg: { base: "cyan.50", _dark: "blackAlpha.400" },
-        
-        px: 2,
-        py: 1,
-        borderRadius: "md",
-        borderWidth: "1px",
-        
-        // 边框颜色：白天用淡青色边框，晚上用微弱白光
-        borderColor: { base: "cyan.200", _dark: "whiteAlpha.100" },
-        
-        display: "inline-block",
-        alignSelf: "start",
-        
-        // 在白天模式下稍微加粗一点点，提升可读性
-        fontWeight: { base: "medium", _dark: "normal" }
-    },
+	formulaBox: {
+		textStyle: "xs",
+		fontFamily: "mono",
+
+		// 文字颜色：白天用深青色，晚上用荧光青
+		color: { base: "cyan.700", _dark: "cyan.300" },
+
+		// 背景颜色：白天用极浅青色，晚上用半透明黑
+		bg: { base: "cyan.50", _dark: "blackAlpha.400" },
+
+		px: 2,
+		py: 1,
+		borderRadius: "md",
+		borderWidth: "1px",
+
+		// 边框颜色：白天用淡青色边框，晚上用微弱白光
+		borderColor: { base: "cyan.200", _dark: "whiteAlpha.100" },
+
+		display: "inline-block",
+		alignSelf: "start",
+
+		// 在白天模式下稍微加粗一点点，提升可读性
+		fontWeight: { base: "medium", _dark: "normal" },
+	},
 	iconButton: {
 		size: "xs" as const,
 		variant: "ghost" as const,
@@ -171,9 +171,7 @@ export default function ModelCardShell(props: ModelCardShellProps) {
 			</HStack>
 
 			{/* Formula Display - "Code Snippet" Style */}
-			<Box {...THEME_STYLES.formulaBox}>
-				{formula}
-			</Box>
+			<Box {...THEME_STYLES.formulaBox}>{formula}</Box>
 
 			{/* Parameters Body */}
 			<Stack

@@ -6,7 +6,7 @@ import {
 	IconButton,
 	Listbox,
 	Stack,
-	Text, // 引入 Text 组件
+	Text,
 } from "@chakra-ui/react";
 import { useMemo, useState } from "react";
 import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
@@ -14,7 +14,6 @@ import { useShallow } from "zustand/react/shallow";
 import { useFitStore } from "@/stores/fit";
 import type { FitModel } from "@/stores/stores-types";
 
-// 定义列表项数据结构
 interface ModelOption {
 	label: string;
 	value: string;
@@ -31,7 +30,6 @@ interface FitListBoxPanelProps {
 function FitListBoxPanel(props: FitListBoxPanelProps) {
 	const { title, models, selectedValues, onSelectedValuesChange } = props;
 
-	// 恢复 groupBy 逻辑
 	const collection = useMemo(() => {
 		return createListCollection<ModelOption>({
 			items: models.map((model) => ({
@@ -89,7 +87,9 @@ function FitListBoxPanel(props: FitListBoxPanelProps) {
 									_hover={{ bg: "bg.emphasized" }}
 									_selected={{ bg: "teal.subtle", color: "teal.fg" }}
 								>
-									<Listbox.ItemText fontSize="xs">{item.label}</Listbox.ItemText>
+									<Listbox.ItemText fontSize="xs">
+										{item.label}
+									</Listbox.ItemText>
 									<Listbox.ItemIndicator />
 								</Listbox.Item>
 							))}
@@ -97,7 +97,6 @@ function FitListBoxPanel(props: FitListBoxPanelProps) {
 					))
 				) : (
 					<Stack align="center" justify="center" h="full" color="fg.muted">
-						{/* 🔴 修复点：这里原来是 Listbox.ItemText，改成了普通的 Text */}
 						<Text fontSize="xs" opacity={0.5}>
 							Empty
 						</Text>
@@ -126,9 +125,9 @@ export default function FitModelTransferListBox() {
 	);
 
 	const move = (ids: string[], toSubtracted: boolean) => {
-		ids.forEach((id) =>
-			updateModel(Number(id), { subtracted: toSubtracted }),
-		);
+		for (const modelId of ids) {
+			updateModel(Number(modelId), { subtracted: toSubtracted });
+		}
 		toSubtracted ? setSelectedLeft([]) : setSelectedRight([]);
 	};
 

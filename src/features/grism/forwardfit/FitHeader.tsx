@@ -1,17 +1,17 @@
 "use client";
 
 import {
+	Box,
 	Button,
 	createListCollection,
 	Heading,
 	HStack,
 	Portal,
 	Select,
-	Box,
 } from "@chakra-ui/react";
 import { useId, useState } from "react";
-import { useShallow } from "zustand/react/shallow";
 import { LuPlus, LuRefreshCw, LuSave } from "react-icons/lu";
+import { useShallow } from "zustand/react/shallow";
 
 import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -26,13 +26,12 @@ const THEME_STYLES = {
 		letterSpacing: "wide",
 		fontWeight: "extrabold",
 		textTransform: "uppercase" as const,
-		
-		// 核心逻辑：白天黑字，晚上渐变
-		color: { base: "gray.700", _dark: "transparent" }, // _dark 下文字透明以显示背景
-		bgGradient: { base: "none", _dark: "to-r" }, 
+
+		color: { base: "gray.700", _dark: "transparent" },
+		bgGradient: { base: "none", _dark: "to-r" },
 		gradientFrom: { _dark: "cyan.400" },
 		gradientTo: { _dark: "purple.500" },
-		bgClip: { base: "border-box", _dark: "text" }, // _dark 下裁剪背景到文字
+		bgClip: { base: "border-box", _dark: "text" },
 	},
 	selectTrigger: {
 		bg: { base: "white", _dark: "whiteAlpha.100" },
@@ -58,36 +57,39 @@ const THEME_STYLES = {
 			borderColor: "whiteAlpha.200",
 		},
 	},
-    selectItem: {
-        cursor: "pointer" as const,
-        transition: "all 0.1s ease-out",
-        borderRadius: "sm",
-        
-        _hover: {
-            bg: { base: "gray.100", _dark: "whiteAlpha.100" },
-            color: { base: "cyan.600", _dark: "cyan.400" },
-        },
-        _highlighted: {
-            bg: { base: "gray.100", _dark: "whiteAlpha.100" },
-            color: { base: "cyan.600", _dark: "cyan.400" },
-        },
-        _focus: {
-            bg: { base: "gray.100", _dark: "whiteAlpha.100" },
-            color: { base: "cyan.600", _dark: "cyan.400" },
-        }
-    },
+	selectItem: {
+		cursor: "pointer" as const,
+		transition: "all 0.1s ease-out",
+		borderRadius: "sm",
+
+		_hover: {
+			bg: { base: "gray.100", _dark: "whiteAlpha.100" },
+			color: { base: "cyan.600", _dark: "cyan.400" },
+		},
+		_highlighted: {
+			bg: { base: "gray.100", _dark: "whiteAlpha.100" },
+			color: { base: "cyan.600", _dark: "cyan.400" },
+		},
+		_focus: {
+			bg: { base: "gray.100", _dark: "whiteAlpha.100" },
+			color: { base: "cyan.600", _dark: "cyan.400" },
+		},
+	},
 	iconButton: {
 		size: "xs" as const,
 		variant: "ghost" as const,
 		color: "fg.muted",
-		_hover: { color: "cyan.400", bg: { base: "gray.100", _dark: "whiteAlpha.100" } },
+		_hover: {
+			color: "cyan.400",
+			bg: { base: "gray.100", _dark: "whiteAlpha.100" },
+		},
 	},
 	addButton: {
 		size: "xs" as const,
 		variant: "surface" as const,
-		colorPalette: "cyan", 
+		colorPalette: "cyan",
 		fontWeight: "semibold",
-	}
+	},
 };
 
 const modelTypes = createListCollection({
@@ -100,19 +102,15 @@ const modelTypes = createListCollection({
 export default function FitHeader() {
 	const syncId = useId();
 
-	const {
-		addModel,
-		models,
-		saveCurrentConfiguration,
-		updateModel,
-	} = useFitStore(
-		useShallow((s) => ({
-			addModel: s.addModel,
-			models: s.models,
-			saveCurrentConfiguration: s.saveCurrentConfiguration,
-			updateModel: s.updateModel,
-		})),
-	);
+	const { addModel, models, saveCurrentConfiguration, updateModel } =
+		useFitStore(
+			useShallow((s) => ({
+				addModel: s.addModel,
+				models: s.models,
+				saveCurrentConfiguration: s.saveCurrentConfiguration,
+				updateModel: s.updateModel,
+			})),
+		);
 
 	const { slice1DWaveRange } = useGrismStore(
 		useShallow((s) => ({
@@ -152,7 +150,7 @@ export default function FitHeader() {
 	return (
 		<HStack justify="space-between" align="center">
 			<Heading {...THEME_STYLES.heading}>Model Fitting</Heading>
-			
+
 			<HStack gap={2}>
 				<Box position="relative">
 					<Select.Root
@@ -172,8 +170,8 @@ export default function FitHeader() {
 							<Select.Positioner>
 								<Select.Content {...THEME_STYLES.selectContent}>
 									{modelTypes.items.map((item) => (
-										<Select.Item 
-											key={item.value} 
+										<Select.Item
+											key={item.value}
 											item={item}
 											{...THEME_STYLES.selectItem}
 										>
@@ -190,10 +188,7 @@ export default function FitHeader() {
 					<LuPlus /> Add
 				</Button>
 
-				<Tooltip
-					ids={{ trigger: syncId }}
-					content="Sync to Viewport"
-				>
+				<Tooltip ids={{ trigger: syncId }} content="Sync to Viewport">
 					<Button
 						{...THEME_STYLES.iconButton}
 						onClick={syncModelToWindow}

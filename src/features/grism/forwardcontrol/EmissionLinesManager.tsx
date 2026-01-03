@@ -1,16 +1,10 @@
-import {
-	Heading,
-	HStack,
-	Stack,
-	Text,
-	Box,
-} from "@chakra-ui/react";
+import { Box, Heading, HStack, Stack, Text } from "@chakra-ui/react";
 import { LuList } from "react-icons/lu";
+import { InfoTip } from "@/components/ui/toggle-tip";
+import { EmissionLineAdder } from "@/features/grism/forwardcontrol/EmissionLineAdder";
+import { EmissionLineItem } from "@/features/grism/forwardcontrol/EmissionLineItem";
 import { useEmissionLineManager } from "@/hook/wavelength-hook";
 import { ANGSTROM_PER_MICRON } from "@/utils/wavelength";
-import { InfoTip } from "@/components/ui/toggle-tip";
-import { EmissionLineItem } from "@/features/grism/forwardcontrol/EmissionLineItem";
-import { EmissionLineAdder } from "@/features/grism/forwardcontrol/EmissionLineAdder";
 
 // --- Theme Constants ---
 const THEME_STYLES = {
@@ -19,8 +13,6 @@ const THEME_STYLES = {
 		letterSpacing: "wide",
 		fontWeight: "extrabold",
 		textTransform: "uppercase" as const,
-		
-		// 1. 修复标题：Light Mode 黑字，Dark Mode 渐变
 		color: { base: "gray.700", _dark: "transparent" },
 		bgGradient: { base: "none", _dark: "to-r" },
 		gradientFrom: { _dark: "cyan.400" },
@@ -33,15 +25,8 @@ const THEME_STYLES = {
 		pb: 2,
 		flex: "0 0 auto",
 		borderBottomWidth: "1px",
-		
-		// 2. 修复背景不一致：
-		// 移除 "whiteAlpha.50" 背景，改为 "transparent"
-		// 这样就能透出父组件 GrismForwardPanel 的渐变背景，看起来就一样了
 		bg: "transparent",
-		// 移除 backdropFilter，因为它依赖于半透明背景层
 		backdropFilter: "none",
-
-		// 适配边框颜色：白天灰色，晚上微弱白光
 		borderColor: { base: "gray.200", _dark: "whiteAlpha.100" },
 	},
 	scrollArea: {
@@ -49,13 +34,11 @@ const THEME_STYLES = {
 		overflowY: "auto" as const,
 		bg: "transparent",
 		p: 2,
-		// 自定义滚动条
 		css: {
 			"&::-webkit-scrollbar": { width: "4px" },
 			"&::-webkit-scrollbar-track": { background: "transparent" },
 			"&::-webkit-scrollbar-thumb": {
-				// 顺便修复滚动条：白天用灰色，晚上用半透明白
-				background: "var(--chakra-colors-gray-300)", 
+				background: "var(--chakra-colors-gray-300)",
 			},
 			".chakra-theme.dark &::-webkit-scrollbar-thumb": {
 				background: "var(--chakra-colors-whiteAlpha-200)",
@@ -65,7 +48,7 @@ const THEME_STYLES = {
 			},
 			".chakra-theme.dark &::-webkit-scrollbar-thumb:hover": {
 				background: "var(--chakra-colors-whiteAlpha-400)",
-			}
+			},
 		},
 	},
 };

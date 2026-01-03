@@ -15,8 +15,10 @@ interface PriorOperationsProps {
 		newPrior: FitPrior | undefined,
 	) => void;
 }
-export default function PriorOperations({ allModels, updateModelPrior }: PriorOperationsProps) {
-
+export default function PriorOperations({
+	allModels,
+	updateModelPrior,
+}: PriorOperationsProps) {
 	const handleClearAll = () => {
 		let count = 0;
 		allModels.forEach((model) => {

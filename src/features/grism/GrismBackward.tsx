@@ -3,11 +3,17 @@ import { useShallow } from "zustand/react/shallow";
 import { useMemo } from "react";
 
 import { useGlobeStore } from "@/stores/footprints";
-import { useGrismNavigation } from "@/hook/hotkey-hook";
+import { useGrismNavigation, useScrollFocus } from "@/hook/hotkey-hook";
 import GrismBackwardMainCanvas from "@/features/grism/GrismBackwardMainCanvas";
 import GrismBackwardAnalysisPanel from "@/features/grism/GrismBackwardAnalysisPanel";
 
 export default function GrismBackward() {
+    const containerRef = useScrollFocus<HTMLDivElement>(
+        "shift+3",
+        {
+            offset: 0,
+        }
+    );
     /* -------------------------------------------------------------------------- */
     /*                               Initialization                               */
     /* -------------------------------------------------------------------------- */
@@ -37,6 +43,7 @@ export default function GrismBackward() {
             color="white" 
             overflow={"auto"}
             gap={0}
+            ref={containerRef}
         >
             <GridItem minW={"700px"}>
                 <GrismBackwardMainCanvas currentBasename={currentBasename} />
