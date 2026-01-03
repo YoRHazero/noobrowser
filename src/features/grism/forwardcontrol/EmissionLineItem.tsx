@@ -16,9 +16,7 @@ const THEME_STYLES = {
 		w: "full",
 		variant: undefined,
 	},
-	// 样式生成器
 	cardControl: (selected: boolean) => {
-		// 定义基础颜色变量，方便在 focus/hover 中复用，保证状态一致
 		const baseBg = selected
 			? { base: "cyan.50", _dark: "whiteAlpha.100" }
 			: { base: "white", _dark: "transparent" };
@@ -28,15 +26,12 @@ const THEME_STYLES = {
 			: { base: "gray.200", _dark: "whiteAlpha.100" };
 
 		return {
-			transition: "all 0.1s ease-out", // 动画加快一点，更干脆
+			transition: "all 0.1s ease-out",
 			py: 2,
 			px: 3,
 			alignItems: "center",
-
-			// --- 1. 基础状态 ---
 			bg: baseBg,
 			borderColor: baseBorder,
-			// 仅在鼠标悬停时有反馈
 			_hover: {
 				bg: selected
 					? { base: "cyan.100", _dark: "whiteAlpha.200" }
@@ -46,7 +41,6 @@ const THEME_STYLES = {
 					: { base: "gray.300", _dark: "whiteAlpha.300" },
 			},
 
-			// Dark Mode 选中时的毛玻璃
 			backdropFilter: selected ? { _dark: "blur(8px)" } : "none",
 		};
 	},

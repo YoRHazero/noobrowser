@@ -513,6 +513,7 @@ export function useExtractSpectrum({
 	y = null,
 	cutoutParams = null,
 	enabled = false,
+	queryKey,
 }: {
 	selectedFootprintId?: string | null;
 	waveMin: number;
@@ -522,6 +523,7 @@ export function useExtractSpectrum({
 	y?: number | null;
 	cutoutParams?: Record<string, number> | null;
 	enabled?: boolean;
+	queryKey?: Array<any>;
 }) {
 	if (apertureSize === null && cutoutParams === null) {
 		throw new Error("Either apertureSize or cutoutParams must be provided");
@@ -538,7 +540,7 @@ export function useExtractSpectrum({
 		apertureSize ??
 		(cutoutParams ? Math.max(cutoutParams.width, cutoutParams.height) : null);
 	const query = useQueryAxiosGet<ExtractedSpectrum>({
-		queryKey: ["extract_spectrum", group_id, queryX, queryY, aperture],
+		queryKey: queryKey ?? ["extract_spectrum", group_id, queryX, queryY, aperture],
 		path: "/source/extract_spectrum/",
 		enabled: enabled,
 		axiosGetParams: {

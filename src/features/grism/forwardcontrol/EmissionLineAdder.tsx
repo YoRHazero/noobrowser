@@ -15,12 +15,12 @@ import { LuPlus } from "react-icons/lu";
 const THEME_STYLES = {
 	popoverContent: {
 		width: "260px",
-		bg: "bg.panel", // Chakra 的 panel 背景通常会适配
+		bg: "bg.panel",
 		borderColor: "border.subtle",
 		backdropFilter: "blur(10px)",
 		boxShadow: "xl",
 		_dark: {
-			bg: "rgba(20, 20, 25, 0.9)", // 更深的半透明背景
+			bg: "rgba(20, 20, 25, 0.9)",
 			borderColor: "whiteAlpha.200",
 		},
 	},

@@ -15,8 +15,8 @@ import GrismBackwardCounterpartImageLayer from "@/features/grism/GrismBackwardCo
 import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
 import GrismBackwardFetchControl from "@/features/grism/GrismBackwardFetchControl";
 import GrismBackwardTraceLayer from "@/features/grism/GrismBackwardTraceLayer";
-import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
-
+//import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
+import GrismTraceSourceDrawerContainer from "@/features/grism/tracesource/GrismTraceSourceDrawer.container";
 export default function GrismBackwardMainCanvas({ currentBasename }: { currentBasename: string | undefined }) {
     /* -------------------------------------------------------------------------- */
     /*                               Store Selectors                              */
@@ -91,7 +91,7 @@ export default function GrismBackwardMainCanvas({ currentBasename }: { currentBa
             <GrismBackwardToolbar />
             <InfoLegend currentBasename={currentBasename} />
             <GrismBackwardFetchControl />
-            <GrismTraceSourceDrawer />
+            <GrismTraceSourceDrawerContainer />
         </Box>
     )
 }
