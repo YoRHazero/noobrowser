@@ -844,20 +844,6 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 		});
 	};
 
-	const handleFwhmKmsMinChange = (valueAsNumber: number) => {
-		if (!Number.isFinite(valueAsNumber)) return;
-		const [_, maxKms] = model.fwhm_kms_range;
-		const minKms = Math.min(valueAsNumber, maxKms - 1);
-		props.onUpdate(model.id, { fwhm_kms_range: [minKms, maxKms] });
-	};
-
-	const handleFwhmKmsMaxChange = (valueAsNumber: number) => {
-		if (!Number.isFinite(valueAsNumber)) return;
-		const [minKms, _] = model.fwhm_kms_range;
-		const maxKms = Math.max(valueAsNumber, minKms + 1);
-		props.onUpdate(model.id, { fwhm_kms_range: [minKms, maxKms] });
-	};
-
 	const clampX1OnBlur = () => {
 		const { min, max } = model.range;
 		const sliceMin = slice1DWaveRange.min;
@@ -1094,41 +1080,6 @@ function GaussianModelCard(props: GaussianModelCardProps) {
 						<NumberInput.Input onBlur={clampX2OnBlur} />
 					</NumberInput.Root>
 				</HStack>
-
-				<HStack gap={3} align="center">
-					<Text textStyle="sm" minW="36px">
-						fwhm1
-					</Text>
-					<NumberInput.Root
-						size="xs"
-						maxW="120px"
-						value={toInputValue(model.fwhm_kms_range[0], 1)}
-						step={fwhmStep}
-						onValueChange={({ valueAsNumber }) =>
-							handleFwhmKmsMinChange(valueAsNumber)
-						}
-					>
-						<NumberInput.Control />
-						<NumberInput.Input onBlur={clampX1OnBlur} />
-					</NumberInput.Root>
-
-					<Text textStyle="sm" minW="36px">
-						fwhm2
-					</Text>
-					<NumberInput.Root
-						size="xs"
-						maxW="120px"
-						value={toInputValue(model.fwhm_kms_range[1], 1)}
-						step={fwhmStep}
-						onValueChange={({ valueAsNumber }) =>
-							handleFwhmKmsMaxChange(valueAsNumber)
-						}
-					>
-						<NumberInput.Control />
-						<NumberInput.Input onBlur={clampX2OnBlur} />
-					</NumberInput.Root>
-				</HStack>
-
 				<Text textStyle="xs" color="fg.muted">
 					FWHM ≈{" "}
 					{waveUnit === "µm"

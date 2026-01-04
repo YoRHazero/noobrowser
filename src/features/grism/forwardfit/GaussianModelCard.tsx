@@ -50,7 +50,6 @@ export default function GaussianModelCard(props: GaussianModelCardProps) {
 			mu: waveUnit === "µm" ? 0.001 : 1,
 			sigma: waveUnit === "µm" ? 0.001 : 1,
 			range: waveUnit === "µm" ? 0.001 : 1,
-			fwhm_kms: 100, // Velocity doesn't scale with wavelength unit directly in this hook context usually, but kept for consistency
 		},
 		waveUnit,
 		waveFrame,

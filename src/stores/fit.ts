@@ -143,7 +143,6 @@ export const useFitStore = create<FitState>()(
 						sigma: 0.0005, // 0.0005 µm = 5 Å
 						range: r,
 						color: DEFAULT_COLOR,
-						fwhm_kms_range: [50, 10000], // km/s
 					};
 					const merged = [...state.models, model];
 					return { models: normalizeModels(merged) };

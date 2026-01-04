@@ -115,7 +115,6 @@ export interface FitGaussianModel extends BaseFitModel { // A * exp(-0.5 * ((x -
 	amplitude: number;
 	mu: number; // observed frame, µm
 	sigma: number; // observed frame, µm
-	fwhm_kms_range: [number, number]; // km/s
 	priors?: {
 		amplitude?: FitPrior;
 		mu?: FitPrior;

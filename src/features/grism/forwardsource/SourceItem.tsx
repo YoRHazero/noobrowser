@@ -4,7 +4,6 @@ import {
 	Flex,
 	HStack,
 	IconButton,
-	Link,
 	Stack,
 	Text,
 	type IconButtonProps,
@@ -17,7 +16,7 @@ import {
 import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
 import { useFitJobStatusQuery } from "@/hook/connection-hook";
-import { useConnectionStore } from "@/stores/connection";
+import FitResultsDrawer from "./FitResultsDrawer";
 import type { TraceSource } from "@/stores/stores-types";
 
 // --- Theme Constants ---
@@ -96,16 +95,12 @@ export default function SourceItem({
 	onRun,
 }: SourceItemProps) {
 	const { data: jobData } = useFitJobStatusQuery(source.id);
-	const backendUrl = useConnectionStore((state) => state.backendUrl);
+
 
 	const status = jobData?.status ?? source.fitState?.jobStatus;
 	const result = jobData?.result;
 	const bestModelName = result?.best_model_name;
-	const bestResult =
-		bestModelName && result?.results ? result.results[bestModelName] : null;
-	const plotUrl = bestResult
-		? `${backendUrl}${bestResult.plot_file_url}`
-		: null;
+
 
 	const statusColorPalette: Record<string, string> = {
 		pending: "gray",
@@ -165,9 +160,12 @@ export default function SourceItem({
 
 			{/* Right: Actions */}
 			<HStack onClick={(e) => e.stopPropagation()} gap={1}>
-				{status === "completed" && plotUrl && (
-					<Tooltip content="View Result Plot">
-						<Link href={plotUrl} target="_blank">
+				{status === "completed" && result && result.results && bestModelName && (
+					<Tooltip content="View Result Plans">
+						<FitResultsDrawer
+							results={result.results}
+							bestModelName={bestModelName}
+						>
 							<IconButton
 								aria-label="View Result"
 								size="xs"
@@ -179,7 +177,7 @@ export default function SourceItem({
 							>
 								<FileText size={14} />
 							</IconButton>
-						</Link>
+						</FitResultsDrawer>
 					</Tooltip>
 				)}
 

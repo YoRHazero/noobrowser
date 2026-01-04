@@ -3,6 +3,7 @@
 import { Box, Stack, Text } from "@chakra-ui/react";
 import PriorFormTabs from "@/features/grism/forwardprior/PriorFormTab";
 import type { FitModel, FitPrior } from "@/stores/stores-types";
+import { getModelParamValue } from "@/stores/stores-utils";
 
 interface PriorFormProps {
 	allModels: FitModel[];
@@ -29,6 +30,8 @@ export default function PriorForm(props: PriorFormProps) {
 		updateModelPrior(modelId, paramName, newConfig);
 	};
 
+	const paramValue = getModelParamValue(currentModel, paramName);
+
 	return (
 		<Stack h="full" gap={0} overflow="hidden">
 			{/* Content Area */}
@@ -38,27 +41,25 @@ export default function PriorForm(props: PriorFormProps) {
 						modelId={modelId}
 						paramName={paramName}
 						allModels={allModels}
-						config={priorConfig} // 传入 undefined 代表 Default
+						config={priorConfig}
 						onChange={handleConfigChange}
 					/>
 
-					{/* Visualization Placeholder (仅在非 Default 时显示) */}
-					{priorConfig && (
-						<Box
-							h="150px"
-							bg="bg.muted"
-							borderRadius="md"
-							borderStyle="dashed"
-							borderWidth="1px"
-							display="flex"
-							alignItems="center"
-							justifyContent="center"
-						>
-							<Text fontSize="xs" color="fg.muted">
-								[Prior Distribution Preview]
-							</Text>
-						</Box>
-					)}
+					{/* Visualization Placeholder */}
+					<Box
+						h="150px"
+						bg="bg.muted"
+						borderRadius="md"
+						borderStyle="dashed"
+						borderWidth="1px"
+						display="flex"
+						alignItems="center"
+						justifyContent="center"
+					>
+						<Text fontSize="xs" color="fg.muted">
+							Initial value: {paramValue}
+						</Text>
+					</Box>
 				</Stack>
 			</Box>
 		</Stack>

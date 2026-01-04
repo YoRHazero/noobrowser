@@ -671,11 +671,13 @@ export type SingleModelFitResult = {
 	fitted_models: FitModel[];
 	trace_filename: string;
 	plot_file_url: string;
+	plot_posterior_url: string;
 }
 
 export type FitResultPayload = {
 	results: Record<string, SingleModelFitResult>;
 	best_model_name: string;
+	model_comparison_plot_url?: string;
 }
 
 
@@ -761,27 +763,20 @@ export function useSubmitFitJobMutation() {
 					const data = error.response.data;
 					let errorMsg = "Unknown error";
 
-					// 1. 优先检查 FastAPI 的 detail 字段
 					if (data?.detail) {
 						if (Array.isArray(data.detail)) {
-							// 情况 A: Pydantic 校验错误 (数组)
-							// 将其转换为: "body.fit.0.models.0.sigma -> field required"
 							errorMsg = data.detail
 								.map((err: any) => `${err.loc.join(".")} -> ${err.msg}`)
 								.join("\n");
 						} else if (typeof data.detail === "object") {
-							// 情况 B: detail 是个对象 (罕见，但以防万一)
 							errorMsg = JSON.stringify(data.detail);
 						} else {
-							// 情况 C: detail 是普通字符串
 							errorMsg = String(data.detail);
 						}
 					} 
-					// 2. 检查是否有 message 字段 (其他框架常见)
 					else if (data?.message) {
 						errorMsg = data.message;
 					} 
-					// 3. 回退到 HTTP 状态文本
 					else {
 						errorMsg = error.message;
 					}
@@ -821,7 +816,17 @@ export function useFitJobStatusQuery(sourceId: string) {
 		path: `/fit/status/${jobId}/`,
 		enabled: !!jobId,
 		queryOptions: {
+			retry: (failureCount, error) => {
+				if (axios.isAxiosError(error) && error.response?.status === 500) {
+					return false;
+				}
+				return failureCount < 3;
+			},
 			refetchInterval: (query) => {
+				const err = query.state.error;
+				if (axios.isAxiosError(err) && err.response?.status === 500) {
+					return false;
+				}
 				const status = query.state.data?.status;
 				if (status === "completed" || status === "failed") {
 					return false;
