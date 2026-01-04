@@ -646,6 +646,7 @@ export type SourceMetaBackend = {
 	y?: number;
 	ref_basename?: string;
 	group_id?: string | null;
+	z?: number;
 }
 
 export type ExtractionBodyRequest = {
@@ -787,12 +788,7 @@ export function useSubmitFitJobMutation() {
 		},
 		onSuccess: (data, variables) => {
 			toaster.success({ title: "Fit Job Submitted", description: `Job ID: ${data.job_id.slice(0, 8)}` });
-			updateTraceSource(variables.sourceId, {
-				fitState: {
-					jobId: data.job_id,
-					jobStatus: data.status,
-				}
-			});
+			useFitStore.getState().addJob(data);
 		},
 		onError: (error) => {
 			toaster.error({ title: "Fit Job Submission Failed", description: error.message });
@@ -800,53 +796,54 @@ export function useSubmitFitJobMutation() {
 	})
 }
 
-export function useFitJobStatusQuery(sourceId: string) {
-	const { jobId, jobStatus } = useSourcesStore(
-		useShallow((state) => {
-			const traceSource = state.traceSources.find((s) => s.id === sourceId);
-			return {
-				jobId: traceSource?.fitState?.jobId ?? null,
-				jobStatus: traceSource?.fitState?.jobStatus ?? null,
-			}
-		})
-	)
+export function useFitJobStatusQuery() {
+	const jobs = useFitStore((state) => state.jobs);
+	const updateJob = useFitStore((state) => state.updateJob);
+	
+	// Filter jobs that need polling (pending or processing)
+	const activeJobs = jobs.filter(
+		(job) => job.status === "pending" || job.status === "processing"
+	);
 
-	const query = useQueryAxiosGet<FitJobResponse>({
-		queryKey: ["fit_job_status", jobId],
-		path: `/fit/status/${jobId}/`,
-		enabled: !!jobId,
-		queryOptions: {
-			retry: (failureCount, error) => {
-				if (axios.isAxiosError(error) && error.response?.status === 500) {
-					return false;
-				}
-				return failureCount < 3;
+	const backendUrl = useConnectionStore((state) => state.backendUrl);
+
+	useQueries({
+		queries: activeJobs.map((job) => ({
+			queryKey: ["fit_job_status", job.job_id],
+			queryFn: async () => {
+				const response = await axios.get(`${backendUrl}/fit/status/${job.job_id}/`);
+				return response.data as FitJobResponse;
 			},
-			refetchInterval: (query) => {
-				const err = query.state.error;
-				if (axios.isAxiosError(err) && err.response?.status === 500) {
-					return false;
-				}
-				const status = query.state.data?.status;
+			refetchInterval: (data: any) => {
+				const status = data?.state?.data?.status;
 				if (status === "completed" || status === "failed") {
 					return false;
 				}
-				return 5000; // refetch every 5 seconds
+				return 3000; // Poll every 3 seconds
 			},
+		})),
+	});
+}
+
+// Inner hook for single job polling, much cleaner to handle updates
+export function useSingleJobPoller(jobId: string) {
+	const backendUrl = useConnectionStore((state) => state.backendUrl);
+	const updateJob = useFitStore((state) => state.updateJob);
+	const existingJob = useFitStore((state) => state.jobs.find((j) => j.job_id === jobId));
+
+	return useQuery({
+		queryKey: ["fit_job_status", jobId],
+		queryFn: async () => {
+			const response = await axios.get(`${backendUrl}/fit/status/${jobId}/`);
+			return response.data as FitJobResponse;
+		},
+		enabled: !!jobId && (existingJob?.status === "pending" || existingJob?.status === "processing"),
+		refetchInterval: (query) => {
+			const status = query.state.data?.status;
+			if (status === "completed" || status === "failed") {
+				return false;
+			}
+			return 3000;
 		},
 	});
-	// Synchronize job status back to the source store
-	const newData = query.data;
-	const updateTraceSource = useSourcesStore((state) => state.updateTraceSource);
-	useEffect(() => {
-		if (newData && sourceId && (newData.status !== jobStatus)) {
-			updateTraceSource(sourceId, {
-				fitState: {
-					jobId: newData.job_id,
-					jobStatus: newData.status,
-				}
-			});
-		}
-	}, [newData, sourceId, jobId, jobStatus, updateTraceSource]);
-	return query;
 } 

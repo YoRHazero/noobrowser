@@ -74,7 +74,7 @@ export default function GrismForwardSource() {
             <Box {...THEME_STYLES.scrollSection}>
                 <TargetSourceList 
                     readySources={controller.readySources}
-                    selectedSourceId={controller.selectedSourceId}
+                    selectedSourceId={controller.displayedTraceSourceId}
                     hasSelectedConfig={controller.hasSelectedConfig}
                     onSelectSource={controller.handleSelectSource}
                     onRunFit={controller.handleRunFit}

@@ -23,7 +23,7 @@ import {
 	Target,
 	Trash2,
 	Zap,
-	Stamp
+	Stamp,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";

@@ -214,6 +214,7 @@ export type TraceSource = {
 	spectrumReady: boolean;
 	ra?: number;
 	dec?: number;
+	z?: number;
 	raHms?: string;
 	decDms?: string;
 	groupId?: string | null;

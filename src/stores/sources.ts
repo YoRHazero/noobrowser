@@ -9,11 +9,13 @@ interface SourcesState {
     traceMode: boolean;
     traceSources: TraceSource[];
     mainTraceSourceId: string | null;
+    displayedTraceSourceId: string | null;
     setTraceMode: (mode: boolean) => void;
     addTraceSource: (x: number, y: number, groupId: string | null, roi: {roiState: RoiState; collapseWindow: CollapseWindow}) => void;
     updateTraceSource: (id: string, patch: Partial<TraceSource>) => void;
     updateMainTraceSource: (patch: Partial<TraceSource>) => void;
     setMainTraceSource: (id: string | null) => void;
+    setDisplayedTraceSource: (id: string | null) => void;
     removeTraceSource: (id: string) => void;
     reassignTraceSourceColor: () => void;
     clearTraceSources: () => void;
@@ -24,6 +26,7 @@ export const useSourcesStore = create<SourcesState>()((set, get) => ({
     traceMode: false,
     traceSources: [],
     mainTraceSourceId: null,
+    displayedTraceSourceId: null,
     setTraceMode: (mode) => set({ traceMode: mode }),
     addTraceSource: (
         x,
@@ -59,6 +62,7 @@ export const useSourcesStore = create<SourcesState>()((set, get) => ({
         }
     },
     setMainTraceSource: (id) => set({ mainTraceSourceId: id }),
+    setDisplayedTraceSource: (id) => set({ displayedTraceSourceId: id }),
     removeTraceSource: (id) => set(produce((state: SourcesState) => {
         state.traceSources = state.traceSources.filter(source => source.id !== id);
         if (state.mainTraceSourceId === id) {

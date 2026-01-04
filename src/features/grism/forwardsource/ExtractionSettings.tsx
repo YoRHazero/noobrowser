@@ -6,7 +6,11 @@ import {
 	Select,
 	Stack,
 	Text,
+	Button,
 } from "@chakra-ui/react";
+import { Activity } from "lucide-react";
+import GrismFitJobDrawer from "../fitjob/GrismFitJobDrawer";
+import FitJobPoller from "../fitjob/FitJobPoller";
 
 // --- Theme Constants ---
 const THEME_STYLES = {
@@ -87,7 +91,15 @@ export default function ExtractionSettings({
 }: ExtractionSettingsProps) {
 	return (
 		<Stack gap={2} flexShrink={0}>
-			<Text {...THEME_STYLES.heading}>Extraction Settings</Text>
+			<FitJobPoller />
+			<HStack justify="space-between" align="center">
+				<Text {...THEME_STYLES.heading}>Extraction Settings</Text>
+				<GrismFitJobDrawer>
+					<Button size="xs" variant="surface" colorPalette="cyan">
+						<Activity size={12} style={{ marginRight: 4 }} /> Jobs
+					</Button>
+				</GrismFitJobDrawer>
+			</HStack>
 
 			{/* 控件容器：使用 align="end" 对齐底部 */}
 			<HStack gap={4} align="end">

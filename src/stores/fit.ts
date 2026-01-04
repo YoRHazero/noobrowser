@@ -13,12 +13,14 @@ import type {
 	FitConfiguration,
 	FitPrior,
 } from "@/stores/stores-types";
+import type { FitJobResponse } from "@/hook/connection-hook";
 import { normalizeModels, normalizeRange, updatePriorInModel } from "@/stores/stores-utils";
 
 export interface FitState {
 	waveFrame: WaveFrame;
 	models: FitModel[];
 	configurations: FitConfiguration[];
+	jobs: FitJobResponse[];
 	setWaveFrame: (frame: WaveFrame) => void;
 
 	ensureInitialModels: (range: FitRange) => void;
@@ -54,6 +56,10 @@ export interface FitState {
 	loadConfigurationToDraft: (id: string) => void;
 	getSelectedConfiguration: () => FitConfiguration[];
 	setConfigurationName: (id: string, name: string) => void;
+
+	addJob: (job: FitJobResponse) => void;
+	removeJob: (id: string) => void;
+	updateJob: (job: FitJobResponse) => void;
 }
 
 /* -------------------------------- store ----------------------------------- */
@@ -65,9 +71,8 @@ export const useFitStore = create<FitState>()(
 			waveFrame: "observe",
 			models: [],
 			configurations: [],
-
+			jobs: [],
 			setWaveFrame: (frame) => set({ waveFrame: frame }),
-
 			ensureInitialModels: (range) => {
 				const state = get();
 				if (state.models.length > 0) return;
@@ -268,10 +273,18 @@ export const useFitStore = create<FitState>()(
 						c.id === id ? { ...c, name: name } : c,
 					),
 				})),
+			addJob: (job) => set((state) => ({ jobs: [...state.jobs, job] })),
+			removeJob: (id) => set((state) => ({ jobs: state.jobs.filter((j) => j.job_id !== id) })),
+			updateJob: (job) => set((state) => ({
+				jobs: state.jobs.map((j) => (j.job_id === job.job_id ? job : j)),
+			})),
 			}),
 		{
 			name: "noobrowser-fit-store",
-			partialize: (state) => ({ configurations: state.configurations }),
+			partialize: (state) => ({ 
+				configurations: state.configurations,
+				jobs: state.jobs
+			}),
 		}
 	))
 );

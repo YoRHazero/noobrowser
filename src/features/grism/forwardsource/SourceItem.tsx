@@ -1,5 +1,4 @@
 import {
-	Badge,
 	Box,
 	Flex,
 	HStack,
@@ -9,15 +8,11 @@ import {
 	type IconButtonProps,
 } from "@chakra-ui/react";
 import {
-	AlertTriangle,
 	Cpu,
-	FileText,
 } from "lucide-react";
-import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
-import { useFitJobStatusQuery } from "@/hook/connection-hook";
-import FitResultsDrawer from "./FitResultsDrawer";
 import type { TraceSource } from "@/stores/stores-types";
+import { useFitStore } from "@/stores/fit";
 
 // --- Theme Constants ---
 const THEME_STYLES = {
@@ -56,17 +51,17 @@ const THEME_STYLES = {
 		fontFamily: "mono",
 		mt: 0.5,
 	},
-	runButton: (isProcessing: boolean, canRun: boolean) => ({
+	runButton: (canRun: boolean, isRunning: boolean) => ({
 		size: "xs" as const,
 		h: "24px",
 		w: "24px",
 		minW: "24px",
-		variant: (isProcessing ? "subtle" : canRun ? "surface" : "ghost") as IconButtonProps["variant"],
-		colorPalette: isProcessing ? "blue" : canRun ? "cyan" : "gray",
-		disabled: isProcessing || !canRun,
-		loading: isProcessing,
+		variant: (canRun && !isRunning ? "surface" : "ghost") as IconButtonProps["variant"],
+		colorPalette: canRun && !isRunning ? "cyan" : "gray",
+		disabled: !canRun || isRunning,
+        isLoading: isRunning,
 		_hover:
-			!isProcessing && canRun
+			canRun && !isRunning
 				? {
 						transform: "scale(1.1)",
 						bg: "cyan.500",
@@ -94,22 +89,13 @@ export default function SourceItem({
 	onSelect,
 	onRun,
 }: SourceItemProps) {
-	const { data: jobData } = useFitJobStatusQuery(source.id);
-
-
-	const status = jobData?.status ?? source.fitState?.jobStatus;
-	const result = jobData?.result;
-	const bestModelName = result?.best_model_name;
-
-
-	const statusColorPalette: Record<string, string> = {
-		pending: "gray",
-		processing: "blue",
-		completed: "green",
-		failed: "red",
-	};
-
-	const isProcessing = status === "processing" || status === "pending";
+	const jobs = useFitStore((state) => state.jobs);
+	const activeJob = jobs.find(
+		(j) =>
+			j.job_id === source.id &&
+			(j.status === "pending" || j.status === "processing"),
+	);
+    const isRunning = !!activeJob;
 
 	return (
 		<Flex
@@ -139,18 +125,6 @@ export default function SourceItem({
 						>
 							{source.id.slice(0, 6).toUpperCase()}
 						</Text>
-
-						{status && (
-							<Badge
-								size="xs"
-								variant="surface"
-								colorPalette={statusColorPalette[status] || "gray"}
-								fontSize="2xs"
-								px={1}
-							>
-								{status.toUpperCase()}
-							</Badge>
-						)}
 					</HStack>
 					<Text {...THEME_STYLES.coordText}>
 						X:{source.x.toFixed(1)} Y:{source.y.toFixed(1)}
@@ -160,54 +134,11 @@ export default function SourceItem({
 
 			{/* Right: Actions */}
 			<HStack onClick={(e) => e.stopPropagation()} gap={1}>
-				{status === "completed" && result && result.results && bestModelName && (
-					<Tooltip content="View Result Plans">
-						<FitResultsDrawer
-							results={result.results}
-							bestModelName={bestModelName}
-						>
-							<IconButton
-								aria-label="View Result"
-								size="xs"
-								variant="ghost"
-								colorPalette="green"
-								h="24px"
-								w="24px"
-								minW="24px"
-							>
-								<FileText size={14} />
-							</IconButton>
-						</FitResultsDrawer>
-					</Tooltip>
-				)}
-
-				{status === "failed" && (
-					<Tooltip content={jobData?.error || "Job Failed"}>
-						<IconButton
-							aria-label="Error"
-							size="xs"
-							variant="ghost"
-							colorPalette="red"
-							h="24px"
-							w="24px"
-							minW="24px"
-							onClick={() => {
-								toaster.error({
-									title: "Job Failed",
-									description: jobData?.error || "Unknown error occurred.",
-								});
-							}}
-						>
-							<AlertTriangle size={14} />
-						</IconButton>
-					</Tooltip>
-				)}
-
 				{/* --- MCMC Run Button --- */}
 				<Tooltip
 					content={
-						isProcessing
-							? "Processing..."
+						activeJob
+							? `Job Running (${activeJob.status})`
 							: canRun
 								? "Run MCMC Analysis"
 								: "Select a Config first"
@@ -216,7 +147,7 @@ export default function SourceItem({
 				>
 					<IconButton
 						aria-label="Run MCMC Fit"
-						{...THEME_STYLES.runButton(isProcessing, canRun)}
+						{...THEME_STYLES.runButton(canRun, isRunning)}
 						onClick={onRun}
 					>
 						<Cpu size={14} />
@@ -226,3 +157,5 @@ export default function SourceItem({
 		</Flex>
 	);
 }
+
+

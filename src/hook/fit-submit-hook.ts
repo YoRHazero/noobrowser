@@ -18,10 +18,18 @@ export function useConfigurationSubmitController() {
     // --- 1. Local UI State ---
     const [apertureSize, setApertureSize] = useState(5);
     const [extractMode, setExtractMode] = useState<string[]>(["GRISMR"]); 
-    const [selectedSourceId, setSelectedSourceId] = useState<string | null>(null);
+
 
     // --- 2. Store Access ---
-    const traceSources = useSourcesStore(useShallow((s) => s.traceSources));
+    const {
+        traceSources,
+        displayedTraceSourceId,
+        setDisplayedTraceSource
+    } = useSourcesStore(useShallow((s) => ({
+        traceSources: s.traceSources,
+        displayedTraceSourceId: s.displayedTraceSourceId,
+        setDisplayedTraceSource: s.setDisplayedTraceSource,
+    })));
     const readySources = traceSources.filter((s) => s.spectrumReady);
 
     const setForwardSourcePosition = useGrismStore((s) => s.setForwardSourcePosition);
@@ -32,7 +40,7 @@ export function useConfigurationSubmitController() {
 
     // --- 4. Actions / Handlers ---
     const handleSelectSource = (source: TraceSource) => {
-        setSelectedSourceId(source.id);
+        setDisplayedTraceSource(source.id);
         setForwardSourcePosition({
             x: Math.round(source.x),
             y: Math.round(source.y),
@@ -66,7 +74,7 @@ export function useConfigurationSubmitController() {
     return {
         // Data
         readySources,
-        selectedSourceId,
+        displayedTraceSourceId,
         
         // Parameter Controls
         extractionParams: { 
