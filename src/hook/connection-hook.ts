@@ -1,4 +1,4 @@
-import { useEffect } from "react";
+
 import {
 	keepPreviousData,
 	type UseQueryOptions,
@@ -14,7 +14,6 @@ import { useCounterpartStore } from "@/stores/image";
 import { useFitStore } from "@/stores/fit";
 import { useSourcesStore } from "@/stores/sources";
 import type { FitModel, RoiState, JobStatus } from "@/stores/stores-types";
-import { useShallow } from "zustand/react/shallow";
 import { toaster } from "@/components/ui/toaster";
 
 type QueryAxiosParams<T = any> = {
@@ -703,7 +702,7 @@ export function useSubmitFitJobMutation() {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 
 	const traceSources = useSourcesStore((state => state.traceSources));
-	const updateTraceSource = useSourcesStore((state) => state.updateTraceSource);
+
 	const storedConfiguration = useFitStore((state) => state.configurations);
 
 	return useMutation<FitJobResponse, Error, SubmitMutationVariables> ({
@@ -744,6 +743,7 @@ export function useSubmitFitJobMutation() {
 					x: traceSource.x,
 					y: traceSource.y,
 					group_id: traceSource.groupId,
+					z: traceSource.z,
 				};
 			}
 			const payload: FitBodyRequest = {
@@ -828,7 +828,7 @@ export function useFitJobStatusQuery() {
 // Inner hook for single job polling, much cleaner to handle updates
 export function useSingleJobPoller(jobId: string) {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
-	const updateJob = useFitStore((state) => state.updateJob);
+
 	const existingJob = useFitStore((state) => state.jobs.find((j) => j.job_id === jobId));
 
 	return useQuery({
@@ -846,4 +846,128 @@ export function useSingleJobPoller(jobId: string) {
 			return 3000;
 		},
 	});
-} 
+}
+
+export type SaveFitResultResponse = {
+	status: string;
+	source_id: string;
+	message: string;
+	files_copied: {
+		plots_dir: string;
+		traces_dir: string;
+	};
+	catalog_entry_id: string | number;
+};
+
+export type SaveFitResultVariables = {
+	sourceId: string;
+	tags?: string[];
+};
+
+export function useSaveFitResultMutation() {
+	const backendUrl = useConnectionStore((state) => state.backendUrl);
+
+	return useMutation<SaveFitResultResponse, Error, SaveFitResultVariables>({
+		mutationFn: async ({ sourceId, tags }) => {
+			try {
+				const response = await axios.post(
+					`${backendUrl}/fit/save/${sourceId}/`,
+					{
+						tags: tags || [],
+					}	
+				);
+				return response.data as SaveFitResultResponse;
+			} catch (error) {
+				if (axios.isAxiosError(error) && error.response) {
+					const data = error.response.data;
+					let errorMsg = "Unknown error";
+
+					if (data?.detail) {
+						if (Array.isArray(data.detail)) {
+							errorMsg = data.detail
+								.map((err: any) => `${err.loc.join(".")} -> ${err.msg}`)
+								.join("\n");
+						} else if (typeof data.detail === "object") {
+							errorMsg = JSON.stringify(data.detail);
+						} else {
+							errorMsg = String(data.detail);
+						}
+					} else if (data?.message) {
+						errorMsg = data.message;
+					} else {
+						errorMsg = error.message;
+					}
+					throw new Error(`Fit save failed:\n${errorMsg}`);
+				}
+				throw error;
+			}
+		},
+		onSuccess: (data) => {
+			toaster.success({
+				title: "Fit Result Saved",
+				description: data.message,
+			});
+		},
+		onError: (error) => {
+			toaster.error({ title: "Fit Save Failed", description: error.message });
+		},
+	});
+}
+
+/* -------------------------------------------------------------------------- */
+/*                               Catalog Query                                */
+/* -------------------------------------------------------------------------- */
+
+export type SourceCatalogBase = {
+	id: string;
+	ra: number;
+	dec: number;
+	ref_basename: string;
+	pixel_x: number;
+	pixel_y: number;
+	z: number | null;
+	tags: string[];
+	created_at: string;
+};
+
+export type CatalogItemResponse = SourceCatalogBase & {
+	model_comparison_plot_url: string | null;
+	best_model_plot_url: string | null;
+	best_model_posterior_url: string | null;
+};
+
+export type PaginatedCatalogResponse = {
+	items: CatalogItemResponse[];
+	total: number;
+	page: number;
+	page_size: number;
+};
+
+export function useCatalogQuery({
+	page = 1,
+	pageSize = 20,
+	sortDesc = true,
+	enabled = true,
+}: {
+	page?: number;
+	pageSize?: number;
+	sortDesc?: boolean;
+	enabled?: boolean;
+}) {
+	return useQueryAxiosGet<PaginatedCatalogResponse>({
+		queryKey: ["catalog", page, pageSize, sortDesc],
+		path: "/fit/catalog/",
+		axiosGetParams: {
+			params: {
+				page,
+				page_size: pageSize,
+				sort_desc: sortDesc,
+			},
+		},
+		enabled,
+		queryOptions: {
+			placeholderData: keepPreviousData,
+		},
+	});
+}
+ 

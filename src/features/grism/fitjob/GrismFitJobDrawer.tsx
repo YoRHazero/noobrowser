@@ -43,16 +43,17 @@ export default function GrismFitJobDrawer({ children }: { children: React.ReactN
 			<Drawer.Trigger asChild>{children}</Drawer.Trigger>
 			<Drawer.Positioner>
 				<Drawer.Content bg="#09090b" borderLeft="1px solid #333">
-                    <GrismFitJobDrawerHeader 
+					<GrismFitJobDrawerHeader 
                         jobs={jobs} 
                         selectedJobId={selectedJobId} 
                         onSelectJob={handleSelectJob} 
                         onRemoveJob={handleRemoveJob} 
                     />
                     <GrismFitJobDrawerBody selectedJob={selectedJob} />
-                    <GrismFitJobDrawerFooter />
+                    <GrismFitJobDrawerFooter selectedJob={selectedJob} />
 				</Drawer.Content>
 			</Drawer.Positioner>
 		</Drawer.Root>
 	);
 }
+

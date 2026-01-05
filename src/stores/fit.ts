@@ -1,6 +1,6 @@
 // stores/fit.ts
 import { create } from "zustand";
-import { persist, devtools } from "zustand/middleware";
+import { persist } from "zustand/middleware";
 import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
 import type {
@@ -65,7 +65,6 @@ export interface FitState {
 /* -------------------------------- store ----------------------------------- */
 
 export const useFitStore = create<FitState>()(
-	devtools(
 	persist(
 		(set, get) => ({
 			waveFrame: "observe",
@@ -286,5 +285,5 @@ export const useFitStore = create<FitState>()(
 				jobs: state.jobs
 			}),
 		}
-	))
+	)
 );
