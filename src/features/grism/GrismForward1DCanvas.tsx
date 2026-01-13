@@ -1,31 +1,22 @@
 import { useMemo } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
-import Spectrum1DChart from "@/features/grism/Spectrum1DChart";
-import { useExtractSpectrum } from "@/hook/connection-hook";
-import { useGlobeStore } from "@/stores/footprints";
-import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import Spectrum1DChart from "@/features/grism/spectrum1d/Spectrum1DChart";
+import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
+import { useGrismStore } from "@/stores/image";
 import extractFormatted1DSpectrum from "@/utils/extraction";
 
 export default function Grism1DCanvas() {
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
-	const { forwardWaveRange, apertureSize, collapseWindow, forwardSourcePosition } = useGrismStore(
+	const { collapseWindow, spectrumQueryKey } = useGrismStore(
 		useShallow((state) => ({
-			forwardWaveRange: state.forwardWaveRange,
-			apertureSize: state.apertureSize,
 			collapseWindow: state.collapseWindow,
-			forwardSourcePosition: state.forwardSourcePosition,
+			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
 
-	const { data: extractSpectrumData } = useExtractSpectrum({
-		selectedFootprintId,
-		waveMin: forwardWaveRange.min,
-		waveMax: forwardWaveRange.max,
-		x: forwardSourcePosition.x,
-		y: forwardSourcePosition.y,
-		apertureSize,
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
+		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+		queryFn: async () => undefined,
 		enabled: false,
 	});
 	const spectrum1D = useMemo(() => {

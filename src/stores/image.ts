@@ -90,6 +90,7 @@ interface GrismState {
 	extractedSpecSortedArray: number[] | null;
 	normInWindow: boolean;
 	forwardSourcePosition: XY;
+	spectrumQueryKey: Array<unknown> | null;
 	forwardWaveRange: WaveRange;
 	slice1DWaveRange: WaveRange;
 	collapseWindow: CollapseWindow;
@@ -109,6 +110,7 @@ interface GrismState {
 	setExtractedSpecSortedArray: (array: number[] | null) => void;
 	setNormInWindow: (inWindow: boolean) => void;
 	setForwardSourcePosition: (pos: XY) => void;
+	setSpectrumQueryKey: (key: Array<unknown> | null) => void;
 	setForwardWaveRange: (patch: Partial<WaveRange>) => void;
 	setSlice1DWaveRange: (patch: Partial<WaveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
@@ -136,6 +138,7 @@ export const useGrismStore = create<GrismState>()(
 			extractedSpecSortedArray: null,
 			normInWindow: false,
 			forwardSourcePosition: { x: 0, y: 0 },
+			spectrumQueryKey: null,
 			forwardWaveRange: { min: 3.8, max: 5.0 },
 			slice1DWaveRange: { min: 3.8, max: 5.0 },
 			collapseWindow: {
@@ -176,6 +179,7 @@ export const useGrismStore = create<GrismState>()(
 			setNormInWindow: (inWindow) => set({ normInWindow: inWindow }),
 			setForwardSourcePosition: (pos) =>
 				set({ forwardSourcePosition: pos }),
+			setSpectrumQueryKey: (key) => set({ spectrumQueryKey: key }),
 			setForwardWaveRange: (patch) =>
 				set((state) => ({
 					forwardWaveRange: { ...state.forwardWaveRange, ...patch },

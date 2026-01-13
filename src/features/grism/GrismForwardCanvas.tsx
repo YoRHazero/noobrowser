@@ -14,7 +14,7 @@ export default function GrismForwardCanvas() {
 	const imageLayerRef = useRef<RenderLayerInstance | null>(null);
 	const helperLayerRef = useRef<RenderLayerInstance | null>(null);
 	return (
-		<Box ref={parentRef} height={"120px"} w={900}>
+		<Box ref={parentRef} height={"120px"} width="100%" >
 			<Application
 				resizeTo={parentRef}
 				backgroundColor={0xf2f2f2}

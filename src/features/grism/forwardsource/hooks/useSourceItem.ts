@@ -18,8 +18,18 @@ export function useSourceItem(source: TraceSource) {
 		})),
 	);
 
-	const setForwardSourcePosition = useGrismStore(
-		(state) => state.setForwardSourcePosition,
+	const {
+		apertureSize,
+		forwardWaveRange,
+		setForwardSourcePosition,
+		setSpectrumQueryKey,
+	} = useGrismStore(
+		useShallow((state) => ({
+			apertureSize: state.apertureSize,
+			forwardWaveRange: state.forwardWaveRange,
+			setForwardSourcePosition: state.setForwardSourcePosition,
+			setSpectrumQueryKey: state.setSpectrumQueryKey,
+		})),
 	);
 
 	const { configurations, fitExtraction, jobs } = useFitStore(
@@ -65,7 +75,17 @@ export function useSourceItem(source: TraceSource) {
 	/*                                   Handle                                   */
 	/* -------------------------------------------------------------------------- */
 	const handleSelect = () => {
+		const spectrumQueryKey = [
+			"extract_spectrum",
+			source.id,
+			forwardWaveRange.min,
+			forwardWaveRange.max,
+			apertureSize,
+			source.ra?.toFixed(10),
+			source.dec?.toFixed(10),
+		];
 		setDisplayedTraceSource(source.id);
+		setSpectrumQueryKey(spectrumQueryKey);
 		setForwardSourcePosition({
 			x: Math.round(source.x),
 			y: Math.round(source.y),
