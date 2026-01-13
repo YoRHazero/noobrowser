@@ -12,6 +12,7 @@ import type {
 	WaveFrame,
 	FitConfiguration,
 	FitPrior,
+	FitExtractionSettings,
 } from "@/stores/stores-types";
 import type { FitJobResponse } from "@/hook/connection-hook";
 import { normalizeModels, normalizeRange, updatePriorInModel } from "@/stores/stores-utils";
@@ -21,7 +22,9 @@ export interface FitState {
 	models: FitModel[];
 	configurations: FitConfiguration[];
 	jobs: FitJobResponse[];
+	fitExtraction: FitExtractionSettings;
 	setWaveFrame: (frame: WaveFrame) => void;
+	setFitExtraction: (patch: Partial<FitExtractionSettings>) => void;
 
 	ensureInitialModels: (range: FitRange) => void;
 	duplicateNameIds: () => number[];
@@ -71,7 +74,12 @@ export const useFitStore = create<FitState>()(
 			models: [],
 			configurations: [],
 			jobs: [],
+			fitExtraction: { apertureSize: 5, extractMode: "GRISMR" },
 			setWaveFrame: (frame) => set({ waveFrame: frame }),
+			setFitExtraction: (patch) =>
+				set((state) => ({
+					fitExtraction: { ...state.fitExtraction, ...patch },
+				})),
 			ensureInitialModels: (range) => {
 				const state = get();
 				if (state.models.length > 0) return;

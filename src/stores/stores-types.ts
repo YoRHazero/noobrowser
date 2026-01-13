@@ -131,6 +131,11 @@ export type FitConfiguration = {
 	selected: boolean;
 };
 
+export type FitExtractionSettings = {
+	apertureSize: number;
+	extractMode: "GRISMR" | "GRISMC";
+};
+
 /* -------------------------------------------------------------------------- */
 /*                                 Image Type                                 */
 /* -------------------------------------------------------------------------- */

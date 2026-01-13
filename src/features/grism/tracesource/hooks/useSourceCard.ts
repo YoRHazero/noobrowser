@@ -60,8 +60,8 @@ export function useSourceCard(source: TraceSource) {
         spectrumQuery,
     } = useSource({
         source,
-        posEnabled: !sourceHasRaDec, // Always enable position query if no RA/Dec
-        specEnabled: false, // refetch manually
+        posEnabled: !sourceHasRaDec,
+        specEnabled: false,
     })
     /* -------------------------------------------------------------------------- */
     /*                                   Effect                                   */

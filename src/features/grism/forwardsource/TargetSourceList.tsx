@@ -1,111 +1,64 @@
-import { Badge, Box, Flex, HStack, Stack, Text } from "@chakra-ui/react";
-import { CheckCircle2 } from "lucide-react";
-import type { TraceSource } from "@/stores/stores-types";
+import {
+	Badge,
+	Box,
+	ScrollArea,
+	Stack,
+	Text,
+	useSlotRecipe,
+} from "@chakra-ui/react";
+import { LuTarget } from "react-icons/lu";
+import { SectionHeader } from "./components/SectionHeader";
 import SourceItem from "./SourceItem";
+import { useTargetSourceList } from "./hooks/useTargetSourceList";
+import { targetSourceListRecipe } from "./recipes/target-source-list.recipe";
 
-// --- Theme Constants ---
-const THEME_STYLES = {
-	heading: {
-		size: "sm" as const,
-		letterSpacing: "wide",
-		fontWeight: "extrabold",
-		textTransform: "uppercase" as const,
-		color: { base: "gray.700", _dark: "transparent" },
-		bgGradient: { base: "none", _dark: "to-r" },
-		gradientFrom: { _dark: "cyan.400" },
-		gradientTo: { _dark: "purple.500" },
-		bgClip: { base: "border-box", _dark: "text" },
-	},
-	headerContainer: {
-		justify: "space-between",
-		p: 4,
-		pb: 2,
-		flex: "0 0 auto",
-		bg: "transparent",
-		borderBottomWidth: "1px",
-		borderColor: { base: "gray.200", _dark: "whiteAlpha.100" },
-	},
-	scrollArea: {
-		flex: "1",
-		overflowY: "auto" as const,
-		bg: "transparent",
-		p: 2,
-		css: {
-			"&::-webkit-scrollbar": { width: "4px" },
-			"&::-webkit-scrollbar-track": { background: "transparent" },
-			"&::-webkit-scrollbar-thumb": {
-				background: "var(--chakra-colors-whiteAlpha-200)",
-				borderRadius: "full",
-			},
-			"&::-webkit-scrollbar-thumb:hover": {
-				background: "var(--chakra-colors-whiteAlpha-400)",
-			},
-		},
-	},
-};
-
-interface TargetSourceListProps {
-	readySources: TraceSource[];
-	selectedSourceId: string | null;
-	hasSelectedConfig: boolean;
-	onSelectSource: (source: TraceSource) => void;
-	onRunFit: (sourceId: string) => void;
-}
-
-export default function TargetSourceList({
-	readySources,
-	selectedSourceId,
-	hasSelectedConfig,
-	onSelectSource,
-	onRunFit,
-}: TargetSourceListProps) {
+export default function TargetSourceList() {
+	const {
+		readySources,
+	} = useTargetSourceList();
+	const recipe = useSlotRecipe({ recipe: targetSourceListRecipe });
+	const styles = recipe();
 	return (
-		<Stack gap={0} flex={1} overflow="hidden">
-			{/* Header */}
-			<HStack {...THEME_STYLES.headerContainer}>
-				<HStack gap={2}>
-					<Text {...THEME_STYLES.heading}>Target Sources</Text>
-				</HStack>
-				<Badge colorPalette="cyan" variant="solid" size="xs">
-					{readySources.length} READY
-				</Badge>
-			</HStack>
+		<Stack css={styles.root}>
+			<Box px={4} pt={4} pb={2}>
+				<SectionHeader
+					title="Target Sources"
+					rightSlot={
+						<Badge colorPalette="cyan" variant="solid" size="xs">
+							{readySources.length} READY
+						</Badge>
+					}
+				/>
+			</Box>
 
-			{/* Content */}
-			{readySources.length === 0 ? (
-				<Flex
-					direction="column"
-					align="center"
-					justify="center"
-					flex={1}
-					color="fg.muted"
-					textAlign="center"
-					opacity={0.6}
-				>
-					<CheckCircle2 size={32} style={{ opacity: 0.3, marginBottom: 8 }} />
-					<Text fontSize="xs" fontWeight="bold" letterSpacing="wide">
-						NO SOURCES READY
-					</Text>
-					<Text fontSize="2xs" color="fg.subtle">
-						Extract sources in "Trace" panel first
-					</Text>
-				</Flex>
-			) : (
-				<Box {...THEME_STYLES.scrollArea}>
-					<Stack gap={2}>
-						{readySources.map((source) => (
-							<SourceItem
-								key={source.id}
-								source={source}
-								isSelected={selectedSourceId === source.id}
-								canRun={hasSelectedConfig}
-								onSelect={() => onSelectSource(source)}
-								onRun={() => onRunFit(source.id)}
-							/>
-						))}
-					</Stack>
-				</Box>
-			)}
+			<ScrollArea.Root flex="1" minH="0">
+				<ScrollArea.Viewport>
+					<ScrollArea.Content css={styles.content}>
+						{readySources.length === 0 ? (
+							<Stack css={styles.emptyState}>
+								<LuTarget size={28} style={{ opacity: 0.3 }} />
+								<Text css={styles.emptyTitle}>NO SOURCES READY</Text>
+								<Text css={styles.emptySubtitle}>
+									Extract sources in "Trace" panel first
+								</Text>
+							</Stack>
+						) : (
+							<Stack gap={2}>
+								{readySources.map((source) => (
+									<SourceItem
+										key={source.id}
+										source={source}
+									/>
+								))}
+							</Stack>
+						)}
+					</ScrollArea.Content>
+				</ScrollArea.Viewport>
+				<ScrollArea.Scrollbar>
+					<ScrollArea.Thumb />
+				</ScrollArea.Scrollbar>
+				<ScrollArea.Corner />
+			</ScrollArea.Root>
 		</Stack>
 	);
 }

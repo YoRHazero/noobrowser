@@ -6,7 +6,7 @@ import type { IconType } from "react-icons";
 
 // Components
 import GrismForwardFit from "@/features/grism/GrismForwardFit";
-import GrismForwardControlNew from "@/features/grism/GrismForwardControlNew";
+import GrismForwardControl from "@/features/grism/GrismForwardControl";
 import GrismForwardSource from "@/features/grism/GrismForwardSource";
 // --- 1. 定义 Tab 配置结构 ---
 interface TabConfig {
@@ -22,7 +22,7 @@ const TAB_ITEMS: TabConfig[] = [
         value: "panel",
         title: "Extract",
         icon: LuSlidersHorizontal,
-        content: <GrismForwardControlNew />,
+        content: <GrismForwardControl />,
     },
     {
         value: "fit",
@@ -30,12 +30,12 @@ const TAB_ITEMS: TabConfig[] = [
         icon: LuChartSpline,
         content: <GrismForwardFit />,
     },
-    {
-        value: "sources",
-        title: "Sources",
-        icon: LuList,
-        content: <GrismForwardSource />,
-    },
+	{
+		value: "sources",
+		title: "Sources",
+		icon: LuList,
+		content: <GrismForwardSource />,
+	},
 ];
 
 export default function GrismForwardTab() {

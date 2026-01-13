@@ -1,88 +1,34 @@
-import { Heading, HStack, Stack } from "@chakra-ui/react";
-import { useEffect, useState } from "react";
-import { useDebouncedCallback } from "use-debounce";
-import { useShallow } from "zustand/react/shallow";
+import { HStack, Stack, useSlotRecipe } from "@chakra-ui/react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
-import { InfoTip } from "@/components/ui/toggle-tip";
-import { useGrismStore } from "@/stores/image";
-import { useSourcesStore } from "@/stores/sources";
-import { clamp } from "@/utils/projection";
-
-// --- Theme Constants ---
-const THEME_STYLES = {
-	heading: {
-		size: "sm" as const,
-		letterSpacing: "wide",
-		fontWeight: "extrabold",
-		textTransform: "uppercase" as const,
-		color: { base: "gray.700", _dark: "transparent" },
-
-		bgGradient: { base: "none", _dark: "to-r" },
-		gradientFrom: { _dark: "cyan.400" },
-		gradientTo: { _dark: "purple.500" },
-		bgClip: { base: "border-box", _dark: "text" },
-	},
-};
+import { SectionHeader } from "./components/SectionHeader";
+import { useRedshiftControls } from "./hooks/useRedshiftControls";
+import { redshiftControlsRecipe } from "./recipes/redshift-controls.recipe";
 
 export default function RedshiftControls() {
-	const { zRedshift, setZRedshift } = useGrismStore(
-		useShallow((state) => ({
-			zRedshift: state.zRedshift,
-			setZRedshift: state.setZRedshift,
-		})),
-	);
-	const{ displayedTraceSourceId, updateTraceSource } = useSourcesStore(
-		useShallow((state) => ({
-			displayedTraceSourceId: state.displayedTraceSourceId,
-			updateTraceSource: state.updateTraceSource,
-		})),
-	);
-	const updateDisplayedSourceRedshift = (z: number) => {
-		if (!displayedTraceSourceId) return;
-		updateTraceSource(displayedTraceSourceId, { z });
-	};
-	const [maxRedshift, setMaxRedshift] = useState(12);
-	const [step, setStep] = useState(0.001);
-	const [localZ, setLocalZ] = useState(zRedshift || 0);
+	const {
+		localZ,
+		safeZ,
+		safeMax,
+		step,
+		maxRedshift,
+		setStep,
+		setMaxRedshift,
+		handleSliderChange,
+		handleZInputChange,
+	} = useRedshiftControls();
 
-	useEffect(() => {
-		setLocalZ(zRedshift || 0);
-	}, [zRedshift]);
-
-	const debouncedSetZ = useDebouncedCallback((val: number) => {
-		setZRedshift(val);
-	}, 10);
-	const debouncedSetDisplayedSourceRedshift = useDebouncedCallback((val: number) => {
-		updateDisplayedSourceRedshift(val);
-	}, 10);
-
-	const safeMax = Math.max(maxRedshift, 0);
-	const safeZ = clamp(localZ, 0, safeMax);
-
-	const handleSliderChange = ({ value }: { value: number[] }) => {
-		const next = clamp(value[0] ?? 0, 0, safeMax);
-		setLocalZ(next);
-		debouncedSetZ(next);
-		debouncedSetDisplayedSourceRedshift(next);
-	};
-
-	const handleZInputChange = (val: number) => {
-		const next = clamp(val, 0, safeMax);
-		setLocalZ(next);
-		debouncedSetZ(next);
-		debouncedSetDisplayedSourceRedshift(next);
-	};
+	const recipe = useSlotRecipe({ recipe: redshiftControlsRecipe });
+	const styles = recipe();
 
 	return (
-		<Stack gap={3}>
-			<HStack align="center">
-				<Heading {...THEME_STYLES.heading}>Redshift</Heading>
-				<InfoTip content="Adjust the redshift (z) to shift the observed wavelength frame." />
-			</HStack>
+		<Stack css={styles.root}>
+			<SectionHeader
+				title="Redshift"
+				tip="Adjust the redshift (z) to shift the observed wavelength frame."
+			/>
 
-			{/* Main Slider */}
-			<Stack gap={2} px={1}>
+			<Stack css={styles.slider}>
 				<Slider
 					label="z"
 					min={0}
@@ -94,8 +40,7 @@ export default function RedshiftControls() {
 				/>
 			</Stack>
 
-			{/* Inputs Area */}
-			<HStack gap={3} justify="space-between">
+			<HStack css={styles.inputs}>
 				<CompactNumberInput
 					label="VALUE (z)"
 					value={localZ}
