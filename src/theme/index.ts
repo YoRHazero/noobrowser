@@ -3,6 +3,7 @@ import { semanticTokens } from "./semantic-tokens";
 import { keyframes } from "./keyframes";
 
 import { drawerRecipe } from "@/theme/recipes/drawer";
+import { scrollAreaRecipe } from "@/theme/recipes/scrollarea";
 
 const customConfig = defineConfig({
   theme: {
@@ -11,6 +12,7 @@ const customConfig = defineConfig({
 
     slotRecipes: {
       drawer: drawerRecipe,
+      scrollArea: scrollAreaRecipe,
     },
   },
 });

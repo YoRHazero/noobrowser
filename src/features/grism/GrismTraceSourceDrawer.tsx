@@ -65,10 +65,6 @@ export default function TraceSourceDrawer() {
             </Drawer.Trigger>
             <Portal>
             <Drawer.Positioner>
-                {/* 
-                   使用 Flex 布局确保 Body 占据剩余空间，
-                   Controls 固定在底部 
-                */}
                 <Drawer.Content display="flex" flexDirection="column" h="100%">
 
                     {/* Header */}

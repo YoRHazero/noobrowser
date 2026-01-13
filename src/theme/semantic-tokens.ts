@@ -13,6 +13,9 @@ export const semanticTokens = defineSemanticTokens({
       cardSelected: {
         value: { _light: "{colors.blue.50}", _dark: "rgba(0, 200, 255, 0.1)" },
       },
+      panel: {
+        value: { _light: "{colors.white}", _dark: "rgba(12, 16, 24, 0.9)" },
+      },
     },
 
     // 边框颜色
@@ -32,6 +35,19 @@ export const semanticTokens = defineSemanticTokens({
       },
       loading: {
         value: { _light: "{colors.orange.500}", _dark: "{colors.yellow.300}" },
+      },
+    },
+
+    // Scrollbar colors
+    scrollbar: {
+      track: {
+        value: { _light: "{colors.gray.100}", _dark: "rgba(255, 255, 255, 0.08)" },
+      },
+      thumb: {
+        value: { _light: "{colors.gray.400}", _dark: "rgba(255, 255, 255, 0.3)" },
+      },
+      thumbHover: {
+        value: { _light: "{colors.gray.500}", _dark: "rgba(255, 255, 255, 0.45)" },
       },
     },
   },
