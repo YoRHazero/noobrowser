@@ -1,6 +1,6 @@
 import { Box } from "@chakra-ui/react";
-import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import Spectrum1DChart from "@/features/grism/spectrum1d/Spectrum1DChart";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
@@ -22,11 +22,13 @@ export default function Grism1DCanvas() {
 		})),
 	);
 
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
-		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-		queryFn: async () => undefined,
-		enabled: false,
-	});
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
+		{
+			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+			queryFn: async () => undefined,
+			enabled: false,
+		},
+	);
 	const spectrum1D = useMemo(() => {
 		if (!extractSpectrumData || !extractSpectrumData.covered) {
 			return [];

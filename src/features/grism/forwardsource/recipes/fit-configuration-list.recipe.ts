@@ -1,7 +1,14 @@
 import { defineSlotRecipe } from "@chakra-ui/react";
 
 export const fitConfigurationListRecipe = defineSlotRecipe({
-	slots: ["root", "scrollArea", "listRow", "emptyState", "emptyTitle", "emptySubtitle"],
+	slots: [
+		"root",
+		"scrollArea",
+		"listRow",
+		"emptyState",
+		"emptyTitle",
+		"emptySubtitle",
+	],
 	className: "fit-configuration-list",
 	base: {
 		root: {

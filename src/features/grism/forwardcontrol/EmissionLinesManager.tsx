@@ -1,8 +1,8 @@
 import { Box, ScrollArea, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
 import { LuList } from "react-icons/lu";
+import { SectionHeader } from "./components/SectionHeader";
 import { EmissionLineAdder } from "./EmissionLineAdder";
 import { EmissionLineCard } from "./EmissionLineCard";
-import { SectionHeader } from "./components/SectionHeader";
 import { useEmissionLinesManager } from "./hooks/useEmissionLinesManager";
 import { emissionLinesRecipe } from "./recipes/emission-lines.recipe";
 

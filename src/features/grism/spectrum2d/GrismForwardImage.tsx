@@ -1,13 +1,13 @@
 import { extend } from "@pixi/react";
+import { useQuery } from "@tanstack/react-query";
 import { Sprite, Texture } from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
-import { useGrismStore } from "@/stores/image";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
+import { useGrismStore } from "@/stores/image";
 import type { RenderLayerInstance } from "@/types/pixi-react";
-import textureFromData, { sort2DArray } from "@/utils/plot";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
+import textureFromData, { sort2DArray } from "@/utils/plot";
 
 extend({ Sprite });
 
@@ -34,11 +34,13 @@ export default function GrismForwardImage({
 			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
-		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-		queryFn: async () => undefined,
-		enabled: false,
-	});
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
+		{
+			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+			queryFn: async () => undefined,
+			enabled: false,
+		},
+	);
 
 	/* -------------------------------------------------------------------------- */
 	/*                           Update the sorted array                          */
@@ -73,12 +75,7 @@ export default function GrismForwardImage({
 		} else {
 			setExtractedSpecSortedArray(fullSorted);
 		}
-	}, [
-		normInWindow,
-		windowSorted,
-		fullSorted,
-		setExtractedSpecSortedArray,
-	]);
+	}, [normInWindow, windowSorted, fullSorted, setExtractedSpecSortedArray]);
 
 	const [grismTexture, setGrismTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {

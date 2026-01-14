@@ -20,11 +20,11 @@ import { Tooltip } from "@/components/ui/tooltip";
 import {
 	useCounterpartCutout,
 	useExtractSpectrum,
-	useSourcePosition
+	useSourcePosition,
 } from "@/hook/connection-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
-import type { CutoutParams, RaDec } from "@/stores/stores-types.js";
+import type { CutoutParams } from "@/stores/stores-types.js";
 
 export default function CutoutPanel() {
 	return (
@@ -173,16 +173,12 @@ function CutoutPosition() {
 			<HStack justify={"space-between"}>
 				<Text textStyle="sm">
 					RA:{" "}
-					{isSourcePositionSuccess
-						? `${sourcePosition.ra.toFixed(6)}°`
-						: "--"}
+					{isSourcePositionSuccess ? `${sourcePosition.ra.toFixed(6)}°` : "--"}
 					{isSourcePositionSuccess ? ` [${sourcePosition.ra_hms}]` : ""}
 				</Text>
 				<Text textStyle="sm">
 					Dec:{" "}
-					{isSourcePositionSuccess
-						? `${sourcePosition.dec.toFixed(6)}°`
-						: "--"}
+					{isSourcePositionSuccess ? `${sourcePosition.dec.toFixed(6)}°` : "--"}
 					{isSourcePositionSuccess ? ` [${sourcePosition.dec_dms}]` : ""}
 				</Text>
 			</HStack>

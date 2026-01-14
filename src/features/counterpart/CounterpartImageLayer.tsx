@@ -2,12 +2,10 @@ import { extend } from "@pixi/react";
 import { Container, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import {
-	useCounterpartImage,
-} from "@/hook/connection-hook";
+import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
+import { useCounterpartImage } from "@/hook/connection-hook";
 import { useCounterpartStore } from "@/stores/image";
 import type { RenderLayerInstance } from "@/types/pixi-react";
-import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
 
 extend({
 	Sprite,
@@ -19,10 +17,7 @@ export default function CounterpartImageLayer({
 }: {
 	layerRef: React.RefObject<RenderLayerInstance | null>;
 }) {
-	const {
-		counterpartPosition,
-		counterpartNorm,
-	} = useCounterpartStore(
+	const { counterpartPosition, counterpartNorm } = useCounterpartStore(
 		useShallow((state) => ({
 			counterpartPosition: state.counterpartPosition,
 			counterpartNorm: state.counterpartNorm,
@@ -44,7 +39,7 @@ export default function CounterpartImageLayer({
 		const loadTexture = async () => {
 			try {
 				const bitmap = await createImageBitmap(blob, {
-					premultiplyAlpha: "none"
+					premultiplyAlpha: "none",
 				});
 				if (canceled) {
 					bitmap.close();
@@ -52,9 +47,11 @@ export default function CounterpartImageLayer({
 				}
 				const texture = Texture.from(bitmap, true);
 				setCounterpartTexture(texture);
-				
 			} catch (error) {
-				console.error("Failed to create image bitmap for counterpart image:", error);
+				console.error(
+					"Failed to create image bitmap for counterpart image:",
+					error,
+				);
 			}
 		};
 		loadTexture();
@@ -65,7 +62,7 @@ export default function CounterpartImageLayer({
 					prevTexture.destroy(true);
 				}
 				return Texture.EMPTY;
-			})
+			});
 		};
 	}, [counterpartImageQuery.isSuccess, counterpartImageQuery.data]);
 

@@ -1,7 +1,7 @@
 import { ScrollArea, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
 import GaussianModelCard from "./GaussianModelCard";
-import LinearModelCard from "./LinearModelCard";
 import { useFitModelsSection } from "./hooks/useFitModelsSection";
+import LinearModelCard from "./LinearModelCard";
 import { fitModelsSectionRecipe } from "./recipes/fit-models-section.recipe";
 
 export default function FitModelsSection() {

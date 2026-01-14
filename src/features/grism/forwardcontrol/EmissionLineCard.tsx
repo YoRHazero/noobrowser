@@ -1,8 +1,15 @@
-import { Box, Flex, HStack, IconButton, Text, useSlotRecipe } from "@chakra-ui/react";
+import {
+	Box,
+	Flex,
+	HStack,
+	IconButton,
+	Text,
+	useSlotRecipe,
+} from "@chakra-ui/react";
 import { memo } from "react";
 import { LuTrash2 } from "react-icons/lu";
-import { emissionLineCardRecipe } from "./recipes/emission-line-card.recipe";
 import { useEmissionLineCard } from "./hooks/useEmissionLineCard";
+import { emissionLineCardRecipe } from "./recipes/emission-line-card.recipe";
 
 interface EmissionLineCardProps {
 	emissionName: string;

@@ -114,8 +114,7 @@ export function useLinearModelCard(model: FitLinearModel) {
 	const handleX2 = createHandler((v) =>
 		updateModel(model.id, { range: { ...model.range, max: v } }),
 	);
-	const handleColorChange = (color: string) =>
-		updateModel(model.id, { color });
+	const handleColorChange = (color: string) => updateModel(model.id, { color });
 	const handleRename = (name: string) => renameModel(model.id, name);
 	const handleToggle = (active: boolean) => toggleActive(model.id, active);
 	const handleRemove = () => removeModel(model.id);

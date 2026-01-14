@@ -29,16 +29,16 @@ export const fitConfigurationCardRecipe = defineSlotRecipe({
 		body: {
 			p: 3,
 		},
-	name: {
-		fontWeight: "bold",
-		fontSize: "xs",
-		maxW: "110px",
-		overflow: "hidden",
-		textOverflow: "ellipsis",
-		whiteSpace: "nowrap",
-		fontFamily: "mono",
-		color: "fg",
-	},
+		name: {
+			fontWeight: "bold",
+			fontSize: "xs",
+			maxW: "110px",
+			overflow: "hidden",
+			textOverflow: "ellipsis",
+			whiteSpace: "nowrap",
+			fontFamily: "mono",
+			color: "fg",
+		},
 		meta: {
 			fontSize: "2xs",
 			color: "fg.muted",

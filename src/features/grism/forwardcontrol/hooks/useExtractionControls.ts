@@ -1,6 +1,6 @@
+import { useQuery } from "@tanstack/react-query";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
-import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import { useFitStore } from "@/stores/fit";
@@ -16,9 +16,6 @@ export function useExtractionControls() {
 	const {
 		collapseWindow,
 		setCollapseWindow,
-		forwardWaveRange,
-		forwardSourcePosition,
-		apertureSize,
 		showTraceOnSpectrum2D,
 		switchShowTraceOnSpectrum2D,
 		waveUnit,
@@ -30,9 +27,6 @@ export function useExtractionControls() {
 		useShallow((state) => ({
 			collapseWindow: state.collapseWindow,
 			setCollapseWindow: state.setCollapseWindow,
-			forwardWaveRange: state.forwardWaveRange,
-			forwardSourcePosition: state.forwardSourcePosition,
-			apertureSize: state.apertureSize,
 			showTraceOnSpectrum2D: state.showTraceOnSpectrum2D,
 			switchShowTraceOnSpectrum2D: state.switchShowTraceOnSpectrum2D,
 			waveUnit: state.waveUnit,
@@ -117,11 +111,13 @@ export function useExtractionControls() {
 		[minInput, maxInput, applySliceRange, waveUnit],
 	);
 
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
-		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-		queryFn: async () => undefined,
-		enabled: false,
-	});
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
+		{
+			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+			queryFn: async () => undefined,
+			enabled: false,
+		},
+	);
 
 	const wavelength = extractSpectrumData?.wavelength ?? [];
 	const hasSpectrum = wavelength.length > 0;

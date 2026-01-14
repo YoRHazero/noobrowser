@@ -78,11 +78,7 @@ export default function FitModelTransferListBox() {
 									{groupLabel}
 								</Listbox.ItemGroupLabel>
 								{items.map((item) => (
-									<Listbox.Item
-										key={item.value}
-										item={item}
-										css={styles.item}
-									>
+									<Listbox.Item key={item.value} item={item} css={styles.item}>
 										<Listbox.ItemText fontSize="xs">
 											{item.label}
 										</Listbox.ItemText>

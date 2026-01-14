@@ -91,24 +91,36 @@ export function CatalogList({ selectedId, onSelect }: CatalogListProps) {
 
 						<Pagination.Context>
 							{({ pages }) =>
-								pages.map((page, index) =>
-									page.type === "page" ? (
-										<Pagination.Item key={page.value} {...page} asChild>
-											<IconButton
-												variant={page.value === data.page ? "outline" : "ghost"}
-												size="sm"
-											>
-												{page.value}
-											</IconButton>
-										</Pagination.Item>
-									) : (
-										// biome-ignore lint/suspicious/noArrayIndexKey: Ellipsis items do not have unique IDs and index is stable enough here
+								pages.map((page, index) => {
+									if (page.type === "page") {
+										return (
+											<Pagination.Item key={page.value} {...page} asChild>
+												<IconButton
+													variant={
+														page.value === data.page ? "outline" : "ghost"
+													}
+													size="sm"
+												>
+													{page.value}
+												</IconButton>
+											</Pagination.Item>
+										);
+									}
+									const prevValue =
+										pages[index - 1]?.type === "page"
+											? pages[index - 1].value
+											: "start";
+									const nextValue =
+										pages[index + 1]?.type === "page"
+											? pages[index + 1].value
+											: "end";
+									return (
 										<Pagination.Ellipsis
-											key={`ellipsis-${index}`}
+											key={`ellipsis-${prevValue}-${nextValue}`}
 											index={index}
 										/>
-									),
-								)
+									);
+								})
 							}
 						</Pagination.Context>
 

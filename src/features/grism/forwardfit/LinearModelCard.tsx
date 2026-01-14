@@ -1,7 +1,7 @@
 import { Stack, Text } from "@chakra-ui/react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
-import ModelCardShell from "./components/ModelCardShell";
 import type { FitLinearModel } from "@/stores/stores-types";
+import ModelCardShell from "./components/ModelCardShell";
 import { useLinearModelCard } from "./hooks/useLinearModelCard";
 
 interface LinearModelCardProps {

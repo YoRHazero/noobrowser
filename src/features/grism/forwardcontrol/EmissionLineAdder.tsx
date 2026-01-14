@@ -11,8 +11,8 @@ import {
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { LuPlus } from "react-icons/lu";
-import { emissionLineAdderRecipe } from "./recipes/emission-line-adder.recipe";
 import { useEmissionLineAdder } from "./hooks/useEmissionLineAdder";
+import { emissionLineAdderRecipe } from "./recipes/emission-line-adder.recipe";
 
 export function EmissionLineAdder() {
 	const recipe = useSlotRecipe({ recipe: emissionLineAdderRecipe });

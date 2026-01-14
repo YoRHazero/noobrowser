@@ -2,8 +2,8 @@ import { Box, HStack } from "@chakra-ui/react";
 import { ExpandableBox } from "@/components/ui/custom-component";
 import CounterpartCanvas from "@/features/counterpart/CounterpartCanvas";
 import CounterpartPanel from "@/features/counterpart/CounterpartPanel";
-import CutoutNormControler from "@/features/counterpart/CutoutNormController";
 import CutoutCanvas from "@/features/counterpart/CutoutCanvas";
+import CutoutNormControler from "@/features/counterpart/CutoutNormController";
 import CutoutPanel from "@/features/counterpart/CutoutPanel";
 export default function Counterpart() {
 	return (

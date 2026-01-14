@@ -1,17 +1,18 @@
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { clamp } from "@/utils/projection.js";
 import type {
 	CollapseWindow,
 	CounterpartPosition,
 	CutoutParams,
 	NormParams,
 	RGBSet,
-	WaveUnit,
-	WaveRange,
 	RoiState,
+	WaveRange,
+	WaveUnit,
 	XY,
 } from "./stores-types.js";
-import { clamp } from "@/utils/projection.js";
+
 interface CounterpartState {
 	availableFilters: string[];
 	filterRGB: RGBSet;
@@ -165,8 +166,8 @@ export const useGrismStore = create<GrismState>()(
 			roiCollapseWindow: {
 				waveMin: 0,
 				waveMax: 256,
-				spatialMin: 128/2 - 5,
-				spatialMax: 128/2 + 5,
+				spatialMin: 128 / 2 - 5,
+				spatialMax: 128 / 2 + 5,
 			},
 			counterpartVisible: true,
 			setWaveUnit: (unit) => set({ waveUnit: unit }),
@@ -177,8 +178,7 @@ export const useGrismStore = create<GrismState>()(
 			setExtractedSpecSortedArray: (array) =>
 				set({ extractedSpecSortedArray: array }),
 			setNormInWindow: (inWindow) => set({ normInWindow: inWindow }),
-			setForwardSourcePosition: (pos) =>
-				set({ forwardSourcePosition: pos }),
+			setForwardSourcePosition: (pos) => set({ forwardSourcePosition: pos }),
 			setSpectrumQueryKey: (key) => set({ spectrumQueryKey: key }),
 			setForwardWaveRange: (patch) =>
 				set((state) => ({

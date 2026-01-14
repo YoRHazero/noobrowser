@@ -2,10 +2,10 @@
 
 import { Box, Separator } from "@chakra-ui/react";
 import { Panel, panelStyles } from "@/components/layout/Panel";
-import GrismWavelengthControl from "@/features/grism/GrismForwardWavelengthControl";
 import FitHeader from "@/features/grism/forwardfit/FitHeader";
-import FitModelTransferListBox from "@/features/grism/forwardfit/FitModelTransferListBox";
 import FitModelsSection from "@/features/grism/forwardfit/FitModelsSection";
+import FitModelTransferListBox from "@/features/grism/forwardfit/FitModelTransferListBox";
+import GrismWavelengthControl from "@/features/grism/GrismForwardWavelengthControl";
 
 export default function GrismForwardFit() {
 	return (

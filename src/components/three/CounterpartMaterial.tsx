@@ -5,21 +5,21 @@ import { Texture } from "three";
 // 1. Define Shader Material
 // The shaderMaterial helper creates a Three.js ShaderMaterial class automatically
 const CounterpartMaterial = shaderMaterial(
-    {
-        uTexture: new Texture(), // Default texture
-        uMode: 0,                // 0:RGB, 1:Red, 2:Green, 3:Blue
-        uOpacity: 1.0,           // Opacity
-    },
-    // Vertex Shader
-    `
+	{
+		uTexture: new Texture(), // Default texture
+		uMode: 0, // 0:RGB, 1:Red, 2:Green, 3:Blue
+		uOpacity: 1.0, // Opacity
+	},
+	// Vertex Shader
+	`
     varying vec2 vUv;
     void main() {
         vUv = uv;
         gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
     }
     `,
-    // Fragment Shader
-    `
+	// Fragment Shader
+	`
     uniform sampler2D uTexture;
     uniform int uMode;
     uniform float uOpacity;
@@ -42,16 +42,18 @@ const CounterpartMaterial = shaderMaterial(
         // Output color with opacity applied
         gl_FragColor = vec4(color, texColor.a * uOpacity);
     }
-    `
+    `,
 );
 
 // 2. Register with React Three Fiber
 extend({ CounterpartMaterial });
 
-export type CounterpartMaterialProps = ThreeElement<typeof CounterpartMaterial> & {
-    uTexture?: Texture | null;
-    uMode?: number;
-    uOpacity?: number;
+export type CounterpartMaterialProps = ThreeElement<
+	typeof CounterpartMaterial
+> & {
+	uTexture?: Texture | null;
+	uMode?: number;
+	uOpacity?: number;
 };
 
 export default CounterpartMaterial;

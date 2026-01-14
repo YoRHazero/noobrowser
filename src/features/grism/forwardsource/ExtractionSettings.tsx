@@ -10,8 +10,8 @@ import {
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { Activity } from "lucide-react";
-import GrismFitJobDrawer from "../fitjob/GrismFitJobDrawer";
 import FitJobPoller from "../fitjob/FitJobPoller";
+import GrismFitJobDrawer from "../fitjob/GrismFitJobDrawer";
 import { SectionHeader } from "./components/SectionHeader";
 import { useExtractionSettings } from "./hooks/useExtractionSettings";
 import { extractionSettingsRecipe } from "./recipes/extraction-settings.recipe";

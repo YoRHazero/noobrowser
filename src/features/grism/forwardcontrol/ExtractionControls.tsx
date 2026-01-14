@@ -1,4 +1,11 @@
-import { Button, HStack, Stack, Switch, Text, useSlotRecipe } from "@chakra-ui/react";
+import {
+	Button,
+	HStack,
+	Stack,
+	Switch,
+	Text,
+	useSlotRecipe,
+} from "@chakra-ui/react";
 import { useId } from "react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";

@@ -1,4 +1,4 @@
-import { defineSlotRecipe, defaultConfig } from "@chakra-ui/react";
+import { defaultConfig, defineSlotRecipe } from "@chakra-ui/react";
 
 const defaultScrollArea = defaultConfig.theme?.slotRecipes?.scrollArea;
 

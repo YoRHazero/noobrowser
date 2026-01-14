@@ -22,10 +22,7 @@ export function useEmissionLineCard(emissionName: string) {
 		})),
 	);
 
-	const isSelected = Object.prototype.hasOwnProperty.call(
-		selectedEmissionLines,
-		emissionName,
-	);
+	const isSelected = Object.hasOwn(selectedEmissionLines, emissionName);
 
 	const formatted = useMemo(() => {
 		const restUm = emissionLines[emissionName];

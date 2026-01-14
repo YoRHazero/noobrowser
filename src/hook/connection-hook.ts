@@ -1,29 +1,35 @@
-
+import type { Query } from "@tanstack/query-core";
 import {
 	keepPreviousData,
+	type QueryKey,
 	type UseQueryOptions,
 	type UseQueryResult,
+	useMutation,
 	useQueries,
 	useQuery,
-	useMutation
 } from "@tanstack/react-query";
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
+import { toaster } from "@/components/ui/toaster";
 import { useConnectionStore } from "@/stores/connection";
+import { useFitStore } from "@/stores/fit";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
-import { useFitStore } from "@/stores/fit";
 import { useSourcesStore } from "@/stores/sources";
-import type { FitModel, RoiState, JobStatus } from "@/stores/stores-types";
-import { toaster } from "@/components/ui/toaster";
+import type { FitModel, JobStatus, RoiState } from "@/stores/stores-types";
 
-type QueryAxiosParams<T = any> = {
-	queryKey: Array<any>;
+type QueryAxiosParams<T = unknown> = {
+	queryKey: QueryKey;
 	path: string;
 	enabled?: boolean;
-	axiosGetParams?: Record<string, any>;
+	axiosGetParams?: AxiosRequestConfig;
 	returnType?: "response" | "data";
 	queryOptions?: Omit<UseQueryOptions<T>, "queryKey" | "queryFn" | "enabled">;
 	checkParamsNull?: boolean;
+};
+
+type ApiErrorDetail = {
+	loc: Array<string | number>;
+	msg: string;
 };
 /**
  * Hook to perform axios GET request with react-query
@@ -37,7 +43,7 @@ type QueryAxiosParams<T = any> = {
  * @param params.checkParamsNull Whether to check for null/undefined in axiosGetParams.params (default: true)
  * @returns useQuery result
  */
-export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
+export function useQueryAxiosGet<T = unknown>(params: QueryAxiosParams<T>) {
 	const {
 		queryKey,
 		path,
@@ -88,7 +94,7 @@ type SourcePosition = {
 	dec_dms: string;
 	ref_basename: string;
 	group_id?: string;
-}
+};
 export function useSourcePosition({
 	selectedFootprintId,
 	x,
@@ -120,15 +126,7 @@ export function useSourcePosition({
 	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const query = useQueryAxiosGet<SourcePosition>({
-		queryKey: [
-			"source_position",
-			group_id,
-			x,
-			y,
-			ra,
-			dec,
-			ref_basename,
-		],
+		queryKey: ["source_position", group_id, x, y, ra, dec, ref_basename],
 		enabled: enabled,
 		path: "/source/source_position/",
 		axiosGetParams: {
@@ -194,7 +192,9 @@ export function useCounterpartImage({
 		(state) => state.selectedFootprintId,
 	);
 	const ZustandFilterRGB = useCounterpartStore((state) => state.filterRGB);
-	const ZustandCounterpartNorm = useCounterpartStore((state) => state.counterpartNorm);
+	const ZustandCounterpartNorm = useCounterpartStore(
+		(state) => state.counterpartNorm,
+	);
 	const queryNormParams = normParams ?? ZustandCounterpartNorm;
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
 	const filterRGB = {
@@ -453,7 +453,7 @@ export type PercentileData = {
 	group_id: number;
 	percentiles: number[];
 	q: number[];
-}
+};
 
 export function useFluxPercentiles({
 	selectedFootprintId = null,
@@ -470,9 +470,9 @@ export function useFluxPercentiles({
 		(state) => state.selectedFootprintId,
 	);
 	const group_id = selectedFootprintId ?? ZustandFootprintId;
-	const queryParams: Record<string, any> = {}
+	const queryParams: Record<string, number | number[]> = {};
 	if (q.length > 0) {
-		queryParams.percentage = q
+		queryParams.percentage = q;
 	}
 	if (roi !== null) {
 		queryParams.roi_x = roi.x;
@@ -481,18 +481,18 @@ export function useFluxPercentiles({
 		queryParams.roi_height = roi.height;
 	}
 	const query = useQueryAxiosGet<PercentileData>({
-		queryKey: ["percentile_flux", group_id, {q, roi}],
+		queryKey: ["percentile_flux", group_id, { q, roi }],
 		path: `/wfss/percentile_flux/${group_id}`,
 		axiosGetParams: {
 			params: queryParams,
 			paramsSerializer: {
-				indexes: null
-			}
+				indexes: null,
+			},
 		},
 		enabled: enabled && group_id !== null,
 		queryOptions: {
 			gcTime: 1000, // garbage collect after 1 second of inactivity
-		}
+		},
 	});
 	return query;
 }
@@ -522,7 +522,7 @@ export function useExtractSpectrum({
 	y?: number | null;
 	cutoutParams?: Record<string, number> | null;
 	enabled?: boolean;
-	queryKey?: Array<any>;
+	queryKey?: QueryKey;
 }) {
 	if (apertureSize === null && cutoutParams === null) {
 		throw new Error("Either apertureSize or cutoutParams must be provided");
@@ -539,7 +539,13 @@ export function useExtractSpectrum({
 		apertureSize ??
 		(cutoutParams ? Math.max(cutoutParams.width, cutoutParams.height) : null);
 	const query = useQueryAxiosGet<ExtractedSpectrum>({
-		queryKey: queryKey ?? ["extract_spectrum", group_id, queryX, queryY, aperture],
+		queryKey: queryKey ?? [
+			"extract_spectrum",
+			group_id,
+			queryX,
+			queryY,
+			aperture,
+		],
 		path: "/source/extract_spectrum/",
 		enabled: enabled,
 		axiosGetParams: {
@@ -568,7 +574,7 @@ export type DispersionTrace = {
 	trace_xs: number[];
 	trace_ys: number[];
 	mean_pixel_scale: number;
-}
+};
 
 export function useDispersionTrace({
 	selectedFootprintId,
@@ -599,17 +605,9 @@ export function useDispersionTrace({
 		...(waveMin !== undefined ? { wavemin: waveMin } : {}),
 		...(waveMax !== undefined ? { wavemax: waveMax } : {}),
 	};
-	
+
 	const query = useQueryAxiosGet<DispersionTrace>({
-		queryKey: [
-			"dispersion_trace",
-			group_id,
-			basename,
-			x,
-			y,
-			waveMin,
-			waveMax,
-		],
+		queryKey: ["dispersion_trace", group_id, basename, x, y, waveMin, waveMax],
 		path: "/source/dispersion_trace/",
 		enabled: enabled && (!!group_id || !!basename),
 		axiosGetParams: {
@@ -621,7 +619,6 @@ export function useDispersionTrace({
 	});
 	return query;
 }
-
 
 /* -------------------------------------------------------------------------- */
 /*                             Submit Fitting Job                             */
@@ -635,7 +632,7 @@ export type ExtractionBackendConfiguration = {
 		min: number;
 		max: number;
 	};
-}
+};
 
 export type SourceMetaBackend = {
 	source_id: string;
@@ -646,22 +643,22 @@ export type SourceMetaBackend = {
 	ref_basename?: string;
 	group_id?: string | null;
 	z?: number;
-}
+};
 
 export type ExtractionBodyRequest = {
 	extraction_config: ExtractionBackendConfiguration;
 	source_meta: SourceMetaBackend;
-}
+};
 
 export type FitBackendConfiguration = {
 	model_name: string;
 	models: FitModel[];
-}
+};
 
 export type FitBodyRequest = {
 	extraction: ExtractionBodyRequest;
 	fit: FitBackendConfiguration[];
-}
+};
 
 /* ---------------------------- Response Schemas ---------------------------- */
 export type SingleModelFitResult = {
@@ -672,22 +669,20 @@ export type SingleModelFitResult = {
 	trace_filename: string;
 	plot_file_url: string;
 	plot_posterior_url: string;
-}
+};
 
 export type FitResultPayload = {
 	results: Record<string, SingleModelFitResult>;
 	best_model_name: string;
 	model_comparison_plot_url?: string;
-}
-
-
+};
 
 export type FitJobResponse = {
 	job_id: string;
 	status: JobStatus;
 	result?: FitResultPayload;
 	error?: string;
-}
+};
 
 /* --------------------------- Query and Mutation --------------------------- */
 type SubmitMutationVariables = {
@@ -695,30 +690,26 @@ type SubmitMutationVariables = {
 	sourceMeta?: SourceMetaBackend;
 	extractionConfig?: ExtractionBackendConfiguration;
 	fitConfigs?: FitBackendConfiguration[];
-}
-
+};
 
 export function useSubmitFitJobMutation() {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 
-	const traceSources = useSourcesStore((state => state.traceSources));
+	const traceSources = useSourcesStore((state) => state.traceSources);
 
 	const storedConfiguration = useFitStore((state) => state.configurations);
 
-	return useMutation<FitJobResponse, Error, SubmitMutationVariables> ({
+	return useMutation<FitJobResponse, Error, SubmitMutationVariables>({
 		mutationFn: async (variables) => {
-			const {
-				sourceId,
-				sourceMeta,
-				extractionConfig,
-				fitConfigs,
-			} = variables;
+			const { sourceId, sourceMeta, extractionConfig, fitConfigs } = variables;
 
-			const finalExtractionConfig: ExtractionBackendConfiguration = extractionConfig ?? {
-				aperture_size: 5,
-				extraction_mode: "GRISMR",
-			};
-			const finalFitConfigs: FitBackendConfiguration[] = fitConfigs ??
+			const finalExtractionConfig: ExtractionBackendConfiguration =
+				extractionConfig ?? {
+					aperture_size: 5,
+					extraction_mode: "GRISMR",
+				};
+			const finalFitConfigs: FitBackendConfiguration[] =
+				fitConfigs ??
 				storedConfiguration
 					.filter((config) => config.selected)
 					.map((config) => ({
@@ -726,7 +717,9 @@ export function useSubmitFitJobMutation() {
 						models: config.models,
 					}));
 			if (finalFitConfigs.length === 0) {
-				throw new Error("No fit configurations selected. Please select at least one configuration.");
+				throw new Error(
+					"No fit configurations selected. Please select at least one configuration.",
+				);
 			}
 			let finalSourceMeta: SourceMetaBackend;
 			if (sourceMeta) {
@@ -754,10 +747,7 @@ export function useSubmitFitJobMutation() {
 				fit: finalFitConfigs,
 			};
 			try {
-				const response = await axios.post(
-					`${backendUrl}/fit/submit/`,
-					payload,
-				);
+				const response = await axios.post(`${backendUrl}/fit/submit/`, payload);
 				return response.data as FitJobResponse;
 			} catch (error) {
 				if (axios.isAxiosError(error) && error.response) {
@@ -766,19 +756,18 @@ export function useSubmitFitJobMutation() {
 
 					if (data?.detail) {
 						if (Array.isArray(data.detail)) {
-							errorMsg = data.detail
-								.map((err: any) => `${err.loc.join(".")} -> ${err.msg}`)
+							const detail = data.detail as ApiErrorDetail[];
+							errorMsg = detail
+								.map((err) => `${err.loc.join(".")} -> ${err.msg}`)
 								.join("\n");
 						} else if (typeof data.detail === "object") {
 							errorMsg = JSON.stringify(data.detail);
 						} else {
 							errorMsg = String(data.detail);
 						}
-					} 
-					else if (data?.message) {
+					} else if (data?.message) {
 						errorMsg = data.message;
-					} 
-					else {
+					} else {
 						errorMsg = error.message;
 					}
 					throw new Error(`Fit job submission failed:\n${errorMsg}`);
@@ -786,23 +775,28 @@ export function useSubmitFitJobMutation() {
 				throw error;
 			}
 		},
-		onSuccess: (data, variables) => {
-			toaster.success({ title: "Fit Job Submitted", description: `Job ID: ${data.job_id.slice(0, 8)}` });
+		onSuccess: (data, _variables) => {
+			toaster.success({
+				title: "Fit Job Submitted",
+				description: `Job ID: ${data.job_id.slice(0, 8)}`,
+			});
 			useFitStore.getState().addJob(data);
 		},
 		onError: (error) => {
-			toaster.error({ title: "Fit Job Submission Failed", description: error.message });
-		}
-	})
+			toaster.error({
+				title: "Fit Job Submission Failed",
+				description: error.message,
+			});
+		},
+	});
 }
 
 export function useFitJobStatusQuery() {
 	const jobs = useFitStore((state) => state.jobs);
-	const updateJob = useFitStore((state) => state.updateJob);
-	
+
 	// Filter jobs that need polling (pending or processing)
 	const activeJobs = jobs.filter(
-		(job) => job.status === "pending" || job.status === "processing"
+		(job) => job.status === "pending" || job.status === "processing",
 	);
 
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
@@ -811,11 +805,13 @@ export function useFitJobStatusQuery() {
 		queries: activeJobs.map((job) => ({
 			queryKey: ["fit_job_status", job.job_id],
 			queryFn: async () => {
-				const response = await axios.get(`${backendUrl}/fit/status/${job.job_id}/`);
+				const response = await axios.get(
+					`${backendUrl}/fit/status/${job.job_id}/`,
+				);
 				return response.data as FitJobResponse;
 			},
-			refetchInterval: (data: any) => {
-				const status = data?.state?.data?.status;
+			refetchInterval: (query: Query<FitJobResponse>) => {
+				const status = query.state.data?.status;
 				if (status === "completed" || status === "failed") {
 					return false;
 				}
@@ -829,7 +825,9 @@ export function useFitJobStatusQuery() {
 export function useSingleJobPoller(jobId: string) {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 
-	const existingJob = useFitStore((state) => state.jobs.find((j) => j.job_id === jobId));
+	const existingJob = useFitStore((state) =>
+		state.jobs.find((j) => j.job_id === jobId),
+	);
 
 	return useQuery({
 		queryKey: ["fit_job_status", jobId],
@@ -837,7 +835,10 @@ export function useSingleJobPoller(jobId: string) {
 			const response = await axios.get(`${backendUrl}/fit/status/${jobId}/`);
 			return response.data as FitJobResponse;
 		},
-		enabled: !!jobId && (existingJob?.status === "pending" || existingJob?.status === "processing"),
+		enabled:
+			!!jobId &&
+			(existingJob?.status === "pending" ||
+				existingJob?.status === "processing"),
 		refetchInterval: (query) => {
 			const status = query.state.data?.status;
 			if (status === "completed" || status === "failed") {
@@ -874,7 +875,7 @@ export function useSaveFitResultMutation() {
 					`${backendUrl}/fit/save/${sourceId}/`,
 					{
 						tags: tags || [],
-					}	
+					},
 				);
 				return response.data as SaveFitResultResponse;
 			} catch (error) {
@@ -884,8 +885,9 @@ export function useSaveFitResultMutation() {
 
 					if (data?.detail) {
 						if (Array.isArray(data.detail)) {
-							errorMsg = data.detail
-								.map((err: any) => `${err.loc.join(".")} -> ${err.msg}`)
+							const detail = data.detail as ApiErrorDetail[];
+							errorMsg = detail
+								.map((err) => `${err.loc.join(".")} -> ${err.msg}`)
 								.join("\n");
 						} else if (typeof data.detail === "object") {
 							errorMsg = JSON.stringify(data.detail);
@@ -970,4 +972,3 @@ export function useCatalogQuery({
 		},
 	});
 }
- 

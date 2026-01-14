@@ -1,15 +1,15 @@
-import { useState } from "react";
 import {
+	type QueryFunctionContext,
+	type QueryKey,
 	type UseQueryOptions,
-    type QueryFunctionContext,
-    useQuery
+	useQuery,
 } from "@tanstack/react-query";
+import axios, { type AxiosProgressEvent, type AxiosRequestConfig } from "axios";
+import { useState } from "react";
 import { useConnectionStore } from "@/stores/connection";
-import axios, { type AxiosRequestConfig, type AxiosProgressEvent } from "axios";
 
-
-type QueryAxiosParams<T = any> = {
-	queryKey: Array<any>;
+type QueryAxiosParams<T = unknown> = {
+	queryKey: QueryKey;
 	path: string;
 	enabled?: boolean;
 	axiosGetParams?: AxiosRequestConfig;
@@ -29,7 +29,7 @@ type QueryAxiosParams<T = any> = {
  * @param params.checkParamsNull Whether to check for null/undefined in axiosGetParams.params (default: true)
  * @returns useQuery result
  */
-export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
+export function useQueryAxiosGet<T = unknown>(params: QueryAxiosParams<T>) {
 	const {
 		queryKey,
 		path,
@@ -40,7 +40,7 @@ export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
 	} = params;
 	const isConnected = useConnectionStore((state) => state.isConnected);
 
-    const [downloadProgress, setDownloadProgress] = useState<number>(0);
+	const [downloadProgress, setDownloadProgress] = useState<number>(0);
 	let enabled = (params.enabled ?? true) && isConnected;
 	if (axiosGetParams?.params && checkParamsNull) {
 		const paramsHasNull = Object.values(axiosGetParams.params).some(
@@ -52,30 +52,28 @@ export function useQueryAxiosGet<T = any>(params: QueryAxiosParams<T>) {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 
 	const queryFn = async ({ signal }: QueryFunctionContext) => {
-        setDownloadProgress(0);
-        const axiosConfig: AxiosRequestConfig = {
-            ...axiosGetParams,
-            signal,
-            onDownloadProgress: (progressEvent: AxiosProgressEvent) => {
-                if (progressEvent.total) {
-                    const percentCompleted = Math.round(
-                        (progressEvent.loaded * 100) / progressEvent.total,
-                    );
-                    setDownloadProgress(percentCompleted);
-                }
-                if (axiosGetParams.onDownloadProgress) {
-                    axiosGetParams.onDownloadProgress(progressEvent);
-                }
-            }
-        }
+		setDownloadProgress(0);
+		const axiosConfig: AxiosRequestConfig = {
+			...axiosGetParams,
+			signal,
+			onDownloadProgress: (progressEvent: AxiosProgressEvent) => {
+				if (progressEvent.total) {
+					const percentCompleted = Math.round(
+						(progressEvent.loaded * 100) / progressEvent.total,
+					);
+					setDownloadProgress(percentCompleted);
+				}
+				if (axiosGetParams.onDownloadProgress) {
+					axiosGetParams.onDownloadProgress(progressEvent);
+				}
+			},
+		};
 
 		if (returnType === "response") {
 			return axios.get(backendUrl + path, axiosConfig);
 		}
 		if (returnType === "data") {
-			return axios
-				.get(backendUrl + path, axiosConfig)
-				.then((res) => res.data);
+			return axios.get(backendUrl + path, axiosConfig).then((res) => res.data);
 		}
 		throw new Error(`Invalid returnType: ${returnType}`);
 	};

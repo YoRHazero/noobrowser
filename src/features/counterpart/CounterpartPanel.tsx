@@ -61,7 +61,7 @@ function RGBSelector({
 				</Select.Control>
 				<Select.Positioner>
 					<Select.Content>
-						{collection.items.map((item: any) => (
+						{collection.items.map((item) => (
 							<Select.Item key={item.value} item={item}>
 								{item.label}
 								<Select.ItemIndicator />

@@ -1,21 +1,26 @@
 // stores/fit.ts
+
+import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
-import { v4 as uuidv4 } from "uuid";
 import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
+import type { FitJobResponse } from "@/hook/connection-hook";
 import type {
+	FitConfiguration,
+	FitExtractionSettings,
 	FitGaussianModel,
 	FitLinearModel,
 	FitModel,
 	FitModelType,
+	FitPrior,
 	FitRange,
 	WaveFrame,
-	FitConfiguration,
-	FitPrior,
-	FitExtractionSettings,
 } from "@/stores/stores-types";
-import type { FitJobResponse } from "@/hook/connection-hook";
-import { normalizeModels, normalizeRange, updatePriorInModel } from "@/stores/stores-utils";
+import {
+	normalizeModels,
+	normalizeRange,
+	updatePriorInModel,
+} from "@/stores/stores-utils";
 
 export interface FitState {
 	waveFrame: WaveFrame;
@@ -29,7 +34,11 @@ export interface FitState {
 	ensureInitialModels: (range: FitRange) => void;
 	duplicateNameIds: () => number[];
 
-	updateModelPrior: (modelId: number, paramName: string, prior: FitPrior | undefined) => void;
+	updateModelPrior: (
+		modelId: number,
+		paramName: string,
+		prior: FitPrior | undefined,
+	) => void;
 	updateConfigurationModelPrior: (
 		configId: string,
 		modelId: number,
@@ -234,7 +243,9 @@ export const useFitStore = create<FitState>()(
 			},
 
 			filterLinearModel: () => {
-				return get().models.filter((m) => m.kind === "linear") as FitLinearModel[];
+				return get().models.filter(
+					(m) => m.kind === "linear",
+				) as FitLinearModel[];
 			},
 
 			filterActivatedModel: () => {
@@ -264,13 +275,14 @@ export const useFitStore = create<FitState>()(
 					),
 				})),
 
-			loadConfigurationToDraft: (id) => set((state) => {
-				const config = state.configurations.find((c) => c.id === id);
-				if (!config) return {};
-				const modelsCopy = JSON.parse(JSON.stringify(config.models));
-				return { models: modelsCopy };
-			}),
-			
+			loadConfigurationToDraft: (id) =>
+				set((state) => {
+					const config = state.configurations.find((c) => c.id === id);
+					if (!config) return {};
+					const modelsCopy = JSON.parse(JSON.stringify(config.models));
+					return { models: modelsCopy };
+				}),
+
 			getSelectedConfiguration: () => {
 				return get().configurations.filter((c) => c.selected);
 			},
@@ -281,17 +293,19 @@ export const useFitStore = create<FitState>()(
 					),
 				})),
 			addJob: (job) => set((state) => ({ jobs: [...state.jobs, job] })),
-			removeJob: (id) => set((state) => ({ jobs: state.jobs.filter((j) => j.job_id !== id) })),
-			updateJob: (job) => set((state) => ({
-				jobs: state.jobs.map((j) => (j.job_id === job.job_id ? job : j)),
-			})),
-			}),
+			removeJob: (id) =>
+				set((state) => ({ jobs: state.jobs.filter((j) => j.job_id !== id) })),
+			updateJob: (job) =>
+				set((state) => ({
+					jobs: state.jobs.map((j) => (j.job_id === job.job_id ? job : j)),
+				})),
+		}),
 		{
 			name: "noobrowser-fit-store",
-			partialize: (state) => ({ 
+			partialize: (state) => ({
 				configurations: state.configurations,
-				jobs: state.jobs
+				jobs: state.jobs,
 			}),
-		}
-	)
+		},
+	),
 );

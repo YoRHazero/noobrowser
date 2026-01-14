@@ -16,6 +16,15 @@ extend({
 	RenderLayer,
 });
 
+type FootprintApiItem = {
+	id: string;
+	footprint: {
+		vertices: number[][];
+		center: [number, number];
+	};
+	meta: Record<string, unknown>;
+};
+
 export default function FootprintCanvas() {
 	// Render Layers
 	const parentRef = useRef<HTMLDivElement | null>(null);
@@ -32,14 +41,14 @@ export default function FootprintCanvas() {
 
 	// Footprint Query
 	const setFootprints = useGlobeStore((state) => state.setFootprints);
-	const footprintQuery = useQueryAxiosGet({
+	const footprintQuery = useQueryAxiosGet<FootprintApiItem[]>({
 		queryKey: ["grism_footprints"],
 		path: "/overview/grism_footprints",
 	});
 	useEffect(() => {
 		if (!footprintQuery.isSuccess) return;
-		const footprintData = footprintQuery.data;
-		const footprints = footprintData.map((fp: any) => ({
+		const footprintData = footprintQuery.data ?? [];
+		const footprints = footprintData.map((fp) => ({
 			id: fp.id,
 			vertices: fp.footprint.vertices.map((v: number[]) => ({
 				ra: v[0],

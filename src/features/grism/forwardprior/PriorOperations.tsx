@@ -5,7 +5,11 @@ import { LuRotateCcw, LuSparkles } from "react-icons/lu";
 
 import { toaster } from "@/components/ui/toaster";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { FitGaussianModel, FitModel, FitPrior } from "@/stores/stores-types";
+import type {
+	FitGaussianModel,
+	FitModel,
+	FitPrior,
+} from "@/stores/stores-types";
 
 interface PriorOperationsProps {
 	allModels: FitModel[];

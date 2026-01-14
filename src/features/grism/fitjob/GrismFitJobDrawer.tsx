@@ -1,18 +1,19 @@
-
-import {
-	Drawer,
-} from "@chakra-ui/react";
-import { useFitStore } from "@/stores/fit";
+import { Drawer } from "@chakra-ui/react";
 import { useState } from "react";
-import GrismFitJobDrawerHeader from "./GrismFitJobDrawerHeader";
+import { useFitStore } from "@/stores/fit";
 import GrismFitJobDrawerBody from "./GrismFitJobDrawerBody";
 import GrismFitJobDrawerFooter from "./GrismFitJobDrawerFooter";
+import GrismFitJobDrawerHeader from "./GrismFitJobDrawerHeader";
 
 /* -------------------------------------------------------------------------- */
 /*                             Main Drawer Component                          */
 /* -------------------------------------------------------------------------- */
 
-export default function GrismFitJobDrawer({ children }: { children: React.ReactNode }) {
+export default function GrismFitJobDrawer({
+	children,
+}: {
+	children: React.ReactNode;
+}) {
 	const jobs = useFitStore((state) => state.jobs);
 	const removeJob = useFitStore((state) => state.removeJob);
 
@@ -21,21 +22,21 @@ export default function GrismFitJobDrawer({ children }: { children: React.ReactN
 	// Ensure selected job exists and get it
 	const selectedJob = jobs.find((j) => j.job_id === selectedJobId);
 
-	const handleSelectJob = (id: string, status: string) => {
-        // Allow selection handling. Toggling off if selected.
-        if (selectedJobId === id) {
-            setSelectedJobId(null);
-        } else {
-            setSelectedJobId(id);
-        }
+	const handleSelectJob = (id: string, _status: string) => {
+		// Allow selection handling. Toggling off if selected.
+		if (selectedJobId === id) {
+			setSelectedJobId(null);
+		} else {
+			setSelectedJobId(id);
+		}
 	};
-    
-    const handleRemoveJob = (id: string) => {
-        removeJob(id);
-        if (selectedJobId === id) {
-            setSelectedJobId(null);
-        }
-    }
+
+	const handleRemoveJob = (id: string) => {
+		removeJob(id);
+		if (selectedJobId === id) {
+			setSelectedJobId(null);
+		}
+	};
 
 	return (
 		<Drawer.Root placement="end" size="xl">
@@ -43,17 +44,16 @@ export default function GrismFitJobDrawer({ children }: { children: React.ReactN
 			<Drawer.Trigger asChild>{children}</Drawer.Trigger>
 			<Drawer.Positioner>
 				<Drawer.Content bg="#09090b" borderLeft="1px solid #333">
-					<GrismFitJobDrawerHeader 
-                        jobs={jobs} 
-                        selectedJobId={selectedJobId} 
-                        onSelectJob={handleSelectJob} 
-                        onRemoveJob={handleRemoveJob} 
-                    />
-                    <GrismFitJobDrawerBody selectedJob={selectedJob} />
-                    <GrismFitJobDrawerFooter selectedJob={selectedJob} />
+					<GrismFitJobDrawerHeader
+						jobs={jobs}
+						selectedJobId={selectedJobId}
+						onSelectJob={handleSelectJob}
+						onRemoveJob={handleRemoveJob}
+					/>
+					<GrismFitJobDrawerBody selectedJob={selectedJob} />
+					<GrismFitJobDrawerFooter selectedJob={selectedJob} />
 				</Drawer.Content>
 			</Drawer.Positioner>
 		</Drawer.Root>
 	);
 }
-

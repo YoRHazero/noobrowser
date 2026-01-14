@@ -1,14 +1,14 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { clamp } from "@/utils/projection";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
+import { clamp } from "@/utils/projection";
 import {
+	ANGSTROM_PER_MICRON,
 	displayFactor,
 	formatWavelength,
-	toDisplayWavelength,
-	ANGSTROM_PER_MICRON,
 	fromDisplayWavelength,
+	toDisplayWavelength,
 } from "@/utils/wavelength";
 
 /* -------------------------------------------------------------------------- */
@@ -269,18 +269,20 @@ export function useSliceRangeManager() {
 
 	return {
 		// 原始字符串（如果还需要处理复杂输入逻辑）
-		minInputStr: minInput, 
+		minInputStr: minInput,
 		maxInputStr: maxInput,
 
 		// ✨ 新增：专门给 CompactNumberInput 用的数字取值器
 		// 如果是空字符串，返回 NaN，CompactNumberInput 会处理为空
 		minValue: minInput === "" ? NaN : parseFloat(minInput),
 		maxValue: maxInput === "" ? NaN : parseFloat(maxInput),
-		
+
 		// ✨ 新增：专门给 CompactNumberInput 用的 Setter
 		// 直接接收 number，内部转 string
-		setMin: (val: number) => setMinInput(Number.isNaN(val) ? "" : val.toString()),
-		setMax: (val: number) => setMaxInput(Number.isNaN(val) ? "" : val.toString()),
+		setMin: (val: number) =>
+			setMinInput(Number.isNaN(val) ? "" : val.toString()),
+		setMax: (val: number) =>
+			setMaxInput(Number.isNaN(val) ? "" : val.toString()),
 
 		applyRange,
 		waveUnit,

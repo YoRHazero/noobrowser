@@ -19,7 +19,7 @@ export function useFitModelsSection() {
 
 	useEffect(() => {
 		ensureInitialModels(slice1DWaveRange);
-	}, [ensureInitialModels, slice1DWaveRange.min, slice1DWaveRange.max]);
+	}, [ensureInitialModels, slice1DWaveRange]);
 
 	return {
 		models,

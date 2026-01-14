@@ -7,8 +7,8 @@ import {
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
-import type { CSSProperties } from "react";
 import { Cpu } from "lucide-react";
+import type { CSSProperties } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
 import type { TraceSource } from "@/stores/stores-types";
 import { useSourceItem } from "./hooks/useSourceItem";

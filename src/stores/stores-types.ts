@@ -15,7 +15,6 @@ export type XY = {
 	y: number;
 };
 
-
 export type MetaPosition = {
 	ra?: number;
 	dec?: number;
@@ -23,12 +22,12 @@ export type MetaPosition = {
 	y?: number;
 	ref_basename?: string;
 	group_id?: string;
-}
+};
 
 /* -------------------------------------------------------------------------- */
 /*                               Fit Prior Type                               */
 /* -------------------------------------------------------------------------- */
-export type PriorType = 
+export type PriorType =
 	| "Uniform"
 	| "Normal"
 	| "TruncatedNormal"
@@ -97,9 +96,10 @@ export interface BaseFitModel {
 	subtracted: boolean; // whether subtract this model from the spectrum in slice view
 	range: FitRange; // observed frame, µm
 	color: string; // Hex color code
-};
+}
 
-export interface FitLinearModel extends BaseFitModel { // k(x - x0) + b
+export interface FitLinearModel extends BaseFitModel {
+	// k(x - x0) + b
 	kind: "linear";
 	k: number;
 	b: number;
@@ -108,9 +108,10 @@ export interface FitLinearModel extends BaseFitModel { // k(x - x0) + b
 		k?: FitPrior;
 		b?: FitPrior;
 	};
-};
+}
 
-export interface FitGaussianModel extends BaseFitModel { // A * exp(-0.5 * ((x - µ) / σ)^2)
+export interface FitGaussianModel extends BaseFitModel {
+	// A * exp(-0.5 * ((x - µ) / σ)^2)
 	kind: "gaussian";
 	amplitude: number;
 	mu: number; // observed frame, µm
@@ -178,15 +179,21 @@ export type RoiState = {
 	height: number;
 };
 
-
 /* -------------------------------------------------------------------------- */
 /*                               Footprint type                               */
 /* -------------------------------------------------------------------------- */
 
+export type FootprintMeta = {
+	included_files?: string[];
+	selected_file?: string | null;
+	center?: RaDec;
+	[key: string]: unknown;
+};
+
 export type Footprint = {
 	id: string;
 	vertices: RaDec[];
-	meta?: Record<string, any>;
+	meta?: FootprintMeta;
 };
 
 export type ViewState = {
@@ -226,9 +233,9 @@ export type TraceSource = {
 	roi?: {
 		roiState: RoiState;
 		collapseWindow: CollapseWindow;
-	},
+	};
 	fitState?: {
 		jobId?: string;
 		jobStatus?: JobStatus;
-	}
+	};
 };

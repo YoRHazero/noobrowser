@@ -14,37 +14,37 @@ interface CatalogDetailProps {
 	item: CatalogItemResponse;
 }
 function pad2(n: number) {
-    return String(n).padStart(2, "0");
-  }
+	return String(n).padStart(2, "0");
+}
 export function ra2hms(raDeg: number) {
-    // wrap to [0, 360)
-    const ra = ((raDeg % 360) + 360) % 360;
-  
-    const totalHours = ra / 15;
-    const h = Math.floor(totalHours);
-  
-    const totalMinutes = (totalHours - h) * 60;
-    const m = Math.floor(totalMinutes);
-  
-    const s = (totalMinutes - m) * 60;
-  
-    return `${pad2(h)}:${pad2(m)}:${s.toFixed(2).padStart(5, "0")}`;
-  }
-  export function dec2dms(decDeg: number) {
-    const sign = decDeg < 0 ? "-" : "+";
-    const abs = Math.abs(decDeg);
-  
-    const d = Math.floor(abs);
-    const totalMinutes = (abs - d) * 60;
-    const m = Math.floor(totalMinutes);
-    const s = (totalMinutes - m) * 60;
-  
-    return `${sign}${pad2(d)}:${pad2(m)}:${s.toFixed(2).padStart(5, "0")}`;
-  }
+	// wrap to [0, 360)
+	const ra = ((raDeg % 360) + 360) % 360;
+
+	const totalHours = ra / 15;
+	const h = Math.floor(totalHours);
+
+	const totalMinutes = (totalHours - h) * 60;
+	const m = Math.floor(totalMinutes);
+
+	const s = (totalMinutes - m) * 60;
+
+	return `${pad2(h)}:${pad2(m)}:${s.toFixed(2).padStart(5, "0")}`;
+}
+export function dec2dms(decDeg: number) {
+	const sign = decDeg < 0 ? "-" : "+";
+	const abs = Math.abs(decDeg);
+
+	const d = Math.floor(abs);
+	const totalMinutes = (abs - d) * 60;
+	const m = Math.floor(totalMinutes);
+	const s = (totalMinutes - m) * 60;
+
+	return `${sign}${pad2(d)}:${pad2(m)}:${s.toFixed(2).padStart(5, "0")}`;
+}
 
 export function CatalogDetail({ item }: CatalogDetailProps) {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
-    const grizliCutoutUrl = `https://grizli-cutout.herokuapp.com/thumb?ra=${item.ra}&dec=${item.dec}&size=2&output=png&filters=f182m-clear,f210m-clear,f444w-clear`;
+	const grizliCutoutUrl = `https://grizli-cutout.herokuapp.com/thumb?ra=${item.ra}&dec=${item.dec}&size=2&output=png&filters=f182m-clear,f210m-clear,f444w-clear`;
 	return (
 		<Stack gap={4} p={4}>
 			<Box>
@@ -54,9 +54,9 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 					<Text fontSize="sm" color="fg.muted">
 						RA: {item.ra.toFixed(5)}, Dec: {item.dec.toFixed(5)}
 					</Text>
-                    <Text fontSize="sm" color="fg.muted">
-                        RA: {ra2hms(item.ra)}, Dec: {dec2dms(item.dec)}
-                    </Text>
+					<Text fontSize="sm" color="fg.muted">
+						RA: {ra2hms(item.ra)}, Dec: {dec2dms(item.dec)}
+					</Text>
 				</Stack>
 				<Text fontSize="xs" fontFamily="mono" color="fg.muted" mt={1}>
 					{item.ref_basename}
@@ -75,12 +75,7 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 					>
 						Posterior
 					</Tabs.Trigger>
-                    <Tabs.Trigger
-                        value="cutout"
-                    >
-                        Cutout
-                    </Tabs.Trigger>
-
+					<Tabs.Trigger value="cutout">Cutout</Tabs.Trigger>
 				</Tabs.List>
 
 				<Tabs.Content value="model_comparison" p={4}>
@@ -93,7 +88,12 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 								maxH="80vh"
 								w="full"
 							/>
-							<Text asChild fontSize="sm" color="blue.500" textDecoration="underline">
+							<Text
+								asChild
+								fontSize="sm"
+								color="blue.500"
+								textDecoration="underline"
+							>
 								<a
 									href={`${backendUrl}${item.model_comparison_plot_url}`}
 									target="_blank"
@@ -118,7 +118,12 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 								maxH="80vh"
 								w="full"
 							/>
-							<Text asChild fontSize="sm" color="blue.500" textDecoration="underline">
+							<Text
+								asChild
+								fontSize="sm"
+								color="blue.500"
+								textDecoration="underline"
+							>
 								<a
 									href={`${backendUrl}${item.best_model_plot_url}`}
 									target="_blank"
@@ -143,7 +148,12 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 								maxH="80vh"
 								w="full"
 							/>
-							<Text asChild fontSize="sm" color="blue.500" textDecoration="underline">
+							<Text
+								asChild
+								fontSize="sm"
+								color="blue.500"
+								textDecoration="underline"
+							>
 								<a
 									href={`${backendUrl}${item.best_model_posterior_url}`}
 									target="_blank"
@@ -158,26 +168,31 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 					)}
 				</Tabs.Content>
 
-                <Tabs.Content value="cutout" p={4}>
-                    <Stack gap={2} align="center">
-                        <Image
-                            src={grizliCutoutUrl}
-                            alt="Cutout"
-                            objectFit="contain"
-                            maxH="80vh"
-                            w="full"
-                        />
-                        <Text asChild fontSize="sm" color="blue.500" textDecoration="underline">
-                            <a
-                                href={grizliCutoutUrl}
-                                target="_blank"
-                                rel="noopener noreferrer"
-                            >
-                                Open in new tab
-                            </a>
-                        </Text>
-                    </Stack>
-                </Tabs.Content>
+				<Tabs.Content value="cutout" p={4}>
+					<Stack gap={2} align="center">
+						<Image
+							src={grizliCutoutUrl}
+							alt="Cutout"
+							objectFit="contain"
+							maxH="80vh"
+							w="full"
+						/>
+						<Text
+							asChild
+							fontSize="sm"
+							color="blue.500"
+							textDecoration="underline"
+						>
+							<a
+								href={grizliCutoutUrl}
+								target="_blank"
+								rel="noopener noreferrer"
+							>
+								Open in new tab
+							</a>
+						</Text>
+					</Stack>
+				</Tabs.Content>
 			</Tabs.Root>
 		</Stack>
 	);

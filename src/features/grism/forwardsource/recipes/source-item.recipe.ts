@@ -38,11 +38,11 @@ export const sourceItemRecipe = defineSlotRecipe({
 			fontFamily: "mono",
 			mt: 0.5,
 		},
-	runButton: {
-		minW: "24px",
-		h: "24px",
-		transition: "all 0.2s",
-	},
+		runButton: {
+			minW: "24px",
+			h: "24px",
+			transition: "all 0.2s",
+		},
 	},
 	variants: {
 		selected: {
@@ -56,12 +56,12 @@ export const sourceItemRecipe = defineSlotRecipe({
 				},
 			},
 		},
-	runnable: {
-		true: {
-			runButton: {
-				_hover: {
-					transform: "scale(1.1)",
-					bg: "cyan.500",
+		runnable: {
+			true: {
+				runButton: {
+					_hover: {
+						transform: "scale(1.1)",
+						bg: "cyan.500",
 						color: "white",
 						boxShadow: "0 0 8px rgba(6, 182, 212, 0.6)",
 					},

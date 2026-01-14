@@ -76,9 +76,7 @@ export default function ModelCardShell(props: ModelCardShellProps) {
 							size="sm"
 							colorPalette="cyan"
 							checked={active}
-							onCheckedChange={(details) =>
-								onToggleActive(details.checked)
-							}
+							onCheckedChange={(details) => onToggleActive(details.checked)}
 						>
 							<Switch.HiddenInput />
 							<Switch.Control css={styles.switchControl} />

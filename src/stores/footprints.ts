@@ -23,7 +23,7 @@ interface GlobeState {
 	setHoveredFootprintId: (id: string | null) => void;
 	setHoveredFootprintMousePosition: (position: XY | null) => void;
 	setSelectedFootprintId: (id: string | null) => void;
-	setFootprintMeta: (id: string, key: string, value: any) => void;
+	setFootprintMeta: (id: string, key: string, value: unknown) => void;
 }
 
 export const useGlobeStore = create<GlobeState>()((set, get) => ({

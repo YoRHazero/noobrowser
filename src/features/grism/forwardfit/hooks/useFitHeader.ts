@@ -6,14 +6,15 @@ import { useGrismStore } from "@/stores/image";
 import type { FitModelType } from "@/stores/stores-types";
 
 export function useFitHeader() {
-	const { addModel, models, saveCurrentConfiguration, updateModel } = useFitStore(
-		useShallow((state) => ({
-			addModel: state.addModel,
-			models: state.models,
-			saveCurrentConfiguration: state.saveCurrentConfiguration,
-			updateModel: state.updateModel,
-		})),
-	);
+	const { addModel, models, saveCurrentConfiguration, updateModel } =
+		useFitStore(
+			useShallow((state) => ({
+				addModel: state.addModel,
+				models: state.models,
+				saveCurrentConfiguration: state.saveCurrentConfiguration,
+				updateModel: state.updateModel,
+			})),
+		);
 
 	const { slice1DWaveRange } = useGrismStore(
 		useShallow((state) => ({

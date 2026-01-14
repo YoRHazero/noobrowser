@@ -1,7 +1,6 @@
 import { VStack } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import Title from "@/components/layout/Title";
-import Counterpart from "@/features/Counterpart";
 import Footprint from "@/features/Footprint";
 import Grism from "@/features/Grism";
 
@@ -14,7 +13,7 @@ function RouteComponent() {
 		<VStack align="start" p={4} gap={4} gapY={20} height="100%" overflow="auto">
 			<Title />
 			<Footprint />
-{/*			<Counterpart /> */}
+			{/*			<Counterpart /> */}
 			<Grism />
 		</VStack>
 	);

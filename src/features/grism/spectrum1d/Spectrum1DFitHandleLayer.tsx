@@ -1,7 +1,7 @@
 import type { ScaleLinear } from "d3-scale";
 import { memo, useState } from "react";
-import { useColorModeValue } from "@/components/ui/color-mode";
 import { useShallow } from "zustand/react/shallow";
+import { useColorModeValue } from "@/components/ui/color-mode";
 import { useFitStore } from "@/stores/fit";
 import type { FitGaussianModel, FitLinearModel } from "@/stores/stores-types";
 import { SQRT_2_LN2 } from "./constants";

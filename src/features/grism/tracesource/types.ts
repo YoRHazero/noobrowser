@@ -1,5 +1,5 @@
 export interface GlobalControlSettings {
-    apertureSize: number;
-    waveMin: number;
-    waveMax: number;
+	apertureSize: number;
+	waveMin: number;
+	waveMax: number;
 }

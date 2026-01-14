@@ -1,7 +1,7 @@
 import { extend, useApplication } from "@pixi/react";
+import { useQuery } from "@tanstack/react-query";
 import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
-import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import { useGrismStore } from "@/stores/image";
@@ -46,11 +46,13 @@ export default function CollapseWindowLayer({
 		};
 	}, [layerRef]);
 
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
-		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-		queryFn: async () => undefined,
-		enabled: false,
-	});
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
+		{
+			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+			queryFn: async () => undefined,
+			enabled: false,
+		},
+	);
 	const waveArray = extractSpectrumData?.wavelength || [];
 	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;
 	const { startIdx, endIdx } = getWavelengthSliceIndices(

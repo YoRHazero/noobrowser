@@ -1,7 +1,7 @@
 import { Stack, Text } from "@chakra-ui/react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
-import ModelCardShell from "./components/ModelCardShell";
 import type { FitGaussianModel } from "@/stores/stores-types";
+import ModelCardShell from "./components/ModelCardShell";
 import { useGaussianModelCard } from "./hooks/useGaussianModelCard";
 
 interface GaussianModelCardProps {
@@ -42,11 +42,7 @@ export default function GaussianModelCard(props: GaussianModelCardProps) {
 			onToggleActive={handleToggle}
 			onRemove={handleRemove}
 			stepControls={stepControls}
-			formula={
-				<Text>
-					y = A·exp(−(x−μ)²/2σ²) &nbsp; (x1 &lt; x &lt; x2)
-				</Text>
-			}
+			formula={<Text>y = A·exp(−(x−μ)²/2σ²) &nbsp; (x1 &lt; x &lt; x2)</Text>}
 		>
 			<Stack gap={1}>
 				<CompactNumberInput
