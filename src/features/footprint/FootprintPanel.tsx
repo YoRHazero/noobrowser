@@ -17,7 +17,7 @@ import { centerRaDecToView } from "@/utils/projection";
 
 type Rows = {
 	fp: Footprint;
-	center: { ra: number; dec: number };
+	center: { ra: number; dec: number } | undefined;
 	included_files: string[];
 	current: string;
 	collection: ReturnType<
@@ -100,11 +100,11 @@ export default function FootprintPanel() {
 						{/* info */}
 						<HStack px={3} pb={2} wrap="wrap" gap={3}>
 							<Text fontSize="sm" color="fg.muted">
-								RA: {Number.isFinite(center?.ra) ? center.ra.toFixed(5) : "--"}°
+								RA: {Number.isFinite(center?.ra) ? center?.ra.toFixed(5) : "--"}°
 							</Text>
 							<Text fontSize="sm" color="fg.muted">
 								Dec:{" "}
-								{Number.isFinite(center?.dec) ? center.dec.toFixed(5) : "--"}°
+								{Number.isFinite(center?.dec) ? center?.dec.toFixed(5) : "--"}°
 							</Text>
 						</HStack>
 

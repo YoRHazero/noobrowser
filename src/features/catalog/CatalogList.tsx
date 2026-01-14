@@ -106,14 +106,12 @@ export function CatalogList({ selectedId, onSelect }: CatalogListProps) {
 											</Pagination.Item>
 										);
 									}
+									const prevPage = pages[index - 1];
+									const nextPage = pages[index + 1];
 									const prevValue =
-										pages[index - 1]?.type === "page"
-											? pages[index - 1].value
-											: "start";
+										prevPage?.type === "page" ? prevPage.value : "start";
 									const nextValue =
-										pages[index + 1]?.type === "page"
-											? pages[index + 1].value
-											: "end";
+										nextPage?.type === "page" ? nextPage.value : "end";
 									return (
 										<Pagination.Ellipsis
 											key={`ellipsis-${prevValue}-${nextValue}`}
