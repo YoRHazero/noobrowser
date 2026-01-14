@@ -1,4 +1,5 @@
-import { useMemo } from "react";
+import { Box } from "@chakra-ui/react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
 import Spectrum1DChart from "@/features/grism/spectrum1d/Spectrum1DChart";
@@ -7,6 +8,13 @@ import { useGrismStore } from "@/stores/image";
 import extractFormatted1DSpectrum from "@/utils/extraction";
 
 export default function Grism1DCanvas() {
+	const [containerNode, setContainerNode] = useState<HTMLDivElement | null>(
+		null,
+	);
+	const [containerSize, setContainerSize] = useState({ width: 0, height: 0 });
+	const containerRef = useCallback((node: HTMLDivElement | null) => {
+		setContainerNode(node);
+	}, []);
 	const { collapseWindow, spectrumQueryKey } = useGrismStore(
 		useShallow((state) => ({
 			collapseWindow: state.collapseWindow,
@@ -29,15 +37,31 @@ export default function Grism1DCanvas() {
 		);
 	}, [extractSpectrumData, collapseWindow]);
 
-	if (spectrum1D.length === 0) {
-		return null;
-	}
+	useEffect(() => {
+		if (!containerNode) return;
+		const updateWidth = () => {
+			setContainerSize({
+				width: containerNode.clientWidth,
+				height: containerNode.clientHeight,
+			});
+		};
+		updateWidth();
+		const observer = new ResizeObserver(updateWidth);
+		observer.observe(containerNode);
+		return () => observer.disconnect();
+	}, [containerNode]);
+	const chartWidth = containerSize.width;
+	const chartHeight = containerSize.height;
 	return (
-		<Spectrum1DChart
-			spectrum1D={spectrum1D}
-			width={900}
-			height={700}
-			margin={{ top: 20, right: 30, bottom: 50, left: 60 }}
-		/>
+		<Box ref={containerRef} width="100%" height="100%" flex="1" minH={0}>
+			{chartWidth > 0 && chartHeight > 0 && spectrum1D.length > 0 ? (
+				<Spectrum1DChart
+					spectrum1D={spectrum1D}
+					width={chartWidth}
+					height={chartHeight}
+					margin={{ top: 20, right: 30, bottom: 50, left: 60 }}
+				/>
+			) : null}
+		</Box>
 	);
 }

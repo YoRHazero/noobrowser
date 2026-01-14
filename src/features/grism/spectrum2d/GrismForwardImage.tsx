@@ -1,10 +1,10 @@
 import { extend } from "@pixi/react";
 import { Sprite, Texture } from "pixi.js";
 import { useEffect, useMemo, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
-import { useExtractSpectrum } from "@/hook/connection-hook";
-import { useGlobeStore } from "@/stores/footprints";
-import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import { useGrismStore } from "@/stores/image";
+import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import textureFromData, { sort2DArray } from "@/utils/plot";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
@@ -17,37 +17,26 @@ export default function GrismForwardImage({
 	layerRef: React.RefObject<RenderLayerInstance | null>;
 }) {
 	const spriteRef = useRef<Sprite | null>(null);
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
 	const {
-		forwardWaveRange,
-		forwardSourcePosition,
-		apertureSize,
 		grismNorm,
 		extractedSpecSortedArray,
 		normInWindow,
 		collapseWindow,
 		setExtractedSpecSortedArray,
+		spectrumQueryKey,
 	} = useGrismStore(
 		useShallow((state) => ({
-			apertureSize: state.apertureSize,
-			forwardWaveRange: state.forwardWaveRange,
-			forwardSourcePosition: state.forwardSourcePosition,
 			grismNorm: state.grismNorm,
 			normInWindow: state.normInWindow,
 			collapseWindow: state.collapseWindow,
 			extractedSpecSortedArray: state.extractedSpecSortedArray,
 			setExtractedSpecSortedArray: state.setExtractedSpecSortedArray,
+			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
-	const { data: extractSpectrumData } = useExtractSpectrum({
-		selectedFootprintId,
-		waveMin: forwardWaveRange.min,
-		waveMax: forwardWaveRange.max,
-		x: forwardSourcePosition.x,
-		y: forwardSourcePosition.y,
-		apertureSize,
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
+		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+		queryFn: async () => undefined,
 		enabled: false,
 	});
 

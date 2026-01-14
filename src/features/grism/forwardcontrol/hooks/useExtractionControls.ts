@@ -1,9 +1,9 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useDebouncedCallback } from "use-debounce";
+import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
-import { useExtractSpectrum } from "@/hook/connection-hook";
+import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import { useFitStore } from "@/stores/fit";
-import { useGlobeStore } from "@/stores/footprints";
 import { useGrismStore } from "@/stores/image";
 import { clamp } from "@/utils/projection";
 import {
@@ -25,6 +25,7 @@ export function useExtractionControls() {
 		zRedshift,
 		slice1DWaveRange,
 		setSlice1DWaveRange,
+		spectrumQueryKey,
 	} = useGrismStore(
 		useShallow((state) => ({
 			collapseWindow: state.collapseWindow,
@@ -38,6 +39,7 @@ export function useExtractionControls() {
 			zRedshift: state.zRedshift,
 			slice1DWaveRange: state.slice1DWaveRange,
 			setSlice1DWaveRange: state.setSlice1DWaveRange,
+			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
 	const { waveFrame } = useFitStore(
@@ -46,9 +48,6 @@ export function useExtractionControls() {
 		})),
 	);
 
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
 	const formatterWithUnit = useCallback(
 		(valueObsUm: number) =>
 			formatWavelength(valueObsUm, waveUnit, waveFrame, zRedshift),
@@ -118,13 +117,9 @@ export function useExtractionControls() {
 		[minInput, maxInput, applySliceRange, waveUnit],
 	);
 
-	const { data: extractSpectrumData } = useExtractSpectrum({
-		selectedFootprintId,
-		waveMin: forwardWaveRange.min,
-		waveMax: forwardWaveRange.max,
-		x: forwardSourcePosition.x,
-		y: forwardSourcePosition.y,
-		apertureSize,
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
+		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+		queryFn: async () => undefined,
 		enabled: false,
 	});
 

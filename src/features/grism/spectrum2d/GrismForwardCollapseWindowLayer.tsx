@@ -1,10 +1,10 @@
 import { extend, useApplication } from "@pixi/react";
 import { Container, Graphics, Sprite, Texture } from "pixi.js";
 import { useEffect, useRef, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
-import { useExtractSpectrum } from "@/hook/connection-hook";
-import { useGlobeStore } from "@/stores/footprints";
-import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
+import { useGrismStore } from "@/stores/image";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
 
@@ -19,22 +19,17 @@ export default function CollapseWindowLayer({
 }: {
 	layerRef: React.RefObject<RenderLayerInstance | null>;
 }) {
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
 	const {
-		forwardWaveRange,
-		forwardSourcePosition,
 		apertureSize,
 		collapseWindow,
 		showTraceOnSpectrum2D,
+		spectrumQueryKey,
 	} = useGrismStore(
 		useShallow((state) => ({
-			forwardWaveRange: state.forwardWaveRange,
-			forwardSourcePosition: state.forwardSourcePosition,
 			apertureSize: state.apertureSize,
 			collapseWindow: state.collapseWindow,
 			showTraceOnSpectrum2D: state.showTraceOnSpectrum2D,
+			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
 	// Attach to the RenderLayer
@@ -51,13 +46,9 @@ export default function CollapseWindowLayer({
 		};
 	}, [layerRef]);
 
-	const { data: extractSpectrumData } = useExtractSpectrum({
-		selectedFootprintId,
-		waveMin: forwardWaveRange.min,
-		waveMax: forwardWaveRange.max,
-		x: forwardSourcePosition.x,
-		y: forwardSourcePosition.y,
-		apertureSize,
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
+		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+		queryFn: async () => undefined,
 		enabled: false,
 	});
 	const waveArray = extractSpectrumData?.wavelength || [];

@@ -1,10 +1,8 @@
 import { HStack, Stack } from "@chakra-ui/react";
 import { useScrollFocus } from "@/hook/hotkey-hook";
 import Grism1DCanvas from "@/features/grism/GrismForward1DCanvas";
-import GrismForwardCanvas from "@/features/grism/GrismForwardCanvas";
+import GrismForward2dCanvas from "@/features/grism/GrismForward2dCanvas";
 import GrismForwardTab from "@/features/grism/GrismForwardTab";
-import GrismForwardToolbar from "@/features/grism/GrismForwardToolbar";
-import CanvasWithToolbar from "@/components/layout/CanvasWithToolbar";
 export default function GrismForward() {
 	const containerRef = useScrollFocus<HTMLDivElement>(
 		"shift+2",
@@ -13,13 +11,9 @@ export default function GrismForward() {
 		}
 	);
 	return (
-		<HStack alignItems={"stretch"} height={"100%"} ref={containerRef}>
-			<Stack gap={2}>
-				<CanvasWithToolbar
-					canvas={<GrismForwardCanvas />}
-					toolbar={<GrismForwardToolbar />}
-					width={900}
-				/>
+		<HStack alignItems={"stretch"} height="100vh" ref={containerRef}>
+			<Stack gap={2} flex="1" minW={0} height="100%">
+				<GrismForward2dCanvas />
 				<Grism1DCanvas />
 			</Stack>
 			<GrismForwardTab />
