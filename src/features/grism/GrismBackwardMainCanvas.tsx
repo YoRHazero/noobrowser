@@ -1,47 +1,36 @@
+
 import { Box, Text } from "@chakra-ui/react";
 import { MapControls, OrthographicCamera } from "@react-three/drei";
 import { Canvas } from "@react-three/fiber";
-import { useMemo, useRef } from "react";
+import { useRef } from "react";
 import type { MapControls as MapControlsType } from "three-stdlib";
-import { useShallow } from "zustand/react/shallow";
+
 import GrismImageLayer from "@/components/three/GrismImageLayer";
 import { RoiIndicator } from "@/components/three/RoiComponent";
-import GrismBackwardCounterpartImageLayer from "@/features/grism/GrismBackwardCounterpartImageLayer";
-import GrismBackwardFetchControl from "@/features/grism/GrismBackwardFetchControl";
+import GrismBackwardCounterpartImageLayer from "@/features/grism/backward/layers/GrismBackwardCounterpartImageLayer";
+import GrismBackwardTraceLayer from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
+import GrismBackwardFetchControl from "@/features/grism/backward/GrismBackwardFetchControl";
 import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
-import GrismBackwardTraceLayer from "@/features/grism/GrismBackwardTraceLayer";
 //import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
 import TraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
-import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
+import { useGrismBackwardCanvas } from "@/features/grism/backward/hooks/useGrismBackwardCanvas";
+import { useGrismInfoLegend } from "@/features/grism/backward/hooks/useGrismInfoLegend";
 import { useCameraCenteringOnRoi } from "@/hook/hotkey-hook";
-import { useGlobeStore } from "@/stores/footprints";
-import { useGrismStore } from "@/stores/image";
+
 export default function GrismBackwardMainCanvas({
 	currentBasename,
 }: {
 	currentBasename: string | undefined;
 }) {
 	/* -------------------------------------------------------------------------- */
-	/*                               Store Selectors                              */
+	/*                                 Hook Access                                */
 	/* -------------------------------------------------------------------------- */
-	const { roiState, backwardGlobalNorm } = useGrismStore(
-		useShallow((state) => ({
-			roiState: state.roiState,
-			backwardGlobalNorm: state.backwardGlobalNorm,
-		})),
-	);
-	/* -------------------------------------------------------------------------- */
-	/*                                 Data Access                                */
-	/* -------------------------------------------------------------------------- */
-	const grismDataResults = useGrismData({}); // refetch will be triggered by other components, here just read from cache
-	const grismOffsetsResults = useGrismOffsets({});
-
-	const currentGrismData = currentBasename
-		? grismDataResults?.[currentBasename]?.data
-		: undefined;
-	const currentGrismOffsets = currentBasename
-		? grismOffsetsResults?.[currentBasename]?.data
-		: undefined;
+	const {
+		roiState,
+		backwardGlobalNorm,
+		currentGrismData,
+		currentGrismOffsets,
+	} = useGrismBackwardCanvas({ currentBasename });
 
 	/* -------------------------------------------------------------------------- */
 	/*                                 Render View                                */
@@ -112,23 +101,7 @@ function InfoLegend({
 }: {
 	currentBasename: string | undefined;
 }) {
-	const { footprints, selectedFootprintId } = useGlobeStore(
-		useShallow((state) => ({
-			footprints: state.footprints,
-			selectedFootprintId: state.selectedFootprintId,
-		})),
-	);
-	const basenameList: string[] = useMemo(() => {
-		if (!selectedFootprintId) return [];
-		const selectedFootprint = footprints.find(
-			(fp) => fp.id === selectedFootprintId,
-		);
-		return selectedFootprint?.meta?.included_files ?? [];
-	}, [footprints, selectedFootprintId]);
-	const totalImages = basenameList.length;
-	const currentIndex = currentBasename
-		? basenameList.indexOf(currentBasename)
-		: -1;
+	const { totalImages, currentIndex } = useGrismInfoLegend({ currentBasename });
 	return (
 		<Box
 			position="absolute"

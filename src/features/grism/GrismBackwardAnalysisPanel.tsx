@@ -7,8 +7,8 @@ import {
 	CollapseRegionIndicator,
 	RoiCameraRig,
 } from "@/components/three/RoiComponent";
-import GrismBackward1DChart from "@/features/grism/GrismBackward1DChart";
-import { TraceLinesLayer } from "@/features/grism/GrismBackwardTraceLayer";
+import GrismBackward1DChart from "@/features/grism/backward/GrismBackward1DChart";
+import { TraceLinesLayer } from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
 import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
 import { useGrismStore } from "@/stores/image";
 
