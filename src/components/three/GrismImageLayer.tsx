@@ -6,6 +6,7 @@ import {
 	NearestFilter,
 	RedFormat,
 } from "three";
+import "@/components/three/GrismMaterial";
 import type GrismMaterial from "@/components/three/GrismMaterial";
 
 type GrismMaterialType = InstanceType<typeof GrismMaterial>;

@@ -104,6 +104,8 @@ interface GrismState {
 	roiState: RoiState;
 	roiCollapseWindow: CollapseWindow;
 	counterpartVisible: boolean;
+	emissionMaskVisible: boolean;
+	emissionMaskThreshold: number;
 	setWaveUnit: (unit: WaveUnit) => void;
 	setApertureSize: (size: number) => void;
 	setZRedshift: (z: number) => void;
@@ -127,6 +129,8 @@ interface GrismState {
 	setRoiState: (patch: Partial<RoiState>) => void;
 	setRoiCollapseWindow: (patch: Partial<CollapseWindow>) => void;
 	setCounterpartVisible: (visible: boolean) => void;
+	setEmissionMaskVisible: (visible: boolean) => void;
+	setEmissionMaskThreshold: (threshold: number) => void;
 }
 
 export const useGrismStore = create<GrismState>()(
@@ -170,6 +174,8 @@ export const useGrismStore = create<GrismState>()(
 				spatialMax: 128 / 2 + 5,
 			},
 			counterpartVisible: true,
+			emissionMaskVisible: false,
+			emissionMaskThreshold: 2,
 			setWaveUnit: (unit) => set({ waveUnit: unit }),
 			setApertureSize: (size) => set({ apertureSize: size }),
 			setZRedshift: (z) => set({ zRedshift: z }),
@@ -248,6 +254,10 @@ export const useGrismStore = create<GrismState>()(
 					roiCollapseWindow: { ...state.roiCollapseWindow, ...patch },
 				})),
 			setCounterpartVisible: (visible) => set({ counterpartVisible: visible }),
+			setEmissionMaskVisible: (visible) =>
+				set({ emissionMaskVisible: visible }),
+			setEmissionMaskThreshold: (threshold) =>
+				set({ emissionMaskThreshold: threshold }),
 		}),
 
 		{

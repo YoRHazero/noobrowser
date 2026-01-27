@@ -22,6 +22,9 @@ export function useGrismNavigation(
 ) {
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const setRoi = useGrismStore((state) => state.setRoiState);
+	const setEmissionMaskVisible = useGrismStore(
+		(state) => state.setEmissionMaskVisible,
+	);
 	const setTraceMode = useSourcesStore((state) => state.setTraceMode);
 	const setOpacity = useCounterpartStore((state) => state.setOpacity);
 	const setDisplayMode = useCounterpartStore((state) => state.setDisplayMode);
@@ -82,6 +85,14 @@ export function useGrismNavigation(
 							? "b"
 							: "rgb";
 			setDisplayMode(nextMode);
+		},
+		hotkeyConfig,
+	);
+	useHotkeys(
+		"shift+m",
+		(e) => {
+			e.preventDefault();
+			setEmissionMaskVisible(!useGrismStore.getState().emissionMaskVisible);
 		},
 		hotkeyConfig,
 	);

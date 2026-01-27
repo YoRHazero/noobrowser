@@ -7,8 +7,11 @@ import {
 	Tabs,
 	Text,
 } from "@chakra-ui/react";
-import type { CatalogItemResponse } from "@/hook/connection-hook";
+import type { CatalogItemResponse } from "@/hooks/query/fit";
 import { useConnectionStore } from "@/stores/connection";
+import { FitPlotViewer } from "./FitPlotViewer";
+
+
 
 interface CatalogDetailProps {
 	item: CatalogItemResponse;
@@ -76,7 +79,9 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 						Posterior
 					</Tabs.Trigger>
 					<Tabs.Trigger value="cutout">Cutout</Tabs.Trigger>
+					<Tabs.Trigger value="live_plot">Live Plot</Tabs.Trigger>
 				</Tabs.List>
+
 
 				<Tabs.Content value="model_comparison" p={4}>
 					{item.model_comparison_plot_url ? (
@@ -193,6 +198,12 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 						</Text>
 					</Stack>
 				</Tabs.Content>
+
+				<Tabs.Content value="live_plot" p={4} h="80vh">
+					<FitPlotViewer item={item} />
+				</Tabs.Content>
+
+
 			</Tabs.Root>
 		</Stack>
 	);

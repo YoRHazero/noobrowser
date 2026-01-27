@@ -8,6 +8,7 @@ import {
 	RoiCameraRig,
 } from "@/components/three/RoiComponent";
 import GrismBackward1DChart from "@/features/grism/backward/GrismBackward1DChart";
+import EmissionMaskLayer from "@/features/grism/backward/layers/EmissionMaskLayer";
 import { TraceLinesLayer } from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
 import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
 import { useGrismStore } from "@/stores/image";
@@ -122,20 +123,21 @@ function RoiZoomView({
 				/>
 				{currentGrismData && (
 					<>
-						<GrismImageLayer
-							buffer={currentGrismData.buffer}
-							width={currentGrismData.width}
-							height={currentGrismData.height}
+					<GrismImageLayer
+						buffer={currentGrismData.buffer}
+						width={currentGrismData.width}
+						height={currentGrismData.height}
 							dx={currentGrismOffsets?.dx ?? 0}
 							dy={currentGrismOffsets?.dy ?? 0}
 							vmin={zoomVmin ?? -0.05}
 							vmax={zoomVmax ?? 0.05}
-							isVisible={true}
-						/>
+						isVisible={true}
+					/>
+					<EmissionMaskLayer />
 
-						<RoiCameraRig
-							x={roiState.x}
-							y={roiState.y}
+					<RoiCameraRig
+						x={roiState.x}
+						y={roiState.y}
 							width={roiState.width}
 							height={roiState.height}
 						/>

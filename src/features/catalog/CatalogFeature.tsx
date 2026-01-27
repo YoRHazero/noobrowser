@@ -1,8 +1,9 @@
 import { Box, Grid } from "@chakra-ui/react";
 import { useState } from "react";
-import type { CatalogItemResponse } from "@/hook/connection-hook";
+import type { CatalogItemResponse } from "@/hooks/query/fit";
 import { CatalogDetail } from "./CatalogDetail";
 import { CatalogList } from "./CatalogList";
+
 
 export function CatalogFeature() {
 	const [selectedItem, setSelectedItem] = useState<CatalogItemResponse | null>(

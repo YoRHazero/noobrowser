@@ -9,6 +9,7 @@ import GrismImageLayer from "@/components/three/GrismImageLayer";
 import { RoiIndicator } from "@/components/three/RoiComponent";
 import GrismBackwardCounterpartImageLayer from "@/features/grism/backward/layers/GrismBackwardCounterpartImageLayer";
 import GrismBackwardTraceLayer from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
+import EmissionMaskLayer from "@/features/grism/backward/layers/EmissionMaskLayer";
 import GrismBackwardFetchControl from "@/features/grism/backward/GrismBackwardFetchControl";
 import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
 //import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
@@ -57,6 +58,7 @@ export default function GrismBackwardMainCanvas({
 				<color attach="background" args={["#050505"]} />
 				<GrismBackwardCounterpartImageLayer />
 				<GrismBackwardTraceLayer />
+				<EmissionMaskLayer />
 
 				{currentGrismData && currentGrismOffsets && (
 					<>

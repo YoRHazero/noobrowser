@@ -3,6 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { CollapsiblePanel } from "@/components/layout/CollapsiblePanel";
 import GrismBackwardCounterpartControl from "@/features/grism/backwardtoolbar/GrismBackwardCounterpartControl";
 import GrismBackwardNormControls from "@/features/grism/backwardtoolbar/GrismBackwardNormControl";
+import EmissionMaskControl from "@/features/grism/backwardtoolbar/EmissionMaskControl";
 import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
 import { useGrismStore } from "@/stores/image";
 
@@ -25,6 +26,7 @@ export default function GrismBackwardToolbar() {
 	return (
 		<CollapsiblePanel miniStatus={<MiniStatus />}>
 			<GrismBackwardCounterpartControl />
+			<EmissionMaskControl />
 			<GrismBackwardNormControls />
 		</CollapsiblePanel>
 	);

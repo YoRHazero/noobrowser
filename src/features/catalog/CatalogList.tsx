@@ -1,6 +1,7 @@
 import {
 	Box,
 	Group,
+	HStack,
 	IconButton,
 	Pagination,
 	Spinner,
@@ -8,11 +9,12 @@ import {
 	Text,
 } from "@chakra-ui/react";
 import { useState } from "react";
-import { LuChevronLeft, LuChevronRight } from "react-icons/lu";
+import { LuChevronLeft, LuChevronRight, LuTrash2 } from "react-icons/lu";
 import {
-	type CatalogItemResponse,
 	useCatalogQuery,
-} from "@/hook/connection-hook";
+	useDeleteCatalogEntryMutation,
+	type CatalogItemResponse,
+} from "@/hooks/query/fit";
 
 interface CatalogListProps {
 	selectedId: string | null;
@@ -22,12 +24,31 @@ interface CatalogListProps {
 export function CatalogList({ selectedId, onSelect }: CatalogListProps) {
 	const [page, setPage] = useState(1);
 	const PAGE_SIZE = 20;
+	const [pendingDeleteId, setPendingDeleteId] = useState<string | null>(null);
 
 	const { data, isLoading, isError, error } = useCatalogQuery({
 		page,
 		pageSize: PAGE_SIZE,
 		sortDesc: true,
 	});
+
+	const deleteMutation = useDeleteCatalogEntryMutation();
+
+	const handleDeleteClick = (e: React.MouseEvent, itemId: string) => {
+		e.stopPropagation();
+		setPendingDeleteId(itemId);
+	};
+
+	const handleConfirmDelete = () => {
+		if (pendingDeleteId) {
+			deleteMutation.mutate({ sourceId: pendingDeleteId });
+			setPendingDeleteId(null);
+		}
+	};
+
+	const handleCancelDelete = () => {
+		setPendingDeleteId(null);
+	};
 
 	if (isLoading) {
 		return (
@@ -49,6 +70,40 @@ export function CatalogList({ selectedId, onSelect }: CatalogListProps) {
 
 	return (
 		<Stack gap={4} h="full">
+			{/* Delete Confirmation Dialog */}
+			{pendingDeleteId && (
+				<Box
+					p={3}
+					bg="red.50"
+					borderWidth="1px"
+					borderColor="red.200"
+					borderRadius="md"
+				>
+					<Text fontSize="sm" mb={2}>
+						Delete entry <strong>{pendingDeleteId}</strong>?
+					</Text>
+					<HStack gap={2}>
+						<IconButton
+							aria-label="Confirm delete"
+							size="xs"
+							colorPalette="red"
+							onClick={handleConfirmDelete}
+							loading={deleteMutation.isPending}
+						>
+							<LuTrash2 />
+						</IconButton>
+						<Text
+							fontSize="xs"
+							color="gray.600"
+							cursor="pointer"
+							onClick={handleCancelDelete}
+						>
+							Cancel
+						</Text>
+					</HStack>
+				</Box>
+			)}
+
 			<Stack gap={0} flex={1} overflowY="auto">
 				{data.items.map((item) => (
 					<Box
@@ -61,15 +116,28 @@ export function CatalogList({ selectedId, onSelect }: CatalogListProps) {
 						borderBottomWidth="1px"
 						borderColor="border.muted"
 					>
-						<Text fontWeight="medium" truncate>
-							{item.id}
-						</Text>
-						<Text fontSize="sm" color="fg.muted">
-							z: {item.z?.toFixed(3) ?? "N/A"}
-						</Text>
-						<Text fontSize="xs" color="fg.muted" truncate>
-							{item.ref_basename}
-						</Text>
+						<HStack justify="space-between" align="start">
+							<Box flex={1} minW={0}>
+								<Text fontWeight="medium" truncate>
+									{item.id}
+								</Text>
+								<Text fontSize="sm" color="fg.muted">
+									z: {item.z?.toFixed(3) ?? "N/A"}
+								</Text>
+								<Text fontSize="xs" color="fg.muted" truncate>
+									{item.ref_basename}
+								</Text>
+							</Box>
+							<IconButton
+								aria-label="Delete entry"
+								size="xs"
+								variant="ghost"
+								colorPalette="red"
+								onClick={(e) => handleDeleteClick(e, item.id)}
+							>
+								<LuTrash2 />
+							</IconButton>
+						</HStack>
 					</Box>
 				))}
 			</Stack>
