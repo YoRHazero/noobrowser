@@ -1,7 +1,7 @@
 import { useEffect, useMemo } from "react";
 import { useDebounce } from "use-debounce";
 import { useShallow } from "zustand/react/shallow";
-import { useFluxPercentiles } from "@/hook/connection-hook";
+import { useFluxPercentiles } from "@/hooks/query/image/useFluxPercentiles";
 import { useGrismStore } from "@/stores/image";
 import type { RoiState } from "@/stores/stores-types";
 

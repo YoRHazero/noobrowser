@@ -1,4 +1,4 @@
-import type { ExtractedSpectrum } from "@/hook/connection-hook";
+import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import type { CollapseWindow } from "@/stores/stores-types";
 import { clamp } from "@/utils/projection";
 import type { Spectrum1D } from "@/utils/util-types";

@@ -106,6 +106,7 @@ interface GrismState {
 	counterpartVisible: boolean;
 	emissionMaskVisible: boolean;
 	emissionMaskThreshold: number;
+	followRoiCamera: boolean;
 	setWaveUnit: (unit: WaveUnit) => void;
 	setApertureSize: (size: number) => void;
 	setZRedshift: (z: number) => void;
@@ -131,6 +132,7 @@ interface GrismState {
 	setCounterpartVisible: (visible: boolean) => void;
 	setEmissionMaskVisible: (visible: boolean) => void;
 	setEmissionMaskThreshold: (threshold: number) => void;
+	setFollowRoiCamera: (follow: boolean) => void;
 }
 
 export const useGrismStore = create<GrismState>()(
@@ -176,6 +178,7 @@ export const useGrismStore = create<GrismState>()(
 			counterpartVisible: true,
 			emissionMaskVisible: false,
 			emissionMaskThreshold: 2,
+			followRoiCamera: false,
 			setWaveUnit: (unit) => set({ waveUnit: unit }),
 			setApertureSize: (size) => set({ apertureSize: size }),
 			setZRedshift: (z) => set({ zRedshift: z }),
@@ -258,6 +261,7 @@ export const useGrismStore = create<GrismState>()(
 				set({ emissionMaskVisible: visible }),
 			setEmissionMaskThreshold: (threshold) =>
 				set({ emissionMaskThreshold: threshold }),
+			setFollowRoiCamera: (follow) => set({ followRoiCamera: follow }),
 		}),
 
 		{

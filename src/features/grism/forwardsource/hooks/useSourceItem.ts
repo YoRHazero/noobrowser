@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { toaster } from "@/components/ui/toaster";
-import { useSubmitFitJobMutation } from "@/hook/connection-hook";
+import { useSubmitFitJobMutation } from "@/hooks/query/fit/useSubmitFitJob";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";

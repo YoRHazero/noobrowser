@@ -1,4 +1,4 @@
-import { useEmissionMask, useEmissionMaskRegions } from "@/hooks/query/grism";
+import { useEmissionMask, useEmissionMaskRegions } from "@/hooks/query/image";
 import { useGrismStore } from "@/stores/image";
 import { useEffect, useState } from "react";
 import {

@@ -11,7 +11,7 @@ import {
 	Text,
 } from "@chakra-ui/react";
 import { Ban, CheckCircle, Clock, Info, Trash2 } from "lucide-react";
-import type { FitJobResponse } from "@/hook/connection-hook";
+import type { FitJobResponse } from "@/hooks/query/fit/schemas";
 
 interface GrismFitJobDrawerHeaderProps {
 	jobs: FitJobResponse[];

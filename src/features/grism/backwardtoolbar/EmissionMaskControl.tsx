@@ -2,7 +2,7 @@ import { Box, HStack, Slider, Switch, Text, VStack } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGrismStore } from "@/stores/image";
-import { useEmissionMask } from "@/hooks/query/grism";
+import { useEmissionMask } from "@/hooks/query/image";
 
 /**
  * Plasma colormap function (matches shader)

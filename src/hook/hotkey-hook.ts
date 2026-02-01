@@ -1,12 +1,13 @@
 import { useThree } from "@react-three/fiber";
 import gsap from "gsap";
 import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import type { MapControls } from "three-stdlib";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
 import type { RoiState } from "@/stores/stores-types";
+import { useShallow } from "zustand/react/shallow";
 
 gsap.registerPlugin(ScrollToPlugin);
 
@@ -24,6 +25,9 @@ export function useGrismNavigation(
 	const setRoi = useGrismStore((state) => state.setRoiState);
 	const setEmissionMaskVisible = useGrismStore(
 		(state) => state.setEmissionMaskVisible,
+	);
+	const setFollowRoiCamera = useGrismStore(
+		(state) => state.setFollowRoiCamera,
 	);
 	const setTraceMode = useSourcesStore((state) => state.setTraceMode);
 	const setOpacity = useCounterpartStore((state) => state.setOpacity);
@@ -93,6 +97,14 @@ export function useGrismNavigation(
 		(e) => {
 			e.preventDefault();
 			setEmissionMaskVisible(!useGrismStore.getState().emissionMaskVisible);
+		},
+		hotkeyConfig,
+	);
+	useHotkeys(
+		"shift+f",
+		(e) => {
+			e.preventDefault();
+			setFollowRoiCamera(!useGrismStore.getState().followRoiCamera);
 		},
 		hotkeyConfig,
 	);
@@ -260,6 +272,59 @@ export function useCameraCenteringOnRoi(
 		},
 		[roiState, camera, controlRef],
 	);
+}
+
+export function useCameraFollowRoi(
+	controlRef: React.RefObject<MapControls | null>,
+) {
+	const { roiState, followRoiCamera } = useGrismStore(
+		useShallow((state) => ({
+			roiState: state.roiState,
+			followRoiCamera: state.followRoiCamera,
+		})),
+	);
+	const { camera } = useThree();
+
+	useEffect(() => {
+		if (!followRoiCamera) return;
+		const controls = controlRef.current;
+		if (!controls || !camera || !roiState) return;
+
+		const roiCenterX = roiState.x + roiState.width / 2;
+		const roiCenterY = roiState.y + roiState.height / 2;
+
+		gsap.killTweensOf(controls.target);
+		gsap.killTweensOf(camera.position);
+
+		gsap.to(controls.target, {
+			x: roiCenterX,
+			y: -roiCenterY,
+			z: 0,
+			duration: 0.35,
+			ease: "power3.inOut",
+			overwrite: "auto",
+			onUpdate: () => {
+				controls.update();
+			},
+		});
+
+		gsap.to(camera.position, {
+			x: roiCenterX,
+			y: -roiCenterY,
+			z: camera.position.z,
+			duration: 0.35,
+			ease: "power3.inOut",
+			overwrite: "auto",
+		});
+	}, [
+		followRoiCamera,
+		roiState.x,
+		roiState.y,
+		roiState.width,
+		roiState.height,
+		camera,
+		controlRef,
+	]);
 }
 
 interface ScrollFocusOptions {

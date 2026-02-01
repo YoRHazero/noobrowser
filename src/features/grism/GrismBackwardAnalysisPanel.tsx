@@ -10,7 +10,8 @@ import {
 import GrismBackward1DChart from "@/features/grism/backward/GrismBackward1DChart";
 import EmissionMaskLayer from "@/features/grism/backward/layers/EmissionMaskLayer";
 import { TraceLinesLayer } from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
-import { useGrismData, useGrismOffsets } from "@/hook/connection-hook";
+import { useGrismData } from "@/hooks/query/image/useGrismData";
+import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
 import { useGrismStore } from "@/stores/image";
 
 export default function GrismBackwardAnalysisPanel({

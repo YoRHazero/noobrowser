@@ -1,4 +1,4 @@
-import { useDispersionTrace } from "@/hook/connection-hook";
+import { useDispersionTrace } from "@/hooks/query/source/useDispersionTrace";
 import { useSourcesStore } from "@/stores/sources";
 import { type TraceSource } from "@/stores/stores-types";
 import { Line } from "@react-three/drei";

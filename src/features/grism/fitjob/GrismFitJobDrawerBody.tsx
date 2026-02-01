@@ -15,7 +15,7 @@ import {
 } from "@chakra-ui/react";
 import { ExternalLink, Info } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { FitJobResponse } from "@/hook/connection-hook";
+import type { FitJobResponse } from "@/hooks/query/fit/schemas";
 import { useConnectionStore } from "@/stores/connection";
 
 /* -------------------------------------------------------------------------- */

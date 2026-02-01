@@ -6,7 +6,7 @@ import GlobeBackground from "@/components/pixi/GlobeBackground";
 import GlobeGrid from "@/components/pixi/GlobeGrid";
 import GlobeViewport from "@/components/pixi/GlobeViewport";
 import FootprintTooltip from "@/features/footprint/FootprintTooltip";
-import { useQueryAxiosGet } from "@/hook/connection-hook";
+import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
 import { useGlobeStore } from "@/stores/footprints";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import FootprintManager from "./FootprintManager";

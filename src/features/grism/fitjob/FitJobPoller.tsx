@@ -1,5 +1,5 @@
 import { useEffect } from "react";
-import { useSingleJobPoller } from "@/hook/connection-hook";
+import { useSingleJobPoller } from "@/hooks/query/fit/useSingleJobPoller";
 import { useFitStore } from "@/stores/fit";
 
 /* -------------------- Single Job Poller Wrapper ------------------- */

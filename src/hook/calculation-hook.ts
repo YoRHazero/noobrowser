@@ -1,12 +1,10 @@
 import { Float16Array } from "@petamoriken/float16";
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import {
-	useCounterpartFootprint,
-	useGrismData,
-	useGrismErr,
-	useGrismOffsets,
-} from "@/hook/connection-hook";
+import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
+import { useGrismData } from "@/hooks/query/image/useGrismData";
+import { useGrismErr } from "@/hooks/query/image/useGrismErr";
+import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import { clamp } from "@/utils/projection";

@@ -2,7 +2,7 @@ import { Box, HStack, Switch, Text, VStack } from "@chakra-ui/react";
 import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { HorizontalNormRangeSlider } from "@/components/ui/internal-slider";
-import { useFluxPercentiles } from "@/hook/connection-hook";
+import { useFluxPercentiles } from "@/hooks/query/image/useFluxPercentiles";
 import { useDebouncedRoiState } from "@/hook/debounce-hook";
 import { useGrismStore } from "@/stores/image";
 import type { NormParams } from "@/stores/stores-types";

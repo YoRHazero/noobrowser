@@ -35,3 +35,20 @@ export type EmissionMaskRegionsResponse = {
 	group_id: number;
 	regions: EmissionMaskRegion[];
 };
+
+export type PercentileData = {
+	group_id: number;
+	percentiles: number[];
+	q: number[];
+};
+
+export type CounterpartFootprint = {
+	group_id: number;
+	footprint: {
+		vertices: Array<[number, number]>;
+		vertex_marker: Array<[number, number]>;
+		center: [number, number];
+		area: number;
+		radius: number;
+	};
+};

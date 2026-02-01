@@ -1,6 +1,6 @@
 import { toaster } from "@/components/ui/toaster";
 import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
-import { useCounterpartImage } from "@/hook/connection-hook";
+import { useCounterpartImage } from "@/hooks/query/image/useCounterpartImage";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
 import type { ThreeEvent } from "@react-three/fiber";

@@ -16,11 +16,9 @@ import {
 	HorizontalOpacitySlider,
 } from "@/components/ui/internal-slider";
 import { toaster } from "@/components/ui/toaster";
-import {
-	useCounterpartFootprint,
-	useCounterpartImage,
-	useQueryAxiosGet,
-} from "@/hook/connection-hook";
+import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
+import { useCounterpartImage } from "@/hooks/query/image/useCounterpartImage";
+import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
 import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 

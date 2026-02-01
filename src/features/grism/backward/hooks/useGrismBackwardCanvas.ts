@@ -1,4 +1,4 @@
-import { useGrismData, useGrismOffsets } from "@/hooks/query/grism";
+import { useGrismData, useGrismOffsets } from "@/hooks/query/image";
 import { useGrismStore } from "@/stores/image";
 import { useShallow } from "zustand/react/shallow";
 

@@ -9,7 +9,7 @@ import type { ScaleLinear } from "d3-scale";
 import { memo, useMemo, useState } from "react";
 import { HorizontalSpec1DParamsSlider } from "@/components/ui/internal-slider";
 import { useRoiSpectrum1D } from "@/hook/calculation-hook";
-import { useDispersionTrace } from "@/hook/connection-hook";
+import { useDispersionTrace } from "@/hooks/query/source/useDispersionTrace";
 import type { Spectrum1D } from "@/utils/util-types";
 import { SPEED_OF_LIGHT_KM_S } from "@/utils/wavelength";
 

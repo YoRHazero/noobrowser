@@ -5,3 +5,4 @@ export * from "./useSubmitFitJob";
 export * from "./useSaveFitResult";
 export * from "./useCatalog";
 export * from "./useDeleteCatalogEntry";
+export * from "./useSingleJobPoller";

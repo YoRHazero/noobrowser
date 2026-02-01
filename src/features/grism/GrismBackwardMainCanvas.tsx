@@ -16,7 +16,7 @@ import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
 import TraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
 import { useGrismBackwardCanvas } from "@/features/grism/backward/hooks/useGrismBackwardCanvas";
 import { useGrismInfoLegend } from "@/features/grism/backward/hooks/useGrismInfoLegend";
-import { useCameraCenteringOnRoi } from "@/hook/hotkey-hook";
+import { useCameraCenteringOnRoi, useCameraFollowRoi } from "@/hook/hotkey-hook";
 
 export default function GrismBackwardMainCanvas({
 	currentBasename,
@@ -95,6 +95,7 @@ function CanvasController({
 	controlRef: React.RefObject<MapControlsType | null>;
 }) {
 	useCameraCenteringOnRoi(controlRef);
+	useCameraFollowRoi(controlRef);
 	return null;
 }
 

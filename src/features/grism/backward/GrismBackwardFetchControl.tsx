@@ -1,11 +1,9 @@
 import { Box, Button } from "@chakra-ui/react";
 import { useEffect, useId, useState } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
-import {
-	useGrismData,
-	useGrismErr,
-	useGrismOffsets,
-} from "@/hook/connection-hook";
+import { useGrismData } from "@/hooks/query/image/useGrismData";
+import { useGrismErr } from "@/hooks/query/image/useGrismErr";
+import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
 import { useGlobeStore } from "@/stores/footprints";
 
 export default function GrismBackwardFetchControl() {
