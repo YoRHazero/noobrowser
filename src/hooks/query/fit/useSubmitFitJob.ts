@@ -1,5 +1,5 @@
 import type { Query } from "@tanstack/query-core";
-import { useMutation, useQueries, useQuery } from "@tanstack/react-query";
+import { useMutation, useQueries } from "@tanstack/react-query";
 import axios from "axios";
 import { toaster } from "@/components/ui/toaster";
 import { useConnectionStore } from "@/stores/connection";

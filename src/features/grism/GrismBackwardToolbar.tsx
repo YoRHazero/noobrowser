@@ -26,8 +26,8 @@ export default function GrismBackwardToolbar() {
 	return (
 		<CollapsiblePanel miniStatus={<MiniStatus />}>
 			<GrismBackwardCounterpartControl />
-			<EmissionMaskControl />
 			<GrismBackwardNormControls />
+			<EmissionMaskControl />
 		</CollapsiblePanel>
 	);
 }

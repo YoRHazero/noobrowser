@@ -84,4 +84,22 @@ State management using **Zustand**.
     -   **Visx** is used for 1D charts (`Grism1DCanvas`, `GrismBackward1DChart`).
 
 3.  **Data Flow**:
-    -   Backend -> `connection-hook.ts` (TanStack Query) -> `stores/*` (Zustand) -> Components.
+    -   Backend -> `hooks/query` (TanStack Query) -> `stores/*` (Zustand) -> Components.
+
+## 4. Backend Requirements
+
+### Emission Mask (Bitmask Support) [NEW]
+To support efficient per-frame toggling of emission masks without re-fetching data, the backend endpoint `/wfss/emission_mask/<group_id>` must be updated.
+
+**Response Headers:**
+-   `x-mask-format`: Specifies the data type of the binary response. Must be one of:
+    -   `'uint8'` (1-8 frames)
+    -   `'uint16'` (9-16 frames)
+    -   `'uint32'` (17-32 frames)
+-   `x-mask-frames`: Integer. The total number of frames included in the mask (e.g., `8`). The bits in the pixel value correspond to these frames (Bit 0 = Frame 0, Bit 1 = Frame 1, etc.).
+
+**Response Body:**
+-   **Binary Data**: Raw binary buffer of the specified integer type.
+-   **Pixel Interpretation**: Each pixel is an integer where each bit represents the presence of the mask for a specific frame index.
+    -   Example: Value `5` (binary `0...0101`) means Frame 0 and Frame 2 have masks at this pixel.
+-   **Note**: The data should **not** include any header bytes (like a NumPy header) if possible, or the frontend must be informed of the offset. Raw binary array is preferred.

@@ -4,35 +4,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useGrismStore } from "@/stores/image";
 import { useEmissionMask } from "@/hooks/query/image";
 
-/**
- * Plasma colormap function (matches shader)
- * Returns RGB color for normalized value t ∈ [0, 1]
- */
-function plasmaColor(t: number): string {
-	const c0 = [0.0504, 0.0298, 0.528];
-	const c1 = [2.0281, -0.0893, 0.69];
-	const c2 = [-2.3053, 3.5714, -2.0145];
-	const c3 = [6.8093, -6.0988, 3.1312];
-	const c4 = [-5.4094, 4.3636, -1.4507];
-	const c5 = [0.8394, -1.431, 0.1674];
-
-	const r =
-		c0[0] +
-		t * (c1[0] + t * (c2[0] + t * (c3[0] + t * (c4[0] + t * c5[0]))));
-	const g =
-		c0[1] +
-		t * (c1[1] + t * (c2[1] + t * (c3[1] + t * (c4[1] + t * c5[1]))));
-	const b =
-		c0[2] +
-		t * (c1[2] + t * (c2[2] + t * (c3[2] + t * (c4[2] + t * c5[2]))));
-
-	const toHex = (v: number) =>
-		Math.round(Math.max(0, Math.min(1, v)) * 255)
-			.toString(16)
-			.padStart(2, "0");
-
-	return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
+import { EMISSION_MASK_COLORS } from "../backward/layers/EmissionMaskLayer";
 
 export default function EmissionMaskControl() {
 	const {
@@ -59,8 +31,11 @@ export default function EmissionMaskControl() {
 	const colorLegend = useMemo(() => {
 		const colors: { value: number; color: string }[] = [];
 		for (let v = 1; v <= maxValue; v++) {
-			const t = v / maxValue;
-			colors.push({ value: v, color: plasmaColor(t) });
+			const index = (v - 1) % EMISSION_MASK_COLORS.length;
+			// Safety check
+			const safeIndex =
+				index >= 0 ? index : index + EMISSION_MASK_COLORS.length;
+			colors.push({ value: v, color: EMISSION_MASK_COLORS[safeIndex] });
 		}
 		return colors;
 	}, [maxValue]);

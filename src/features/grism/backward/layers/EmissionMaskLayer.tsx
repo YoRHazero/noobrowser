@@ -1,37 +1,33 @@
 import "@/components/three/EmissionMaskMaterial";
 import { Line } from "@react-three/drei";
 import { useMemo } from "react";
-import { DoubleSide } from "three";
+import { Color, DataTexture, DoubleSide } from "three";
 import { useEmissionMaskLayer } from "./hooks/useEmissionMaskLayer";
 
-/**
- * Plasma colormap function (matches shader and control legend)
- */
-function plasmaColor(t: number): string {
-	const c0 = [0.0504, 0.0298, 0.528];
-	const c1 = [2.0281, -0.0893, 0.69];
-	const c2 = [-2.3053, 3.5714, -2.0145];
-	const c3 = [6.8093, -6.0988, 3.1312];
-	const c4 = [-5.4094, 4.3636, -1.4507];
-	const c5 = [0.8394, -1.431, 0.1674];
+export const EMISSION_MASK_COLORS = [
+	"#e6194b",
+	"#3cb44b",
+	"#ffe119",
+	"#4363d8",
+	"#f58231",
+	"#911eb4",
+	"#46f0f0",
+	"#f032e6",
+	"#bcf60c",
+	"#fabebe",
+	"#008080",
+	"#e6beff",
+	"#9a6324",
+	"#fffac8",
+	"#800000",
+	"#aaffc3",
+	"#808000",
+	"#ffd8b1",
+	"#000075",
+	"#808080",
+];
 
-	const r =
-		c0[0] +
-		t * (c1[0] + t * (c2[0] + t * (c3[0] + t * (c4[0] + t * c5[0]))));
-	const g =
-		c0[1] +
-		t * (c1[1] + t * (c2[1] + t * (c3[1] + t * (c4[1] + t * c5[1]))));
-	const b =
-		c0[2] +
-		t * (c1[2] + t * (c2[2] + t * (c3[2] + t * (c4[2] + t * c5[2]))));
 
-	const toHex = (v: number) =>
-		Math.round(Math.max(0, Math.min(1, v)) * 255)
-			.toString(16)
-			.padStart(2, "0");
-
-	return `#${toHex(r)}${toHex(g)}${toHex(b)}`;
-}
 
 /**
  * Generate circle points for rendering
@@ -77,13 +73,38 @@ export default function EmissionMaskLayer({
 		regions,
 	} = useEmissionMaskLayer();
 
+	// Create shared palette texture
+	const paletteTexture = useMemo(() => {
+		const width = EMISSION_MASK_COLORS.length;
+		const height = 1;
+		const size = width * height;
+		const data = new Uint8Array(4 * size);
+
+		EMISSION_MASK_COLORS.forEach((hex, i) => {
+			const c = new Color(hex);
+			data[i * 4] = Math.floor(c.r * 255);
+			data[i * 4 + 1] = Math.floor(c.g * 255);
+			data[i * 4 + 2] = Math.floor(c.b * 255);
+			data[i * 4 + 3] = 255;
+		});
+
+		const tex = new DataTexture(data, width, height);
+		tex.needsUpdate = true;
+		return tex;
+	}, []);
+
 	// Filter regions by threshold and generate circle data
 	const regionCircles = useMemo(() => {
 		return regions
 			.filter((r) => r.max_value > threshold)
 			.map((region) => {
-				const t = region.max_value / maxValue;
-				const color = plasmaColor(t);
+				const colorIndex =
+					(Math.floor(region.max_value) - 1) % EMISSION_MASK_COLORS.length;
+				// Safety check for index
+				const safeIndex =
+					colorIndex >= 0 ? colorIndex : colorIndex + EMISSION_MASK_COLORS.length;
+				const color = EMISSION_MASK_COLORS[safeIndex % EMISSION_MASK_COLORS.length];
+
 				// Circle radius based on sqrt(area) for visual proportionality
 				const radius = CIRCLE_RADIUS;
 				const points = generateCirclePoints(
@@ -95,7 +116,7 @@ export default function EmissionMaskLayer({
 				);
 				return { region, color, points };
 			});
-	}, [regions, threshold, maxValue, circleZ]);
+	}, [regions, threshold, circleZ]);
 
 	if (!isVisible || !texture || !width || !height) return null;
 
@@ -111,6 +132,8 @@ export default function EmissionMaskLayer({
 					uTexture={texture}
 					uMaxValue={maxValue}
 					uThreshold={threshold}
+					uPalette={paletteTexture}
+					uPaletteSize={EMISSION_MASK_COLORS.length}
 					transparent={true}
 					side={DoubleSide}
 					depthWrite={false}
