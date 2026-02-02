@@ -58,7 +58,7 @@ export default function GrismBackwardMainCanvas({
 				<color attach="background" args={["#050505"]} />
 				<GrismBackwardCounterpartImageLayer />
 				<GrismBackwardTraceLayer />
-				<EmissionMaskLayer />
+				<EmissionMaskLayer currentBasename={currentBasename} />
 
 				{currentGrismData && currentGrismOffsets && (
 					<>

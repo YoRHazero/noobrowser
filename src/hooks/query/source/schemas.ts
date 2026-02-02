@@ -26,3 +26,12 @@ export interface DispersionTrace {
 	trace_ys: number[];
 	mean_pixel_scale: number;
 }
+
+export interface NedSearchResult {
+	object_name: string;
+	ra: number;
+	dec: number;
+	redshift: number | null;
+	url: string;
+}
+

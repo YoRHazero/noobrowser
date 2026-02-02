@@ -23,8 +23,8 @@ export function useGrismNavigation(
 ) {
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
 	const setRoi = useGrismStore((state) => state.setRoiState);
-	const setEmissionMaskVisible = useGrismStore(
-		(state) => state.setEmissionMaskVisible,
+	const setEmissionMaskMode = useGrismStore(
+		(state) => state.setEmissionMaskMode,
 	);
 	const setFollowRoiCamera = useGrismStore(
 		(state) => state.setFollowRoiCamera,
@@ -96,7 +96,11 @@ export function useGrismNavigation(
 		"shift+m",
 		(e) => {
 			e.preventDefault();
-			setEmissionMaskVisible(!useGrismStore.getState().emissionMaskVisible);
+			const currentMode = useGrismStore.getState().emissionMaskMode;
+			const nextMode = 
+				currentMode === "hidden" ? "individual" : 
+				currentMode === "individual" ? "total" : "hidden";
+			setEmissionMaskMode(nextMode);
 		},
 		hotkeyConfig,
 	);

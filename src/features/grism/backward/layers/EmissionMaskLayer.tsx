@@ -1,7 +1,20 @@
 import "@/components/three/EmissionMaskMaterial";
-import { Line } from "@react-three/drei";
-import { useMemo } from "react";
-import { Color, DataTexture, DoubleSide } from "three";
+import { useEffect, useMemo } from "react";
+
+import {
+	ClampToEdgeWrapping,
+	Color,
+	DataTexture,
+	DoubleSide,
+	LinearFilter,
+	RedFormat,
+	RGBAFormat,
+	UnsignedByteType,
+} from "three";
+
+import { useGrismStore } from "@/stores/image";
+import { useGlobeStore } from "@/stores/footprints";
+import { useShallow } from "zustand/react/shallow";
 import { useEmissionMaskLayer } from "./hooks/useEmissionMaskLayer";
 
 export const EMISSION_MASK_COLORS = [
@@ -29,49 +42,43 @@ export const EMISSION_MASK_COLORS = [
 
 
 
-/**
- * Generate circle points for rendering
- */
-function generateCirclePoints(
-	centerX: number,
-	centerY: number,
-	radius: number,
-	segments = 32,
-	z = 0.15,
-): [number, number, number][] {
-	const points: [number, number, number][] = [];
-	for (let i = 0; i <= segments; i++) {
-		const angle = (i / segments) * Math.PI * 2;
-		points.push([
-			centerX + Math.cos(angle) * radius,
-			centerY + Math.sin(angle) * radius,
-			z, // z position above heatmap
-		]);
-	}
-	return points;
-}
 
-const CIRCLE_RADIUS = 24;
-const CIRCLE_LINE_WIDTH = 4;
+
+
+
+
 
 export default function EmissionMaskLayer({
 	meshZ = 0.1,
-	circleZ = 0.15,
+	currentBasename,
 }: {
 	meshZ?: number;
-	circleZ?: number;
+	currentBasename?: string;
 } = {}) {
 	const {
 		isVisible,
-		texture,
+		maskData,
 		threshold,
-		maxValue,
-		xStart,
-		yStart,
-		width,
-		height,
-		regions,
+		mode,
 	} = useEmissionMaskLayer();
+
+
+
+	// Determine current frame index using footprint metadata
+	const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const footprints = useGlobeStore((state) => state.footprints);
+	
+	const currentFrameIndex = useMemo(() => {
+		if (!currentBasename || !selectedFootprintId) return -1;
+		
+		const footprint = footprints.find(f => f.id === selectedFootprintId);
+		if (!footprint?.meta?.included_files) return -1;
+		
+		// "basename list order in a group matches backend group_box order"
+		// The `included_files` list should match the backend order if source of truth.
+		// Verifying: included_files usually comes from backend list.
+		return footprint.meta.included_files.indexOf(currentBasename);
+	}, [currentBasename, selectedFootprintId, footprints]);
 
 	// Create shared palette texture
 	const paletteTexture = useMemo(() => {
@@ -93,32 +100,83 @@ export default function EmissionMaskLayer({
 		return tex;
 	}, []);
 
-	// Filter regions by threshold and generate circle data
-	const regionCircles = useMemo(() => {
-		return regions
-			.filter((r) => r.max_value > threshold)
-			.map((region) => {
-				const colorIndex =
-					(Math.floor(region.max_value) - 1) % EMISSION_MASK_COLORS.length;
-				// Safety check for index
-				const safeIndex =
-					colorIndex >= 0 ? colorIndex : colorIndex + EMISSION_MASK_COLORS.length;
-				const color = EMISSION_MASK_COLORS[safeIndex % EMISSION_MASK_COLORS.length];
 
-				// Circle radius based on sqrt(area) for visual proportionality
-				const radius = CIRCLE_RADIUS;
-				const points = generateCirclePoints(
-					region.center_x,
-					-region.center_y, // Flip Y axis
-					radius,
-					32,
-					circleZ,
-				);
-				return { region, color, points };
-			});
-	}, [regions, threshold, circleZ]);
 
-	if (!isVisible || !texture || !width || !height) return null;
+	// Cleanup palette texture on unmount
+	useEffect(() => {
+		return () => {
+			paletteTexture.dispose();
+		};
+	}, [paletteTexture]);
+
+	// Creating texture
+	const texture = useMemo(() => {
+		if (!maskData) return null;
+		const { buffer, width, height, format } = maskData;
+		let dataTexture: DataTexture;
+
+		// We treat everything as UnsignedByteType data.
+		// If uint32, we have RGBA (4 bytes).
+		// If uint8, we have Red (1 byte) - BUT for Bitwise shader, passing as RGBA/RedInteger is tricky in Three R3F.
+		// Safer approach: Treat all as RGBA UnsignedByteType (if alignment works) or RedFormat.
+		// uint32 buffer naturally maps to RGBA bytes.
+		// uint8 buffer maps to Red bytes.
+		
+		if (format === 'uint32') {
+			// buffer is 4 * w * h bytes.
+			const uint8View = new Uint8Array(buffer);
+			// Create RGBA texture.
+			// Note: Little Endian: ABGR vs RGBA?
+			// WebGL reads bytes: Byte 0 -> R, Byte 1 -> G...
+			// uint32 (LE): Byte 0 is LSB.
+			// So R channel corresponds to Bits 0-7.
+			// This is perfect.
+			dataTexture = new DataTexture(uint8View, width, height, RGBAFormat, UnsignedByteType);
+		} else if (format === 'uint16') {
+			// buffer is 2 * w * h bytes.
+			// We can pad to RGBA or use RGFormat if supported (WebGL2).
+			// Let's try RGFormat (Red=Bits 0-7, Green=Bits 8-15).
+			// If RGFormat not available in types (it is in Three), good.
+			// However, safe fallback is RedFormat for uint8.
+			// For uint16, ThreeJS RGFormat with UnsignedByteType expects 2 bytes per pixel.
+			const uint8View = new Uint8Array(buffer);
+			// @ts-ignore - RGFormat exists in Three but sometimes types issue
+			dataTexture = new DataTexture(uint8View, width, height, 1023 /* RGFormat */, UnsignedByteType);
+		} else {
+			// uint8
+			const uint8View = new Uint8Array(buffer);
+			dataTexture = new DataTexture(uint8View, width, height, RedFormat, UnsignedByteType);
+		}
+		
+		dataTexture.minFilter = LinearFilter;
+		dataTexture.magFilter = LinearFilter; // Nearest might be better for bitmask?
+		// Actually for bitmask, NEAREST is mandatory to avoid interpolating bits (e.g. 1 and 2 becoming 1.5 which is nonsense bits)
+		// Wait, if we use float-like interpolation on bitmasks, we get garbage.
+		// MUST USE NEAREST FILTER.
+		dataTexture.minFilter = 1003; // NearestFilter
+		dataTexture.magFilter = 1003; // NearestFilter
+		dataTexture.wrapS = ClampToEdgeWrapping;
+		dataTexture.wrapT = ClampToEdgeWrapping;
+		dataTexture.flipY = true;
+		dataTexture.needsUpdate = true;
+		return dataTexture;
+	}, [maskData]);
+
+	// Cleanup texture when it changes or unmounts
+	useEffect(() => {
+		return () => {
+			texture?.dispose();
+		};
+	}, [texture]);
+
+
+	if (!isVisible || !maskData || !texture) return null;
+
+	const { xStart, yStart, width, height, maxValue, format } = maskData;
+
+
+
+
 
 	// Position the mesh based on mask bounds
 	const meshX = xStart + width / 2;
@@ -134,23 +192,22 @@ export default function EmissionMaskLayer({
 					uThreshold={threshold}
 					uPalette={paletteTexture}
 					uPaletteSize={EMISSION_MASK_COLORS.length}
+					uMaskFormat={format === 'uint32' ? 2 : format === 'uint16' ? 1 : 0}
+					uVisibleBitmask={
+						mode === 'total' 
+							? 0xFFFFFFFF 
+							: (mode === 'individual' && currentFrameIndex >= 0)
+								? (1 << currentFrameIndex) 
+								: 0
+					}
+					uOpacity={mode === 'individual' ? 1.0 : 0.85}
 					transparent={true}
 					side={DoubleSide}
 					depthWrite={false}
 				/>
 			</mesh>
 
-			{/* Region marker circles */}
-			{regionCircles.map(({ region, color, points }, index) => (
-				<Line
-					key={`region-${index}-${region.center_x}-${region.center_y}`}
-					points={points}
-					color={color}
-					lineWidth={CIRCLE_LINE_WIDTH}
-					transparent
-					opacity={0.9}
-				/>
-			))}
+
 		</>
 	);
 }

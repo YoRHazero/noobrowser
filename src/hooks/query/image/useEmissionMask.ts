@@ -5,7 +5,7 @@ import axios from "axios";
 import type { EmissionMaskData } from "./schemas";
 
 export function useEmissionMask({
-	enabled = true,
+	enabled = false,
 }: {
 	enabled?: boolean;
 } = {}) {
@@ -29,16 +29,21 @@ export function useEmissionMask({
 			const xEnd = Number(headers["x-data-x-end"]);
 			const yStart = Number(headers["x-data-y-start"]);
 			const yEnd = Number(headers["x-data-y-end"]);
+			const format = headers["x-mask-format"] || "uint8";
+			const frameCount = Number(headers["x-mask-frames"] || 8);
 
 			const width = xEnd - xStart;
 			const height = yEnd - yStart;
 			
-			// Find max value in the uint8 buffer
-			const uint8Array = new Uint8Array(buffer);
+			// Find max value in the buffer (approximate for normalization if needed later, but bitmask uses discrete)
+			// For now, returning 0 or calculating if needed. 
+			// Existing code used it for normalization, but new logic uses bitmask.
+			// Let's keep it 0 or standard max for bitmask type if component needs it.
 			let maxValue = 0;
-			for (let i = 0; i < uint8Array.length; i++) {
-				if (uint8Array[i] > maxValue) maxValue = uint8Array[i];
-			}
+			// Simplified: just set to full range of type to avoid "0" issues
+			if (format === 'uint8') maxValue = 255;
+			else if (format === 'uint16') maxValue = 65535;
+			else maxValue = 4294967295;
 
 			return {
 				buffer,
@@ -47,6 +52,8 @@ export function useEmissionMask({
 				xStart,
 				yStart,
 				maxValue,
+				format,
+				frameCount,
 			} as EmissionMaskData;
 		},
 	});

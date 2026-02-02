@@ -17,15 +17,20 @@ import { useShallow } from "zustand/react/shallow";
 import GlobalControls from "@/features/grism/tracesource/GlobalControls";
 import SourceCard from "@/features/grism/tracesource/SourceCard";
 import SpectrumPoller from "@/features/grism/tracesource/SpectrumPoller";
+import LinkSearchPanel from "@/features/grism/tracesource/NedSearchPanel";
 import { useSourcesStore } from "@/stores/sources";
 
 export default function TraceSourceDrawer() {
-	const { traceMode, traceSources } = useSourcesStore(
+	const { traceMode, traceSources, mainTraceSourceId } = useSourcesStore(
 		useShallow((state) => ({
 			traceMode: state.traceMode,
 			traceSources: state.traceSources,
+			mainTraceSourceId: state.mainTraceSourceId,
 		})),
 	);
+
+	const mainSource = traceSources.find((s) => s.id === mainTraceSourceId);
+
 
 	return (
 		<Drawer.Root placement="end" size="md">
@@ -119,6 +124,9 @@ export default function TraceSourceDrawer() {
 
 						{/* Footer / Global Controls - Fixed at bottom */}
 						<Box flexShrink={0}>
+							{mainSource?.ra !== undefined && mainSource?.dec !== undefined && (
+								<LinkSearchPanel ra={mainSource.ra} dec={mainSource.dec} />
+							)}
 							<GlobalControls />
 						</Box>
 					</Drawer.Content>

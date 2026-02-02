@@ -22,6 +22,8 @@ export type EmissionMaskData = {
 	xStart: number;
 	yStart: number;
 	maxValue: number;
+	format: string;
+	frameCount: number;
 };
 
 export type EmissionMaskRegion = {
@@ -29,6 +31,7 @@ export type EmissionMaskRegion = {
 	center_y: number;
 	max_value: number;
 	area: number;
+	max_overlap: number;
 };
 
 export type EmissionMaskRegionsResponse = {

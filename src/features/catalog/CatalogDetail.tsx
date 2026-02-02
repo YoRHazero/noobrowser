@@ -8,6 +8,7 @@ import {
 	Text,
 } from "@chakra-ui/react";
 import type { CatalogItemResponse } from "@/hooks/query/fit";
+import NedSearchPanel from "@/features/grism/tracesource/NedSearchPanel";
 import { useConnectionStore } from "@/stores/connection";
 import { FitPlotViewer } from "./FitPlotViewer";
 
@@ -80,6 +81,7 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 					</Tabs.Trigger>
 					<Tabs.Trigger value="cutout">Cutout</Tabs.Trigger>
 					<Tabs.Trigger value="live_plot">Live Plot</Tabs.Trigger>
+					<Tabs.Trigger value="ned">Ned</Tabs.Trigger>
 				</Tabs.List>
 
 
@@ -204,6 +206,10 @@ export function CatalogDetail({ item }: CatalogDetailProps) {
 				</Tabs.Content>
 
 
+
+				<Tabs.Content value="ned" p={4}>
+					<NedSearchPanel ra={item.ra} dec={item.dec} />
+				</Tabs.Content>
 			</Tabs.Root>
 		</Stack>
 	);
