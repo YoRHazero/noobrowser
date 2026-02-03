@@ -10,7 +10,6 @@ import { useId } from "react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
 import { Tooltip } from "@/components/ui/tooltip";
-import GrismWavelengthControl from "@/features/grism/GrismForwardWavelengthControl";
 import { SectionHeader } from "./components/SectionHeader";
 import { useExtractionControls } from "./hooks/useExtractionControls";
 import { extractionControlsRecipe } from "./recipes/extraction-controls.recipe";
@@ -38,9 +37,8 @@ export default function ExtractionControls() {
 	return (
 		<Stack css={styles.root}>
 			<SectionHeader
-				title="Extraction"
+				title="ExtractionWindow"
 				tip="Adjust the extraction window (2D) and slice range (1D)."
-				leftSlot={<GrismWavelengthControl />}
 				rightSlot={
 					<Tooltip
 						ids={{ trigger: switchId }}

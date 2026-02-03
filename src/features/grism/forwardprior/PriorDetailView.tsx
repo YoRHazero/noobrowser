@@ -1,11 +1,12 @@
 "use client";
 
 import { Box, Stack, Text } from "@chakra-ui/react";
-import PriorFormTabs from "@/features/grism/forwardprior/PriorFormTab";
+import { PriorTypeTabs } from "./components/PriorTypeTabs";
+import { usePriorForm } from "./hooks/usePriorForm";
 import type { FitModel, FitPrior } from "@/stores/stores-types";
 import { getModelParamValue } from "@/stores/stores-utils";
 
-interface PriorFormProps {
+interface PriorDetailViewProps {
 	allModels: FitModel[];
 	updateModelPrior: (
 		modelId: number,
@@ -16,7 +17,7 @@ interface PriorFormProps {
 	paramName: string;
 }
 
-export default function PriorForm(props: PriorFormProps) {
+export default function PriorDetailView(props: PriorDetailViewProps) {
 	const { allModels, updateModelPrior, modelId, paramName } = props;
 
 	const currentModel = allModels.find((m) => m.id === modelId);
@@ -32,17 +33,25 @@ export default function PriorForm(props: PriorFormProps) {
 
 	const paramValue = getModelParamValue(currentModel, paramName);
 
+	// Use Hook
+	const formLogic = usePriorForm({
+		modelId,
+		paramName,
+		allModels,
+		config: priorConfig,
+		onChange: handleConfigChange,
+	});
+
 	return (
 		<Stack h="full" gap={0} overflow="hidden">
 			{/* Content Area */}
 			<Box flex="1" overflowY="auto" p={4}>
 				<Stack gap={6}>
-					<PriorFormTabs
+					<PriorTypeTabs
 						modelId={modelId}
 						paramName={paramName}
 						allModels={allModels}
-						config={priorConfig}
-						onChange={handleConfigChange}
+						{...formLogic}
 					/>
 
 					{/* Visualization Placeholder */}

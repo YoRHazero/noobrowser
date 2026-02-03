@@ -1,27 +1,12 @@
-// features/grism/GrismWavelengthControl.tsx
 "use client";
 
 import { HStack, SegmentGroup, Stack, Text } from "@chakra-ui/react";
-import { useShallow } from "zustand/react/shallow";
-
-import { useFitStore } from "@/stores/fit";
-import { useGrismStore } from "@/stores/image";
 import type { WaveFrame, WaveUnit } from "@/stores/stores-types";
+import { useWavelengthControl } from "./hooks/useWavelengthControl";
 
-export default function GrismWavelengthControl() {
-	const { waveFrame, setWaveFrame } = useFitStore(
-		useShallow((state) => ({
-			waveFrame: state.waveFrame,
-			setWaveFrame: state.setWaveFrame,
-		})),
-	);
-
-	const { waveUnit, setWaveUnit } = useGrismStore(
-		useShallow((state) => ({
-			waveUnit: state.waveUnit,
-			setWaveUnit: state.setWaveUnit,
-		})),
-	);
+export default function WavelengthControls() {
+	const { waveFrame, setWaveFrame, waveUnit, setWaveUnit } =
+		useWavelengthControl();
 
 	return (
 		<HStack gap={1} align="flex-start">

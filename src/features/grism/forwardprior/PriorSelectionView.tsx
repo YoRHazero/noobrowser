@@ -9,13 +9,13 @@ import {
 	Text,
 } from "@chakra-ui/react";
 import { useMemo } from "react";
-import { LuCheck, LuCircleDot } from "react-icons/lu";
+import { LuCheck } from "react-icons/lu";
 
 import Latex from "@/components/ui/latex";
 import type { FitModel } from "@/stores/stores-types";
 import { getModelParamValue } from "@/stores/stores-utils";
 
-interface PriorSelectorProps {
+interface PriorSelectionViewProps {
 	allModels: FitModel[];
 	selectedModelId: number | null;
 	selectedParam: string | null;
@@ -58,7 +58,7 @@ interface ParamOption {
 	isConfigured: boolean;
 }
 
-export default function PriorSelector(props: PriorSelectorProps) {
+export default function PriorSelectionView(props: PriorSelectionViewProps) {
 	const {
 		allModels,
 		selectedModelId,
@@ -85,9 +85,7 @@ export default function PriorSelector(props: PriorSelectorProps) {
 	const paramsCollection = useMemo(() => {
 		const selectedModel = allModels.find((m) => m.id === selectedModelId);
 		const params = selectedModel
-			? selectedModel.kind === "linear"
-				? LINEAR_PARAMS
-				: GAUSSIAN_PARAMS
+			? selectedModel.kind === "linear" ? LINEAR_PARAMS : GAUSSIAN_PARAMS
 			: [];
 
 		return createListCollection<ParamOption>({
@@ -167,7 +165,7 @@ export default function PriorSelector(props: PriorSelectorProps) {
 									{/* Prior 状态指示点 */}
 									{item.hasPriors && (
 										<Icon color="teal.500" size="xs" ml={2}>
-											<LuCircleDot />
+											<LuCheck />
 										</Icon>
 									)}
 								</Listbox.Item>

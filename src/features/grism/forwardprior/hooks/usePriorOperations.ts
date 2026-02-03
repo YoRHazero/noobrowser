@@ -1,17 +1,15 @@
-"use client";
-
-import { Button, HStack } from "@chakra-ui/react";
-import { LuRotateCcw, LuSparkles } from "react-icons/lu";
-
 import { toaster } from "@/components/ui/toaster";
-import { Tooltip } from "@/components/ui/tooltip";
 import type {
 	FitGaussianModel,
 	FitModel,
 	FitPrior,
 } from "@/stores/stores-types";
 
-interface PriorOperationsProps {
+// Constants
+const C_LIGHT = 299792.458; // km/s
+const SIGMA_TO_FWHM = 2.35482;
+
+interface UsePriorOperationsProps {
 	allModels: FitModel[];
 	updateModelPrior: (
 		modelId: number,
@@ -19,10 +17,14 @@ interface PriorOperationsProps {
 		newPrior: FitPrior | undefined,
 	) => void;
 }
-export default function PriorOperations({
+
+export function usePriorOperations({
 	allModels,
 	updateModelPrior,
-}: PriorOperationsProps) {
+}: UsePriorOperationsProps) {
+	/* -------------------------------------------------------------------------- */
+	/*                                   Handle                                   */
+	/* -------------------------------------------------------------------------- */
 	const handleClearAll = () => {
 		let count = 0;
 		allModels.forEach((model) => {
@@ -34,10 +36,9 @@ export default function PriorOperations({
 		});
 
 		if (count > 0) {
-			toaster.create({
+			toaster.success({
 				title: "Priors Cleared",
 				description: `Reset ${count} parameters to default priors.`,
-				type: "success",
 			});
 		} else {
 			toaster.create({
@@ -63,13 +64,9 @@ export default function PriorOperations({
 			return;
 		}
 
-		const C_LIGHT = 299792.458; // km/s
-		const SIGMA_TO_FWHM = 2.35482;
-
 		let count = 0;
 		gaussians.forEach((model) => {
-			// 2.2.1 Amplitude
-			// TruncatedNormal: mu=val, sigma=val/2, lower=val/3, upper=unset
+			// 1. Amplitude
 			updateModelPrior(model.id, "amplitude", {
 				type: "TruncatedNormal",
 				mu: model.amplitude,
@@ -77,9 +74,7 @@ export default function PriorOperations({
 				lower: model.amplitude / 3,
 			});
 
-			// 2.2.2 Mu
-			// TruncatedNormal: mu=val, sigma=10A, lower=val-10A, upper=val+10A
-			// 10 Angstrom = 0.001 micron
+			// 2. Mu (10 Angstrom window)
 			const tenAngstroms = 0.001;
 			updateModelPrior(model.id, "mu", {
 				type: "TruncatedNormal",
@@ -89,9 +84,7 @@ export default function PriorOperations({
 				upper: model.mu + tenAngstroms,
 			});
 
-			// 2.2.3 Sigma
-			// "sigma converted to fwhm... lower is value - 100km/s"
-			// lower_sigma = sigma - (100 * mu) / (c * fwhmFactor)
+			// 3. Sigma
 			const sigmaDecrease = (100 * model.mu) / (C_LIGHT * SIGMA_TO_FWHM);
 			const lowerSigma = Math.max(0, model.sigma - sigmaDecrease);
 
@@ -105,33 +98,17 @@ export default function PriorOperations({
 			count++;
 		});
 
-		toaster.create({
+		toaster.success({
 			title: "Auto Guess Applied",
 			description: `Applied priors to ${count} Gaussian models.`,
-			type: "success",
 		});
 	};
 
-	return (
-		<HStack justify="flex-end" gap={2} p={0}>
-			<Tooltip content="Intelligently guess priors based on data">
-				<Button size="xs" variant="outline" onClick={handleAutoGuess}>
-					<LuSparkles />
-					Auto
-				</Button>
-			</Tooltip>
-
-			<Tooltip content="Reset all parameters of all models to default priors">
-				<Button
-					size="xs"
-					variant="ghost"
-					colorPalette="red"
-					onClick={handleClearAll}
-				>
-					<LuRotateCcw />
-					Reset
-				</Button>
-			</Tooltip>
-		</HStack>
-	);
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
+	return {
+		handleClearAll,
+		handleAutoGuess,
+	};
 }

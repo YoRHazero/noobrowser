@@ -1,6 +1,7 @@
 import { HStack, Stack, useSlotRecipe } from "@chakra-ui/react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
+import WavelengthControls from "./WavelengthControls";
 import { SectionHeader } from "./components/SectionHeader";
 import { useRedshiftControls } from "./hooks/useRedshiftControls";
 import { redshiftControlsRecipe } from "./recipes/redshift-controls.recipe";
@@ -26,6 +27,7 @@ export default function RedshiftControls() {
 			<SectionHeader
 				title="Redshift"
 				tip="Adjust the redshift (z) to shift the observed wavelength frame."
+				rightSlot={<WavelengthControls />}
 			/>
 
 			<Stack css={styles.slider}>

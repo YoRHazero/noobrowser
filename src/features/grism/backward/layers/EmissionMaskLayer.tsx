@@ -12,9 +12,7 @@ import {
 	UnsignedByteType,
 } from "three";
 
-import { useGrismStore } from "@/stores/image";
 import { useGlobeStore } from "@/stores/footprints";
-import { useShallow } from "zustand/react/shallow";
 import { useEmissionMaskLayer } from "./hooks/useEmissionMaskLayer";
 
 export const EMISSION_MASK_COLORS = [

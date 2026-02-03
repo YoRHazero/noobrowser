@@ -1,21 +1,19 @@
 import { Button, Drawer, Flex, TagsInput } from "@chakra-ui/react";
-import type { FitJobResponse } from "@/hooks/query/fit/schemas";
-import { useSaveFitResultMutation } from "@/hooks/query/fit/useSaveFitResult";
-import { useFitStore } from "@/stores/fit";
+import { useFitJobActions } from "./hooks/useFitJobActions";
+import { useFitJobs } from "./hooks/useFitJobs";
 
-interface GrismFitJobDrawerFooterProps {
-	selectedJob?: FitJobResponse;
+interface JobActionFooterProps {
+	selectedJobId: string | null;
 }
 
-export default function GrismFitJobDrawerFooter({
-	selectedJob,
-}: GrismFitJobDrawerFooterProps) {
-	const { mutate: saveFitResult, isPending } = useSaveFitResultMutation();
-	const addTags = useFitStore((state) => state.addTags);
-	const selectedTagsByJob = useFitStore((state) => state.selectedTagsByJob);
-	const setSelectedTagsForJob = useFitStore(
-		(state) => state.setSelectedTagsForJob,
-	);
+export default function JobActionFooter({
+	selectedJobId,
+}: JobActionFooterProps) {
+	const { jobs, selectedTagsByJob } = useFitJobs();
+	const { handleSaveResult, handleSetSelectedTags, handleAddTags, isSaving } =
+		useFitJobActions();
+
+	const selectedJob = jobs.find((j) => j.job_id === selectedJobId);
 
 	const selectedTags = selectedJob
 		? (selectedTagsByJob[selectedJob.job_id] ?? [])
@@ -25,10 +23,7 @@ export default function GrismFitJobDrawerFooter({
 	const handleSave = () => {
 		if (!selectedJob) return;
 
-		saveFitResult({
-			sourceId: selectedJob.job_id,
-			tags: selectedTags,
-		});
+		handleSaveResult(selectedJob.job_id, selectedTags);
 	};
 
 	return (
@@ -39,8 +34,8 @@ export default function GrismFitJobDrawerFooter({
 					value={selectedTags}
 					onValueChange={(details) => {
 						if (!selectedJob) return;
-						setSelectedTagsForJob(selectedJob.job_id, details.value);
-						addTags(details.value);
+						handleSetSelectedTags(selectedJob.job_id, details.value);
+						handleAddTags(details.value);
 					}}
 					disabled={!canEditTags}
 				>
@@ -58,7 +53,7 @@ export default function GrismFitJobDrawerFooter({
 				<Button
 					colorPalette="blue"
 					onClick={handleSave}
-					loading={isPending}
+					loading={isSaving}
 					disabled={!selectedJob || selectedJob.status !== "completed"}
 				>
 					Save

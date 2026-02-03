@@ -7,26 +7,24 @@ import {
 	Stack,
 	Text,
 } from "@chakra-ui/react";
-import { useState } from "react";
-import { useShallow } from "zustand/react/shallow";
-import FitConfigurationTitleEditor from "./FitConfigurationTitleEditor";
-import PriorForm from "./PriorForm";
-
-// 子组件
-import PriorOperations from "./PriorOperations";
-import PriorSelector from "./PriorSelector";
-import { useFitStore } from "@/stores/fit";
-import type { FitModel, FitPrior } from "@/stores/stores-types"; // 引入 FitModel 类型
+// Business Components (Root)
+import PriorTitleHeader from "./PriorTitleHeader";
+import PriorToolbar from "./PriorToolbar";
+import PriorSelectionView from "./PriorSelectionView";
+import PriorDetailView from "./PriorDetailView";
+// Logic Hook
+import { useForwardPrior } from "./hooks/useForwardPrior";
+// Types
+import type { FitModel, FitPrior } from "@/stores/stores-types";
 
 interface GrismForwardPriorDrawerProps {
 	isOpen: boolean;
 	onClose: () => void;
 
-	// --- 模式 1: Smart Mode (通过 ID 连接 Store) ---
+	// --- Mode 1: Smart (Store ID) ---
 	configId?: string | null;
 
-	// --- 模式 2: Dumb Mode (直接传入数据) ---
-	// 如果 configId 为空，则必须提供以下两个 props
+	// --- Mode 2: Dumb (Props) ---
 	models?: FitModel[];
 	onUpdatePrior?: (
 		modelId: number,
@@ -34,7 +32,7 @@ interface GrismForwardPriorDrawerProps {
 		newPrior: FitPrior | undefined,
 	) => void;
 
-	// Dumb Mode 下的标题 (可选)
+	// Dumb Mode Title
 	title?: string;
 }
 
@@ -46,48 +44,28 @@ export default function GrismForwardPriorDrawer({
 	onUpdatePrior: propOnUpdatePrior,
 	title = "Model Settings",
 }: GrismForwardPriorDrawerProps) {
-	// --- 1. Store Connections (Conditional) ---
-	// 即使没传 configId，Hook 也会执行，但我们可以通过逻辑忽略结果
-	const storeConfig = useFitStore(
-		useShallow((s) =>
-			configId ? s.configurations.find((c) => c.id === configId) : undefined,
-		),
-	);
-	const storeUpdateConfigurationModelPrior = useFitStore(
-		(s) => s.updateConfigurationModelPrior,
-	);
+	/* -------------------------------------------------------------------------- */
+	/*                               Logic & State                                */
+	/* -------------------------------------------------------------------------- */
+	const {
+		activeModels,
+		selectedModelId,
+		selectedParam,
+		handleUpdatePrior,
+		handleSelectModel,
+		handleSelectParam,
+	} = useForwardPrior({
+		configId,
+		propModels,
+		propOnUpdatePrior,
+	});
 
-	// --- 2. Data Resolution Strategy ---
-	// 优先使用 Store 中的数据，如果 Store 没数据(或没ID)，则回退到 Props
-	const activeModels = configId ? storeConfig?.models : propModels;
-
-	// 决定使用哪个更新函数
-	const handleUpdatePrior = (
-		modelId: number,
-		paramName: string,
-		newPrior: FitPrior | undefined,
-	) => {
-		if (configId) {
-			// Mode 1: Update Store Configuration
-			storeUpdateConfigurationModelPrior(
-				configId,
-				modelId,
-				paramName,
-				newPrior,
-			);
-		} else if (propOnUpdatePrior) {
-			// Mode 2: Call Prop Callback
-			propOnUpdatePrior(modelId, paramName, newPrior);
-		}
-	};
-
-	// --- 3. Local UI State ---
-	const [selectedModelId, setSelectedModelId] = useState<number | null>(null);
-	const [selectedParam, setSelectedParam] = useState<string | null>(null);
-
-	// 安全检查：既没有 Store 数据，也没有 Prop 数据，则不渲染
+	// If no data, don't render
 	if (!activeModels) return null;
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Render                                   */
+	/* -------------------------------------------------------------------------- */
 	return (
 		<Drawer.Root
 			open={isOpen}
@@ -103,12 +81,10 @@ export default function GrismForwardPriorDrawer({
 								{configId ? "Configuration Settings" : "Active Model Settings"}
 							</Text>
 
-							{/* 标题区域逻辑分支 */}
+							{/* Title Area */}
 							{configId ? (
-								// 如果有 Config ID，启用重命名功能
-								<FitConfigurationTitleEditor configId={configId} />
+								<PriorTitleHeader configId={configId} />
 							) : (
-								// 否则显示静态标题
 								<Text fontWeight="bold" fontSize="md">
 									{title}
 								</Text>
@@ -121,9 +97,9 @@ export default function GrismForwardPriorDrawer({
 
 					<Drawer.Body p={0}>
 						<Flex direction="column" h="full">
-							{/* 顶部：批量操作 */}
+							{/* Top: Toolbar */}
 							<Stack p={4} pb={2} gap={4}>
-								<PriorOperations
+								<PriorToolbar
 									allModels={activeModels}
 									updateModelPrior={handleUpdatePrior}
 								/>
@@ -131,7 +107,7 @@ export default function GrismForwardPriorDrawer({
 
 							<Separator />
 
-							{/* 中部：选择器 */}
+							{/* Middle: Selection */}
 							<Flex
 								h="180px"
 								p={4}
@@ -140,22 +116,19 @@ export default function GrismForwardPriorDrawer({
 								borderBottomWidth="1px"
 								borderColor="border.subtle"
 							>
-								<PriorSelector
+								<PriorSelectionView
 									allModels={activeModels}
 									selectedModelId={selectedModelId}
 									selectedParam={selectedParam}
-									onSelectModel={(id) => {
-										setSelectedModelId(id);
-										setSelectedParam(null);
-									}}
-									onSelectParam={setSelectedParam}
+									onSelectModel={handleSelectModel}
+									onSelectParam={handleSelectParam}
 								/>
 							</Flex>
 
-							{/* 底部：表单 */}
+							{/* Bottom: Detail/Form */}
 							<Box flex="1" overflowY="auto" p={4}>
 								{selectedModelId && selectedParam ? (
-									<PriorForm
+									<PriorDetailView
 										allModels={activeModels}
 										updateModelPrior={handleUpdatePrior}
 										modelId={selectedModelId}

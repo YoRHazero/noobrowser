@@ -1,6 +1,7 @@
 import { useEffect } from "react";
 import { useSingleJobPoller } from "@/hooks/query/fit/useSingleJobPoller";
 import { useFitStore } from "@/stores/fit";
+import { useFitJobs } from "./hooks/useFitJobs";
 
 /* -------------------- Single Job Poller Wrapper ------------------- */
 const SingleJobPoller = ({ jobId }: { jobId: string }) => {
@@ -18,12 +19,7 @@ const SingleJobPoller = ({ jobId }: { jobId: string }) => {
 
 /* -------------------------- Main Component ------------------------ */
 export default function FitJobPoller() {
-	const jobs = useFitStore((state) => state.jobs);
-
-	// Select jobs that need polling
-	const activeJobs = jobs.filter(
-		(job) => job.status === "pending" || job.status === "processing",
-	);
+	const { activeJobs } = useFitJobs();
 
 	return (
 		<>

@@ -11,7 +11,7 @@ import {
 } from "@chakra-ui/react";
 import { Activity } from "lucide-react";
 import FitJobPoller from "../fitjob/FitJobPoller";
-import GrismFitJobDrawer from "../fitjob/GrismFitJobDrawer";
+import GrismFitJobDrawer from "../fitjob";
 import { SectionHeader } from "./components/SectionHeader";
 import { useExtractionSettings } from "./hooks/useExtractionSettings";
 import { extractionSettingsRecipe } from "./recipes/extraction-settings.recipe";
