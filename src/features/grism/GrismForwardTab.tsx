@@ -3,10 +3,10 @@
 import { Box, HStack, Tabs, Text } from "@chakra-ui/react";
 import type { IconType } from "react-icons";
 import { LuChartSpline, LuList, LuSlidersHorizontal } from "react-icons/lu";
-import GrismForwardControl from "@/features/grism/GrismForwardControl";
+import GrismForwardControl from "@/features/grism/forwardcontrol";
 // Components
-import GrismForwardFit from "@/features/grism/GrismForwardFit";
-import GrismForwardSource from "@/features/grism/GrismForwardSource";
+import GrismForwardFit from "@/features/grism/forwardfit";
+import GrismForwardSource from "@/features/grism/forwardsource";
 
 // --- 1. 定义 Tab 配置结构 ---
 interface TabConfig {

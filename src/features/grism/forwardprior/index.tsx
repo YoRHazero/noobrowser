@@ -9,12 +9,12 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import FitConfigurationTitleEditor from "@/features/grism/forwardprior/FitConfigurationTitleEditor";
-import PriorForm from "@/features/grism/forwardprior/PriorForm";
+import FitConfigurationTitleEditor from "./FitConfigurationTitleEditor";
+import PriorForm from "./PriorForm";
 
 // 子组件
-import PriorOperations from "@/features/grism/forwardprior/PriorOperations";
-import PriorSelector from "@/features/grism/forwardprior/PriorSelector";
+import PriorOperations from "./PriorOperations";
+import PriorSelector from "./PriorSelector";
 import { useFitStore } from "@/stores/fit";
 import type { FitModel, FitPrior } from "@/stores/stores-types"; // 引入 FitModel 类型
 

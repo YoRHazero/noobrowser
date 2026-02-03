@@ -3,7 +3,8 @@ import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import GrismBackwardAnalysisPanel from "@/features/grism/GrismBackwardAnalysisPanel";
 import GrismBackwardMainCanvas from "@/features/grism/GrismBackwardMainCanvas";
-import { useGrismNavigation, useScrollFocus } from "@/hook/hotkey-hook";
+import { useGrismNavigation } from "@/features/grism/backward/hooks/useGrismNavigation";
+import { useScrollFocus } from "@/hooks/ui/useScrollFocus";
 import { useGlobeStore } from "@/stores/footprints";
 
 export default function GrismBackward() {

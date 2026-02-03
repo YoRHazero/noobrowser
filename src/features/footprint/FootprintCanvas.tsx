@@ -33,11 +33,13 @@ export default function FootprintCanvas() {
 
 	const setBackground = useGlobeStore((state) => state.setGlobeBackground);
 	// Consistent with Box size below
-	setBackground({
-		centerX: 400,
-		centerY: 300,
-		initialRadius: (Math.min(800, 600) / 2) * 0.9,
-	});
+	useEffect(() => {
+		setBackground({
+			centerX: 400,
+			centerY: 300,
+			initialRadius: (Math.min(800, 600) / 2) * 0.9,
+		});
+	}, [setBackground]);
 
 	// Footprint Query
 	const setFootprints = useGlobeStore((state) => state.setFootprints);

@@ -37,6 +37,9 @@ export function useSourceCard(source: TraceSource) {
 	/* -------------------------------------------------------------------------- */
 	const [useDms, setUseDms] = useState<boolean>(false);
 
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
 	const isMain = source.id === mainTraceSourceId;
 
 	const isSettingsValid =
@@ -45,8 +48,9 @@ export function useSourceCard(source: TraceSource) {
 	const sourceHasRaDec =
 		typeof source.ra === "number" && typeof source.dec === "number";
 	const canFetchSpec = isSettingsValid && sourceHasRaDec;
+
 	/* -------------------------------------------------------------------------- */
-	/*                               Access Tanstack                              */
+	/*                              Mutations/Query                               */
 	/* -------------------------------------------------------------------------- */
 	const queryClient = useQueryClient();
 	const { positionQuery, spectrumQuery } = useSource({
@@ -54,10 +58,10 @@ export function useSourceCard(source: TraceSource) {
 		posEnabled: !sourceHasRaDec,
 		specEnabled: false,
 	});
-	/* -------------------------------------------------------------------------- */
-	/*                                   Effect                                   */
-	/* -------------------------------------------------------------------------- */
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Effects                                  */
+	/* -------------------------------------------------------------------------- */
 	// --- Effect: World coordinate returned from positionQuery ---
 	useEffect(() => {
 		if (positionQuery.data) {
@@ -116,6 +120,7 @@ export function useSourceCard(source: TraceSource) {
 	const removeSource = () => {
 		removeTraceSource(source.id);
 	};
+
 	/* -------------------------------------------------------------------------- */
 	/*                                   Return                                   */
 	/* -------------------------------------------------------------------------- */

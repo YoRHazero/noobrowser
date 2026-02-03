@@ -2,9 +2,9 @@
 
 import { Box, Separator } from "@chakra-ui/react";
 import { Panel, panelStyles } from "@/components/layout/Panel";
-import EmissionLinesManager from "@/features/grism/forwardcontrol/EmissionLinesManager";
-import ExtractionControls from "@/features/grism/forwardcontrol/ExtractionControls";
-import RedshiftControls from "@/features/grism/forwardcontrol/RedshiftControls";
+import EmissionLinesManager from "./EmissionLinesManager";
+import ExtractionControls from "./ExtractionControls";
+import RedshiftControls from "./RedshiftControls";
 
 export default function GrismForwardControl() {
 	return (

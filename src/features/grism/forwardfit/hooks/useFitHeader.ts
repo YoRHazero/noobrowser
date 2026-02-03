@@ -6,6 +6,9 @@ import { useGrismStore } from "@/stores/image";
 import type { FitModelType } from "@/stores/stores-types";
 
 export function useFitHeader() {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const { addModel, models, saveCurrentConfiguration, updateModel } =
 		useFitStore(
 			useShallow((state) => ({
@@ -22,9 +25,19 @@ export function useFitHeader() {
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                 Local State                                */
+	/* -------------------------------------------------------------------------- */
 	const [selectedType, setSelectedType] = useState<string[]>(["linear"]);
+
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
 	const hasModels = models.length > 0;
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Handle                                   */
+	/* -------------------------------------------------------------------------- */
 	const handleAdd = useCallback(() => {
 		const kind = (selectedType[0] as FitModelType) ?? "linear";
 		addModel(kind, slice1DWaveRange);
@@ -54,6 +67,9 @@ export function useFitHeader() {
 		toaster.create({ title: "Configuration saved", type: "success" });
 	}, [saveCurrentConfiguration]);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		selectedType,
 		setSelectedType,

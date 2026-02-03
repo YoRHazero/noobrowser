@@ -6,7 +6,7 @@ import {
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
-import GrismForwardPriorDrawer from "@/features/grism/GrismForwardPriorDrawer";
+import GrismForwardPriorDrawer from "@/features/grism/forwardprior";
 import FitConfigurationCard from "./components/FitConfigurationCard";
 import { SectionHeader } from "./components/SectionHeader";
 import { useFitConfigurationList } from "./hooks/useFitConfigurationList";

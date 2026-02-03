@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useGlobeAnimation } from "@/hook/animation-hook";
+import { useGlobeAnimation } from "@/features/footprint/hooks/animation-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import type { Footprint } from "@/stores/stores-types";
 import { centerRaDecToView } from "@/utils/projection";

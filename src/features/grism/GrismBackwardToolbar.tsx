@@ -4,7 +4,7 @@ import { CollapsiblePanel } from "@/components/layout/CollapsiblePanel";
 import GrismBackwardCounterpartControl from "@/features/grism/backwardtoolbar/GrismBackwardCounterpartControl";
 import GrismBackwardNormControls from "@/features/grism/backwardtoolbar/GrismBackwardNormControl";
 import EmissionMaskControl from "@/features/grism/backwardtoolbar/EmissionMaskControl";
-import { useIdSyncCounterpartPosition } from "@/hook/calculation-hook";
+import { useIdSyncCounterpartPosition } from "@/features/grism/hooks/useIdSyncCounterpartPosition";
 import { useGrismStore } from "@/stores/image";
 
 function MiniStatus() {

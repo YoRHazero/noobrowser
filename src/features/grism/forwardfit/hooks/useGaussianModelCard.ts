@@ -1,10 +1,8 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import {
-	useFitRangeClamp,
-	useFitStepScaler,
-	useWavelengthUpdate,
-} from "@/hook/fitting-hook";
+import { useFitRangeClamp } from "@/features/grism/forwardfit/hooks/utils/useFitRangeClamp";
+import { useFitStepScaler } from "@/features/grism/forwardfit/hooks/utils/useFitStepScaler";
+import { useWavelengthUpdate } from "@/features/grism/forwardfit/hooks/utils/useWavelengthUpdate";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 import type { FitGaussianModel } from "@/stores/stores-types";

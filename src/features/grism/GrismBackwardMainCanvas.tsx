@@ -13,10 +13,11 @@ import EmissionMaskLayer from "@/features/grism/backward/layers/EmissionMaskLaye
 import GrismBackwardFetchControl from "@/features/grism/backward/GrismBackwardFetchControl";
 import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
 //import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
-import TraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
+import TraceSourceDrawer from "@/features/grism/tracesource";
 import { useGrismBackwardCanvas } from "@/features/grism/backward/hooks/useGrismBackwardCanvas";
 import { useGrismInfoLegend } from "@/features/grism/backward/hooks/useGrismInfoLegend";
-import { useCameraCenteringOnRoi, useCameraFollowRoi } from "@/hook/hotkey-hook";
+import { useCameraCenteringOnRoi } from "@/features/grism/backward/hooks/useCameraCenteringOnRoi";
+import { useCameraFollowRoi } from "@/features/grism/backward/hooks/useCameraFollowRoi";
 
 export default function GrismBackwardMainCanvas({
 	currentBasename,

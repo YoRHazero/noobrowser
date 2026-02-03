@@ -2,9 +2,9 @@
 
 import { Box, Separator } from "@chakra-ui/react";
 import { Panel, panelStyles } from "@/components/layout/Panel";
-import ExtractionSettings from "@/features/grism/forwardsource/ExtractionSettings";
-import FitConfigurationList from "@/features/grism/forwardsource/FitConfigurationList";
-import TargetSourceList from "@/features/grism/forwardsource/TargetSourceList";
+import ExtractionSettings from "./ExtractionSettings";
+import FitConfigurationList from "./FitConfigurationList";
+import TargetSourceList from "./TargetSourceList";
 
 export default function GrismForwardSource() {
 	return (

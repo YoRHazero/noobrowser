@@ -20,20 +20,17 @@ interface NedSearchPanelProps {
 
 export default function NedSearchPanel({ ra, dec }: NedSearchPanelProps) {
 	const [radius, setRadius] = useState(2);
-	const [isSearching, setIsSearching] = useState(false);
 	const [isOpen, setIsOpen] = useState(false);
 
 	const { data: results, isFetching, refetch } = useNedSearch({
 		ra,
 		dec,
 		radius,
-		enabled: isSearching,
+		enabled: false,
 	});
 
 	const handleSearch = () => {
-		setIsSearching(true);
 		if (!isOpen) setIsOpen(true);
-		// Force refetch if already enabled but parameters changed or re-triggered
 		refetch();
 	};
 

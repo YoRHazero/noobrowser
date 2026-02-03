@@ -14,10 +14,10 @@ import {
 } from "@chakra-ui/react";
 import { Crosshair, ListFilter, Target } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
-import GlobalControls from "@/features/grism/tracesource/GlobalControls";
-import SourceCard from "@/features/grism/tracesource/SourceCard";
-import SpectrumPoller from "@/features/grism/tracesource/SpectrumPoller";
-import LinkSearchPanel from "@/features/grism/tracesource/NedSearchPanel";
+import GlobalControls from "./GlobalControls";
+import SourceCard from "./SourceCard";
+import SpectrumPoller from "./SpectrumPoller";
+import LinkSearchPanel from "./NedSearchPanel";
 import { useSourcesStore } from "@/stores/sources";
 
 export default function TraceSourceDrawer() {

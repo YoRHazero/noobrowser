@@ -1,15 +1,8 @@
-import { useThree } from "@react-three/fiber";
-import gsap from "gsap";
-import { ScrollToPlugin } from "gsap/ScrollToPlugin";
-import { useEffect, useRef, useState } from "react";
+import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import type { MapControls } from "three-stdlib";
 import { useCounterpartStore, useGrismStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
 import type { RoiState } from "@/stores/stores-types";
-import { useShallow } from "zustand/react/shallow";
-
-gsap.registerPlugin(ScrollToPlugin);
 
 export type MoveConfig = {
 	moveStep: number;
@@ -97,9 +90,12 @@ export function useGrismNavigation(
 		(e) => {
 			e.preventDefault();
 			const currentMode = useGrismStore.getState().emissionMaskMode;
-			const nextMode = 
-				currentMode === "hidden" ? "individual" : 
-				currentMode === "individual" ? "total" : "hidden";
+			const nextMode =
+				currentMode === "hidden"
+					? "individual"
+					: currentMode === "individual"
+						? "total"
+						: "hidden";
 			setEmissionMaskMode(nextMode);
 		},
 		hotkeyConfig,
@@ -232,146 +228,4 @@ export function useGrismNavigation(
 		[totalImages],
 	);
 	return { currentImageIndex, setCurrentImageIndex };
-}
-
-export function useCameraCenteringOnRoi(
-	controlRef: React.RefObject<MapControls | null>,
-) {
-	const roiState = useGrismStore((state) => state.roiState);
-	const { camera } = useThree();
-	useHotkeys(
-		"shift+c",
-		(e) => {
-			e.preventDefault();
-			const controls = controlRef.current;
-			if (!controls || !camera || !roiState) return;
-
-			const roiCenterX = roiState.x + roiState.width / 2;
-			const roiCenterY = roiState.y + roiState.height / 2;
-
-			gsap.killTweensOf(controls.target);
-			gsap.killTweensOf(camera.position);
-
-			gsap.to(controls.target, {
-				x: roiCenterX,
-				y: -roiCenterY,
-				z: 0,
-				duration: 0.5,
-				ease: "power3.inOut",
-				onUpdate: () => {
-					controls.update();
-				},
-			});
-
-			const cameraZ = camera.position.z;
-			gsap.to(camera.position, {
-				x: roiCenterX,
-				y: -roiCenterY,
-				z: cameraZ,
-				duration: 0.5,
-				ease: "power3.inOut",
-			});
-
-			controls.update();
-		},
-		[roiState, camera, controlRef],
-	);
-}
-
-export function useCameraFollowRoi(
-	controlRef: React.RefObject<MapControls | null>,
-) {
-	const { roiState, followRoiCamera } = useGrismStore(
-		useShallow((state) => ({
-			roiState: state.roiState,
-			followRoiCamera: state.followRoiCamera,
-		})),
-	);
-	const { camera } = useThree();
-
-	useEffect(() => {
-		if (!followRoiCamera) return;
-		const controls = controlRef.current;
-		if (!controls || !camera || !roiState) return;
-
-		const roiCenterX = roiState.x + roiState.width / 2;
-		const roiCenterY = roiState.y + roiState.height / 2;
-
-		gsap.killTweensOf(controls.target);
-		gsap.killTweensOf(camera.position);
-
-		gsap.to(controls.target, {
-			x: roiCenterX,
-			y: -roiCenterY,
-			z: 0,
-			duration: 0.35,
-			ease: "power3.inOut",
-			overwrite: "auto",
-			onUpdate: () => {
-				controls.update();
-			},
-		});
-
-		gsap.to(camera.position, {
-			x: roiCenterX,
-			y: -roiCenterY,
-			z: camera.position.z,
-			duration: 0.35,
-			ease: "power3.inOut",
-			overwrite: "auto",
-		});
-	}, [
-		followRoiCamera,
-		roiState.x,
-		roiState.y,
-		roiState.width,
-		roiState.height,
-		camera,
-		controlRef,
-	]);
-}
-
-interface ScrollFocusOptions {
-	duration?: number;
-	offset?: number;
-	ease?: string;
-	preventDefault?: boolean;
-}
-
-export function useScrollFocus<T extends HTMLElement>(
-	keys: string,
-	options: ScrollFocusOptions = {},
-) {
-	const elementRef = useRef<T>(null);
-
-	const {
-		duration = 1,
-		offset = 0,
-		ease = "power3.inOut",
-		preventDefault = true,
-	} = options;
-
-	useHotkeys(
-		keys,
-		() => {
-			if (elementRef.current) {
-				gsap.to(window, {
-					duration: duration,
-					scrollTo: {
-						y: elementRef.current,
-						offsetY: offset,
-						autoKill: true,
-					},
-					ease: ease,
-				});
-			}
-		},
-		{
-			preventDefault: preventDefault,
-			enableOnFormTags: true,
-		},
-		[duration, offset, ease],
-	);
-
-	return elementRef;
 }

@@ -14,8 +14,8 @@ export function useNedSearch({
 }) {
 	const queryKey = [
 		"ned-search",
-		ra?.toFixed(6),
-		dec?.toFixed(6),
+		ra?.toFixed(10),
+		dec?.toFixed(10),
 		radius,
 	];
 

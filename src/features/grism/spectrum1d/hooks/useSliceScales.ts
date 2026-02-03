@@ -1,7 +1,6 @@
 import { scaleLinear } from "d3-scale";
 import { useMemo } from "react";
 import type { Spectrum1D } from "@/utils/util-types";
-import { computeSliceFluxRange } from "../utils/spectrumMath";
 
 export function useSliceScales(params: {
 	sliceSpectrum: Spectrum1D[];
@@ -11,7 +10,8 @@ export function useSliceScales(params: {
 }) {
 	const { sliceSpectrum, sliceRange, chartWidth, chartHeightSlice } = params;
 	return useMemo(() => {
-		const { fluxMin, fluxMax } = computeSliceFluxRange(sliceSpectrum);
+		const fluxMin = Math.min(...sliceSpectrum.map((d) => d.fluxMinusErr));
+		const fluxMax = Math.max(...sliceSpectrum.map((d) => d.fluxPlusErr));
 		const fluxPadding = (fluxMax - fluxMin) * 0.05;
 		const xScaleSlice = scaleLinear()
 			.domain([sliceRange.min, sliceRange.max])

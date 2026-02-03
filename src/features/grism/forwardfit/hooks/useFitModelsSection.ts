@@ -4,6 +4,9 @@ import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 
 export function useFitModelsSection() {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const { models, ensureInitialModels } = useFitStore(
 		useShallow((state) => ({
 			models: state.models,
@@ -17,10 +20,16 @@ export function useFitModelsSection() {
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Effects                                  */
+	/* -------------------------------------------------------------------------- */
 	useEffect(() => {
 		ensureInitialModels(slice1DWaveRange);
 	}, [ensureInitialModels, slice1DWaveRange]);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		models,
 	};

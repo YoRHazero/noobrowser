@@ -8,7 +8,7 @@ import { AreaClosed, Line, LinePath } from "@visx/shape";
 import type { ScaleLinear } from "d3-scale";
 import { memo, useMemo, useState } from "react";
 import { HorizontalSpec1DParamsSlider } from "@/components/ui/internal-slider";
-import { useRoiSpectrum1D } from "@/hook/calculation-hook";
+import { useRoiSpectrum1D } from "@/features/grism/hooks/useRoiSpectrum1D";
 import { useDispersionTrace } from "@/hooks/query/source/useDispersionTrace";
 import type { Spectrum1D } from "@/utils/util-types";
 import { SPEED_OF_LIGHT_KM_S } from "@/utils/wavelength";

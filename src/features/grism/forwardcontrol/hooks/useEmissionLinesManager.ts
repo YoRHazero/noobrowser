@@ -3,12 +3,18 @@ import { useShallow } from "zustand/react/shallow";
 import { useGrismStore } from "@/stores/image";
 
 export function useEmissionLinesManager() {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const { emissionLines } = useGrismStore(
 		useShallow((state) => ({
 			emissionLines: state.emissionLines,
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
 	const sortedLineKeys = useMemo(
 		() =>
 			Object.entries(emissionLines)
@@ -17,6 +23,9 @@ export function useEmissionLinesManager() {
 		[emissionLines],
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		sortedLineKeys,
 	};

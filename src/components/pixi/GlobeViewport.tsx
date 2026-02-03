@@ -6,7 +6,7 @@ import {
 } from "pixi.js";
 import { useCallback, useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useGlobeAnimation } from "@/hook/animation-hook";
+import { useGlobeAnimation } from "@/features/footprint/hooks/animation-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { clamp, wrapDeg180 } from "@/utils/projection";
 

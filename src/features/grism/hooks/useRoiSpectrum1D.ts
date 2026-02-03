@@ -1,12 +1,10 @@
 import { Float16Array } from "@petamoriken/float16";
-import { useEffect, useMemo } from "react";
+import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
 import { useGrismData } from "@/hooks/query/image/useGrismData";
 import { useGrismErr } from "@/hooks/query/image/useGrismErr";
 import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
-import { useGlobeStore } from "@/stores/footprints";
-import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import { useGrismStore } from "@/stores/image";
 import { clamp } from "@/utils/projection";
 import type { Spectrum1D } from "@/utils/util-types";
 
@@ -99,31 +97,4 @@ export function useRoiSpectrum1D(basename: string | undefined) {
 		roiState,
 	]);
 	return { spectrum1D, roiCollapseWindow, roiState };
-}
-
-export function useIdSyncCounterpartPosition() {
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
-	const setCounterpartPosition = useCounterpartStore(
-		(state) => state.setCounterpartPosition,
-	);
-	const { data: footprintData, isSuccess: isFootprintSuccess } =
-		useCounterpartFootprint({
-			selectedFootprintId,
-			enabled: !!selectedFootprintId,
-		});
-
-	useEffect(() => {
-		if (!isFootprintSuccess || !footprintData) return;
-
-		const { vertex_marker } = footprintData.footprint;
-		setCounterpartPosition({
-			x0: vertex_marker[0][0],
-			y0: vertex_marker[0][1],
-			width: vertex_marker[2][0] - vertex_marker[0][0],
-			height: vertex_marker[2][1] - vertex_marker[0][1],
-		});
-	}, [isFootprintSuccess, footprintData, setCounterpartPosition]);
-	return { selectedFootprintId };
 }

@@ -1,6 +1,6 @@
 import { Box, Button, HStack, NumberInput, Text } from "@chakra-ui/react";
 import { useCallback, useMemo, useState } from "react";
-import { useGlobeAnimation } from "@/hook/animation-hook";
+import { useGlobeAnimation } from "@/features/footprint/hooks/animation-hook";
 import { useGlobeStore } from "@/stores/footprints";
 import { centerRaDecToView, viewToCenterRaDec } from "@/utils/projection";
 

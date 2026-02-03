@@ -2,7 +2,7 @@ import { HStack, Stack } from "@chakra-ui/react";
 import Grism1DCanvas from "@/features/grism/GrismForward1DCanvas";
 import GrismForward2dCanvas from "@/features/grism/GrismForward2dCanvas";
 import GrismForwardTab from "@/features/grism/GrismForwardTab";
-import { useScrollFocus } from "@/hook/hotkey-hook";
+import { useScrollFocus } from "@/hooks/ui/useScrollFocus";
 export default function GrismForward() {
 	const containerRef = useScrollFocus<HTMLDivElement>("shift+2", {
 		offset: 0,

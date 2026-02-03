@@ -3,7 +3,7 @@ import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { HorizontalNormRangeSlider } from "@/components/ui/internal-slider";
 import { useFluxPercentiles } from "@/hooks/query/image/useFluxPercentiles";
-import { useDebouncedRoiState } from "@/hook/debounce-hook";
+import { useDebouncedRoiState } from "@/features/grism/hooks/useDebouncedRoiState";
 import { useGrismStore } from "@/stores/image";
 import type { NormParams } from "@/stores/stores-types";
 import { clamp } from "@/utils/projection";

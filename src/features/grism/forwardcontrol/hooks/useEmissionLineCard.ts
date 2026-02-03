@@ -4,6 +4,9 @@ import { useGrismStore } from "@/stores/image";
 import { ANGSTROM_PER_MICRON } from "@/utils/wavelength";
 
 export function useEmissionLineCard(emissionName: string) {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const {
 		waveUnit,
 		zRedshift,
@@ -22,6 +25,9 @@ export function useEmissionLineCard(emissionName: string) {
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
 	const isSelected = Object.hasOwn(selectedEmissionLines, emissionName);
 
 	const formatted = useMemo(() => {
@@ -45,6 +51,9 @@ export function useEmissionLineCard(emissionName: string) {
 		};
 	}, [emissionLines, emissionName, waveUnit, zRedshift]);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Handle                                   */
+	/* -------------------------------------------------------------------------- */
 	const toggleSelected = (checked: boolean) => {
 		const next = { ...selectedEmissionLines };
 		if (checked) {
@@ -62,6 +71,9 @@ export function useEmissionLineCard(emissionName: string) {
 		removeEmissionLine(emissionName);
 	};
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		name: emissionName,
 		isSelected,

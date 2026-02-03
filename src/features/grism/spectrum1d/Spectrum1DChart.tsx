@@ -4,7 +4,7 @@ import { defaultStyles } from "@visx/tooltip";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useColorModeValue } from "@/components/ui/color-mode";
-import { useWavelengthDisplay } from "@/hook/wavelength-hook";
+import { useWavelengthDisplay } from "@/features/grism/spectrum1d/hooks/useWavelengthDisplay";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 import type { Spectrum1D } from "@/utils/util-types";

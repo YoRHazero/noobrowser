@@ -13,6 +13,9 @@ import {
 } from "@/utils/wavelength";
 
 export function useExtractionControls() {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const {
 		collapseWindow,
 		setCollapseWindow,
@@ -42,6 +45,62 @@ export function useExtractionControls() {
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                              Mutations/Query                               */
+	/* -------------------------------------------------------------------------- */
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
+		{
+			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+			queryFn: async () => undefined,
+			enabled: false,
+		},
+	);
+
+	/* -------------------------------------------------------------------------- */
+	/*                                 Local State                                */
+	/* -------------------------------------------------------------------------- */
+	const [minInput, setMinInput] = useState("");
+	const [maxInput, setMaxInput] = useState("");
+
+	const [localWaveRange, setLocalWaveRange] = useState([
+		collapseWindow.waveMin,
+		collapseWindow.waveMax,
+	]);
+	const [localSpatialRange, setLocalSpatialRange] = useState([
+		collapseWindow.spatialMin,
+		collapseWindow.spatialMax,
+	]);
+
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
+	const wavelength = extractSpectrumData?.wavelength ?? [];
+	const hasSpectrum = wavelength.length > 0;
+
+	const dataLimits = useMemo(() => {
+		if (!hasSpectrum) {
+			return {
+				waveMin: collapseWindow.waveMin ?? 0,
+				waveMax: collapseWindow.waveMax ?? 0,
+				spatialMax: Math.max(collapseWindow.spatialMax, 0),
+			};
+		}
+		const wMin = wavelength[0];
+		const wMax = wavelength[wavelength.length - 1];
+		const rows = extractSpectrumData?.spectrum_2d?.length ?? 0;
+
+		return {
+			waveMin: Math.min(wMin, wMax),
+			waveMax: Math.max(wMin, wMax),
+			spatialMax: rows > 0 ? rows - 1 : 0,
+		};
+	}, [
+		hasSpectrum,
+		wavelength,
+		extractSpectrumData?.spectrum_2d,
+		collapseWindow,
+	]);
+
 	const formatterWithUnit = useCallback(
 		(valueObsUm: number) =>
 			formatWavelength(valueObsUm, waveUnit, waveFrame, zRedshift),
@@ -52,9 +111,10 @@ export function useExtractionControls() {
 			toDisplayWavelength(valueObsUm, waveUnit, waveFrame, zRedshift),
 		[waveUnit, waveFrame, zRedshift],
 	);
-	const [minInput, setMinInput] = useState("");
-	const [maxInput, setMaxInput] = useState("");
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Effects                                  */
+	/* -------------------------------------------------------------------------- */
 	useEffect(() => {
 		const minDisplay = converter(slice1DWaveRange.min);
 		const maxDisplay = converter(slice1DWaveRange.max);
@@ -62,6 +122,22 @@ export function useExtractionControls() {
 		setMinInput(Number.isFinite(minDisplay) ? String(minDisplay) : "");
 		setMaxInput(Number.isFinite(maxDisplay) ? String(maxDisplay) : "");
 	}, [slice1DWaveRange, converter]);
+
+	useEffect(() => {
+		setLocalWaveRange([collapseWindow.waveMin, collapseWindow.waveMax]);
+		setLocalSpatialRange([
+			collapseWindow.spatialMin,
+			collapseWindow.spatialMax,
+		]);
+	}, [collapseWindow]);
+
+	/* -------------------------------------------------------------------------- */
+	/*                                   Handle                                   */
+	/* -------------------------------------------------------------------------- */
+	const debouncedSetCollapseWindow = useDebouncedCallback(
+		(updates: Partial<typeof collapseWindow>) => setCollapseWindow(updates),
+		20,
+	);
 
 	const applySliceRange = useCallback(() => {
 		const pMin = parseFloat(minInput);
@@ -95,79 +171,6 @@ export function useExtractionControls() {
 		setSlice1DWaveRange,
 	]);
 
-	const sliceManager = useMemo(
-		() => ({
-			minInputStr: minInput,
-			maxInputStr: maxInput,
-			minValue: minInput === "" ? NaN : parseFloat(minInput),
-			maxValue: maxInput === "" ? NaN : parseFloat(maxInput),
-			setMin: (val: number) =>
-				setMinInput(Number.isNaN(val) ? "" : val.toString()),
-			setMax: (val: number) =>
-				setMaxInput(Number.isNaN(val) ? "" : val.toString()),
-			applyRange: applySliceRange,
-			waveUnit,
-		}),
-		[minInput, maxInput, applySliceRange, waveUnit],
-	);
-
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
-		{
-			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-			queryFn: async () => undefined,
-			enabled: false,
-		},
-	);
-
-	const wavelength = extractSpectrumData?.wavelength ?? [];
-	const hasSpectrum = wavelength.length > 0;
-
-	const dataLimits = useMemo(() => {
-		if (!hasSpectrum) {
-			return {
-				waveMin: collapseWindow.waveMin ?? 0,
-				waveMax: collapseWindow.waveMax ?? 0,
-				spatialMax: Math.max(collapseWindow.spatialMax, 0),
-			};
-		}
-		const wMin = wavelength[0];
-		const wMax = wavelength[wavelength.length - 1];
-		const rows = extractSpectrumData?.spectrum_2d?.length ?? 0;
-
-		return {
-			waveMin: Math.min(wMin, wMax),
-			waveMax: Math.max(wMin, wMax),
-			spatialMax: rows > 0 ? rows - 1 : 0,
-		};
-	}, [
-		hasSpectrum,
-		wavelength,
-		extractSpectrumData?.spectrum_2d,
-		collapseWindow,
-	]);
-
-	const [localWaveRange, setLocalWaveRange] = useState([
-		collapseWindow.waveMin,
-		collapseWindow.waveMax,
-	]);
-	const [localSpatialRange, setLocalSpatialRange] = useState([
-		collapseWindow.spatialMin,
-		collapseWindow.spatialMax,
-	]);
-
-	useEffect(() => {
-		setLocalWaveRange([collapseWindow.waveMin, collapseWindow.waveMax]);
-		setLocalSpatialRange([
-			collapseWindow.spatialMin,
-			collapseWindow.spatialMax,
-		]);
-	}, [collapseWindow]);
-
-	const debouncedSetCollapseWindow = useDebouncedCallback(
-		(updates: Partial<typeof collapseWindow>) => setCollapseWindow(updates),
-		20,
-	);
-
 	const handleWaveSliderChange = ({ value }: { value: number[] }) => {
 		if (!hasSpectrum) return;
 		const [minRaw, maxRaw] = value;
@@ -187,9 +190,31 @@ export function useExtractionControls() {
 	};
 
 	const handleSliceContainerKeyDown = (e: React.KeyboardEvent) => {
-		if (e.key === "Enter") sliceManager.applyRange();
+		if (e.key === "Enter") applySliceRange();
 	};
 
+	/* -------------------------------------------------------------------------- */
+	/*                                 View Models                                */
+	/* -------------------------------------------------------------------------- */
+	const sliceManager = useMemo(
+		() => ({
+			minInputStr: minInput,
+			maxInputStr: maxInput,
+			minValue: minInput === "" ? NaN : parseFloat(minInput),
+			maxValue: maxInput === "" ? NaN : parseFloat(maxInput),
+			setMin: (val: number) =>
+				setMinInput(Number.isNaN(val) ? "" : val.toString()),
+			setMax: (val: number) =>
+				setMaxInput(Number.isNaN(val) ? "" : val.toString()),
+			applyRange: applySliceRange,
+			waveUnit,
+		}),
+		[minInput, maxInput, applySliceRange, waveUnit],
+	);
+
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		localWaveRange,
 		localSpatialRange,

@@ -3,6 +3,9 @@ import { useShallow } from "zustand/react/shallow";
 import { useFitStore } from "@/stores/fit";
 
 export function useFitModelTransferListBox() {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const { models, updateModel } = useFitStore(
 		useShallow((state) => ({
 			models: state.models,
@@ -10,9 +13,15 @@ export function useFitModelTransferListBox() {
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                 Local State                                */
+	/* -------------------------------------------------------------------------- */
 	const [selectedLeft, setSelectedLeft] = useState<string[]>([]);
 	const [selectedRight, setSelectedRight] = useState<string[]>([]);
 
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
 	const leftModels = useMemo(
 		() => models.filter((model) => !model.subtracted),
 		[models],
@@ -22,6 +31,9 @@ export function useFitModelTransferListBox() {
 		[models],
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Handle                                   */
+	/* -------------------------------------------------------------------------- */
 	const move = (ids: string[], toSubtracted: boolean) => {
 		for (const modelId of ids) {
 			updateModel(Number(modelId), { subtracted: toSubtracted });
@@ -33,6 +45,9 @@ export function useFitModelTransferListBox() {
 		}
 	};
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		leftModels,
 		rightModels,

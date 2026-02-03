@@ -4,6 +4,9 @@ import { useGrismStore } from "@/stores/image";
 import { ANGSTROM_PER_MICRON } from "@/utils/wavelength";
 
 export function useEmissionLineAdder() {
+	/* -------------------------------------------------------------------------- */
+	/*                                Access Store                                */
+	/* -------------------------------------------------------------------------- */
 	const { waveUnit, emissionLines, addEmissionLine } = useGrismStore(
 		useShallow((state) => ({
 			waveUnit: state.waveUnit,
@@ -12,14 +15,23 @@ export function useEmissionLineAdder() {
 		})),
 	);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                 Local State                                */
+	/* -------------------------------------------------------------------------- */
 	const [name, setName] = useState("");
 	const [wavelengthInput, setWavelengthInput] = useState("");
 
+	/* -------------------------------------------------------------------------- */
+	/*                               Derived Values                               */
+	/* -------------------------------------------------------------------------- */
 	const canAdd =
 		name.trim().length > 0 &&
 		!Number.isNaN(parseFloat(wavelengthInput)) &&
 		!emissionLines[name.trim()];
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Handle                                   */
+	/* -------------------------------------------------------------------------- */
 	const handleAdd = useCallback(() => {
 		if (!canAdd) return;
 		const raw = parseFloat(wavelengthInput);
@@ -32,6 +44,9 @@ export function useEmissionLineAdder() {
 		setWavelengthInput("");
 	}, [canAdd, wavelengthInput, waveUnit, addEmissionLine, name]);
 
+	/* -------------------------------------------------------------------------- */
+	/*                                   Return                                   */
+	/* -------------------------------------------------------------------------- */
 	return {
 		waveUnit,
 		inputName: name,
