@@ -8,62 +8,22 @@ import {
 	Text,
 	VStack,
 } from "@chakra-ui/react";
-import { useMemo } from "react";
-import { useShallow } from "zustand/react/shallow";
-import { useGrismStore } from "@/stores/image";
-import { useEmissionMask } from "@/hooks/query/image";
 import { FaDownload, FaEye, FaEyeSlash, FaLayerGroup } from "react-icons/fa";
 
-import { EMISSION_MASK_COLORS } from "../backward/layers/EmissionMaskLayer";
+import EmissionMaskColorLegend from "./components/EmissionMaskColorLegend";
+import { useEmissionMaskControl } from "./hooks/useEmissionMaskControl";
 
 export default function EmissionMaskControl() {
 	const {
 		emissionMaskMode,
-		setEmissionMaskMode,
 		emissionMaskThreshold,
 		setEmissionMaskThreshold,
-	} = useGrismStore(
-		useShallow((state) => ({
-			emissionMaskMode: state.emissionMaskMode,
-			setEmissionMaskMode: state.setEmissionMaskMode,
-			emissionMaskThreshold: state.emissionMaskThreshold,
-			setEmissionMaskThreshold: state.setEmissionMaskThreshold,
-		})),
-	);
-
-	const {
-		data: maskData,
+		maskData,
 		isLoading,
-		refetch,
 		isFetching,
-	} = useEmissionMask({
-		enabled: false, // Manual fetch
-	});
-
-	const handleFetch = () => {
-		refetch();
-	};
-
-	// Cycle modes: Hidden -> Individual -> Total -> Hidden
-	const toggleMode = () => {
-		if (emissionMaskMode === "hidden") setEmissionMaskMode("individual");
-		else if (emissionMaskMode === "individual") setEmissionMaskMode("total");
-		else setEmissionMaskMode("hidden");
-	};
-
-	// Generate discrete color legend
-	const colorLegend = useMemo(() => {
-		const count = maskData?.frameCount ?? 8;
-		const colors: { value: number; color: string }[] = [];
-		for (let v = 1; v <= count; v++) {
-			const index = (v - 1) % EMISSION_MASK_COLORS.length;
-			// Safety check
-			const safeIndex =
-				index >= 0 ? index : index + EMISSION_MASK_COLORS.length;
-			colors.push({ value: v, color: EMISSION_MASK_COLORS[safeIndex] });
-		}
-		return colors;
-	}, [maskData?.frameCount]);
+		handleFetch,
+		toggleMode,
+	} = useEmissionMaskControl();
 
 	return (
 		<VStack gap={3} align="stretch">
@@ -130,37 +90,10 @@ export default function EmissionMaskControl() {
 			{/* Controls - show when not hidden */}
 			{emissionMaskMode !== "hidden" && (
 				<>
-					{/* Color Legend */}
-					<Box>
-						<Text fontSize="xs" color="cyan.400" fontWeight="semibold" mb={1}>
-							Color Legend (frames count)
-						</Text>
-						<HStack gap={1} flexWrap="wrap">
-							{colorLegend.map(({ value, color }) => (
-								<HStack
-									key={value}
-									gap={1}
-									px={1.5}
-									py={0.5}
-									borderRadius="sm"
-									bg="whiteAlpha.100"
-									opacity={value <= emissionMaskThreshold ? 0.3 : 1}
-								>
-									<Box
-										w="12px"
-										h="12px"
-										borderRadius="sm"
-										bg={color}
-										border="1px solid"
-										borderColor="whiteAlpha.300"
-									/>
-									<Text fontSize="2xs" fontFamily="mono" color="gray.300">
-										{value}
-									</Text>
-								</HStack>
-							))}
-						</HStack>
-					</Box>
+					<EmissionMaskColorLegend
+						frameCount={maskData?.frameCount ?? 8}
+						threshold={emissionMaskThreshold}
+					/>
 
 					{/* Threshold Slider - Only for Total Mode? Or both? Logic: Total mode usually needs thresholding. Individual mode user said opacity 1.0, so maybe disabled? */
 					/* User check: "individual显示...mask所有pixel的不透明度为1". 
@@ -172,7 +105,12 @@ export default function EmissionMaskControl() {
 					   Let's keep it but perhaps disable for Individual or clarify UI.
 					   For now, just render it. */
 					}
-					<Box opacity={emissionMaskMode === "individual" ? 0.5 : 1} pointerEvents={emissionMaskMode === "individual" ? "none" : "auto"}>
+					<Box
+						opacity={emissionMaskMode === "individual" ? 0.5 : 1}
+						pointerEvents={
+							emissionMaskMode === "individual" ? "none" : "auto"
+						}
+					>
 						<HStack justify="space-between" mb={1}>
 							<Text fontSize="xs" color="cyan.400" fontWeight="semibold">
 								Transparency Threshold
@@ -198,8 +136,8 @@ export default function EmissionMaskControl() {
 							</Slider.Control>
 						</Slider.Root>
 						<Text fontSize="2xs" color="gray.600" mt={1}>
-							{emissionMaskMode === "individual" 
-								? "Threshold disabled in Individual mode" 
+							{emissionMaskMode === "individual"
+								? "Threshold disabled in Individual mode"
 								: `Pixels with value ≤ ${emissionMaskThreshold} will be transparent`}
 						</Text>
 					</Box>

@@ -21,7 +21,7 @@ import {
  * - formatter: Function to format observed wavelength (µm) to string without unit.
  * - formatterWithUnit: Function to format observed wavelength (µm) to string with unit.
  * - label: Label string for wavelength axis.
- */
+*/
 export function useWavelengthDisplay() {
 	const { waveUnit, zRedshift } = useGrismStore(
 		useShallow((state) => ({

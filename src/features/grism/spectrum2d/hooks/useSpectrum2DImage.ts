@@ -1,22 +1,14 @@
-import { extend } from "@pixi/react";
+
 import { useQuery } from "@tanstack/react-query";
-import { Sprite, Texture } from "pixi.js";
-import { useEffect, useMemo, useRef, useState } from "react";
+import { Texture } from "pixi.js";
+import { useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import { useGrismStore } from "@/stores/image";
-import type { RenderLayerInstance } from "@/types/pixi-react";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
 import textureFromData, { sort2DArray } from "@/utils/plot";
 
-extend({ Sprite });
-
-export default function GrismForwardImage({
-	layerRef,
-}: {
-	layerRef: React.RefObject<RenderLayerInstance | null>;
-}) {
-	const spriteRef = useRef<Sprite | null>(null);
+export function useSpectrum2DImage() {
 	const {
 		grismNorm,
 		extractedSpecSortedArray,
@@ -34,13 +26,12 @@ export default function GrismForwardImage({
 			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
-		{
-			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-			queryFn: async () => undefined,
-			enabled: false,
-		},
-	);
+
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
+		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+		queryFn: async () => undefined,
+		enabled: false,
+	});
 
 	/* -------------------------------------------------------------------------- */
 	/*                           Update the sorted array                          */
@@ -99,6 +90,7 @@ export default function GrismForwardImage({
 		grismNorm.pmin,
 		grismNorm.pmax,
 	]);
+
 	// Cleanup on unmount
 	useEffect(() => {
 		return () => {
@@ -110,27 +102,6 @@ export default function GrismForwardImage({
 			});
 		};
 	}, []);
-	// Attach to the RenderLayer
-	useEffect(() => {
-		if (!layerRef || grismTexture === Texture.EMPTY) return;
-		const layer = layerRef.current;
-		const node = spriteRef.current;
-		if (!layer || !node) return;
-		layer.attach(node);
-		return () => {
-			layer.detach(node);
-		};
-	}, [layerRef, grismTexture]);
 
-	return (
-		grismTexture !== Texture.EMPTY && (
-			<pixiSprite
-				ref={spriteRef}
-				texture={grismTexture}
-				anchor={0}
-				x={0}
-				y={0}
-			/>
-		)
-	);
+	return { grismTexture };
 }

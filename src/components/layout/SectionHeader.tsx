@@ -1,7 +1,7 @@
 import { Box, Heading, HStack, useSlotRecipe } from "@chakra-ui/react";
 import type { ReactNode } from "react";
 import { InfoTip } from "@/components/ui/toggle-tip";
-import { sectionHeaderRecipe } from "../recipes/section-header.recipe";
+import { sectionHeaderRecipe } from "./recipes/section-header.recipe";
 
 interface SectionHeaderProps {
 	title: string;

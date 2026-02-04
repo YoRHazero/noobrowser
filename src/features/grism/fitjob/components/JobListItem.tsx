@@ -49,6 +49,8 @@ export function JobListItem({
 
 	return (
 		<Flex
+			flex="0 0 auto"
+			minW="200px"
 			justify="space-between"
 			align="center"
 			bg={isSelected ? "cyan.900/30" : "whiteAlpha.50"}

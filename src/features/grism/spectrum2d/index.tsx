@@ -1,19 +1,21 @@
+
+// @/features/grism/spectrum2d/index.tsx
 import { Box } from "@chakra-ui/react";
-import { Application, extend, useApplication } from "@pixi/react";
+import { Application, extend } from "@pixi/react";
 import { RenderLayer } from "pixi.js";
-import { useEffect, useRef } from "react";
+import { useRef } from "react";
 import CanvasWithToolbar from "@/components/layout/CanvasWithToolbar";
 import Viewport from "@/components/pixi/Viewport";
 import { useColorModeValue } from "@/components/ui/color-mode";
-import GrismForwardToolbar from "@/features/grism/spectrum2d/GrismForwardToolbar";
 import type { RenderLayerInstance } from "@/types/pixi-react";
+import Spectrum2DCollapseWindowLayer from "./Spectrum2DCollapseWindowLayer";
+import Spectrum2DImageLayer from "./Spectrum2DImageLayer";
+import Spectrum2DToolbar from "./Spectrum2DToolbar";
+import { PixiBackground } from "./components/PixiBackground";
 
 extend({ RenderLayer });
 
-import CollapseWindowLayer from "@/features/grism/spectrum2d/GrismForwardCollapseWindowLayer";
-import GrismForwardImage from "@/features/grism/spectrum2d/GrismForwardImage";
-
-export default function GrismForward2dCanvas() {
+export default function Spectrum2DView() {
 	const parentRef = useRef<HTMLDivElement | null>(null);
 	const imageLayerRef = useRef<RenderLayerInstance | null>(null);
 	const helperLayerRef = useRef<RenderLayerInstance | null>(null);
@@ -31,8 +33,8 @@ export default function GrismForward2dCanvas() {
 				<Viewport passiveWheel={false}>
 					<pixiRenderLayer ref={imageLayerRef} />
 					<pixiRenderLayer ref={helperLayerRef} />
-					<GrismForwardImage layerRef={imageLayerRef} />
-					<CollapseWindowLayer layerRef={helperLayerRef} />
+					<Spectrum2DImageLayer layerRef={imageLayerRef} />
+					<Spectrum2DCollapseWindowLayer layerRef={helperLayerRef} />
 				</Viewport>
 			</Application>
 		</Box>
@@ -41,22 +43,8 @@ export default function GrismForward2dCanvas() {
 	return (
 		<CanvasWithToolbar
 			canvas={canvas}
-			toolbar={<GrismForwardToolbar />}
+			toolbar={<Spectrum2DToolbar />}
 			width="100%"
 		/>
 	);
-}
-
-function PixiBackground({ color }: { color: number }) {
-	const { app } = useApplication();
-	useEffect(() => {
-		const renderer = app?.renderer;
-		if (!renderer) return;
-		if ("background" in renderer && renderer.background) {
-			renderer.background.color = color;
-		} else {
-			(renderer as { backgroundColor?: number }).backgroundColor = color;
-		}
-	}, [app, color]);
-	return null;
 }

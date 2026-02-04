@@ -8,7 +8,7 @@ import {
 } from "@chakra-ui/react";
 import GrismForwardPriorDrawer from "@/features/grism/forwardprior";
 import FitConfigurationCard from "./components/FitConfigurationCard";
-import { SectionHeader } from "./components/SectionHeader";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useFitConfigurationList } from "./hooks/useFitConfigurationList";
 import { fitConfigurationListRecipe } from "./recipes/fit-configuration-list.recipe";
 
@@ -29,6 +29,7 @@ export default function FitConfigurationList() {
 		<Stack css={styles.root}>
 			<SectionHeader
 				title="Fit Configurations"
+				tip="Manage different fitting configurations and model sets."
 				rightSlot={
 					<Badge variant="surface" colorPalette="cyan" size="sm">
 						{configurations.length}

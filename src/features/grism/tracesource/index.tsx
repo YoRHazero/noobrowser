@@ -38,7 +38,7 @@ export default function TraceSourceDrawer() {
 			<Drawer.Trigger asChild>
 				<Button
 					position="absolute"
-					bottom="12px"
+					top="12px"
 					right="12px"
 					zIndex={10}
 					size="sm"

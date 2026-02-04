@@ -7,7 +7,7 @@ import {
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { LuTarget } from "react-icons/lu";
-import { SectionHeader } from "./components/SectionHeader";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useTargetSourceList } from "./hooks/useTargetSourceList";
 import { targetSourceListRecipe } from "./recipes/target-source-list.recipe";
 import SourceItem from "./SourceItem";
@@ -21,6 +21,7 @@ export default function TargetSourceList() {
 			<Box px={4} pt={4} pb={2}>
 				<SectionHeader
 					title="Target Sources"
+					tip="List of sources detected in the field ready for extraction."
 					rightSlot={
 						<Badge colorPalette="cyan" variant="solid" size="xs">
 							{readySources.length} READY

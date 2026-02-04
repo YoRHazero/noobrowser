@@ -41,7 +41,7 @@ export default function GrismBackwardFetchControl() {
 		return null;
 	}
 	return (
-		<Box position="absolute" top={4} right={4} zIndex={10}>
+		<Box position="absolute" bottom={4} right={4} zIndex={10}>
 			<Tooltip
 				ids={{ trigger: id }}
 				content="Load all grism images for the current group"

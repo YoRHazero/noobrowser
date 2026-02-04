@@ -9,7 +9,7 @@ interface EmissionLineLayerProps {
 	chartHeight: number;
 }
 
-const EmissionLineLayer = memo(function EmissionLineLayer(
+const Spectrum1DEmissionLineLayer = memo(function Spectrum1DEmissionLineLayer(
 	props: EmissionLineLayerProps,
 ) {
 	const { xScale, chartHeight } = props;
@@ -58,4 +58,4 @@ const EmissionLineLayer = memo(function EmissionLineLayer(
 	);
 });
 
-export default EmissionLineLayer;
+export default Spectrum1DEmissionLineLayer;

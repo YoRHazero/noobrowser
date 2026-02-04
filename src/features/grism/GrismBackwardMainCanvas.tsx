@@ -11,7 +11,7 @@ import GrismBackwardCounterpartImageLayer from "@/features/grism/backward/layers
 import GrismBackwardTraceLayer from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
 import EmissionMaskLayer from "@/features/grism/backward/layers/EmissionMaskLayer";
 import GrismBackwardFetchControl from "@/features/grism/backward/GrismBackwardFetchControl";
-import GrismBackwardToolbar from "@/features/grism/GrismBackwardToolbar";
+import GrismBackwardToolbar from "@/features/grism/backwardtoolbar";
 //import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
 import TraceSourceDrawer from "@/features/grism/tracesource";
 import { useGrismBackwardCanvas } from "@/features/grism/backward/hooks/useGrismBackwardCanvas";

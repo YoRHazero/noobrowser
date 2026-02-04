@@ -54,7 +54,7 @@ export function useExtractSpectrum({
 	const query = useQueryAxiosGet<ExtractedSpectrum>({
 		queryKey: finalQueryKey,
 		path: "/source/extract_spectrum/",
-		enabled: enabled && posReady && group_id != null,
+		enabled: enabled && posReady,
 		axiosGetParams: {
 			params: {
 				group_id: group_id,

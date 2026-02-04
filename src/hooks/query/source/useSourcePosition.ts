@@ -19,15 +19,7 @@ export function useSourcePosition({
 	ref_basename?: string;
 	enabled?: boolean;
 }) {
-	if ((x === undefined) !== (y === undefined)) {
-		throw new Error("Both x and y must be provided together");
-	}
-	if ((ra === undefined) !== (dec === undefined)) {
-		throw new Error("Both ra and dec must be provided together");
-	}
-	if (x === undefined && ra === undefined) {
-		throw new Error("Either (x, y) or (ra, dec) must be provided");
-	}
+
 	const ZustandFootprintId = useGlobeStore(
 		(state) => state.selectedFootprintId,
 	);
@@ -41,9 +33,12 @@ export function useSourcePosition({
 		ref_basename,
 		group_id,
 	];
+	const hasAvailableXY = x !== undefined && y !== undefined;
+	const hasAvailableRaDec = ra !== undefined && dec !== undefined;
+	const isValidInput = hasAvailableXY || hasAvailableRaDec;
 	const query = useQueryAxiosGet<SourcePosition>({
 		queryKey,
-		enabled: enabled && group_id !== null,
+		enabled: enabled && group_id !== null && isValidInput,
 		path: "/source/source_position/",
 		axiosGetParams: {
 			params: {

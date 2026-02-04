@@ -1,24 +1,14 @@
-import { extend, useApplication } from "@pixi/react";
+
+import { useApplication } from "@pixi/react";
 import { useQuery } from "@tanstack/react-query";
-import { Container, Graphics, Sprite, Texture } from "pixi.js";
-import { useEffect, useRef, useState } from "react";
+import { Graphics, Texture } from "pixi.js";
+import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import { useGrismStore } from "@/stores/image";
-import type { RenderLayerInstance } from "@/types/pixi-react";
 import { getWavelengthSliceIndices } from "@/utils/extraction";
 
-extend({
-	Graphics,
-	Container,
-	Sprite,
-});
-
-export default function CollapseWindowLayer({
-	layerRef,
-}: {
-	layerRef: React.RefObject<RenderLayerInstance | null>;
-}) {
+export function useCollapseOverlays() {
 	const {
 		apertureSize,
 		collapseWindow,
@@ -32,27 +22,15 @@ export default function CollapseWindowLayer({
 			spectrumQueryKey: state.spectrumQueryKey,
 		})),
 	);
-	// Attach to the RenderLayer
+
 	const { app } = useApplication();
-	const spriteRef = useRef<Container | null>(null);
 
-	useEffect(() => {
-		const layer = layerRef.current;
-		const node = spriteRef.current;
-		if (!layer || !node) return;
-		layer.attach(node);
-		return () => {
-			layer.detach(node);
-		};
-	}, [layerRef]);
+	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>({
+		queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
+		queryFn: async () => undefined,
+		enabled: false,
+	});
 
-	const { data: extractSpectrumData } = useQuery<ExtractedSpectrum | undefined>(
-		{
-			queryKey: spectrumQueryKey ?? ["extract_spectrum", "empty"],
-			queryFn: async () => undefined,
-			enabled: false,
-		},
-	);
 	const waveArray = extractSpectrumData?.wavelength || [];
 	const { waveMin, waveMax, spatialMin, spatialMax } = collapseWindow;
 	const { startIdx, endIdx } = getWavelengthSliceIndices(
@@ -60,6 +38,7 @@ export default function CollapseWindowLayer({
 		waveMin,
 		waveMax,
 	);
+
 	// Draw collapse window rectangle
 	const [textureRect, setTextureRect] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
@@ -85,6 +64,7 @@ export default function CollapseWindowLayer({
 		waveArray,
 		app.renderer.generateTexture,
 	]);
+
 	// Draw trace dashed line
 	const [traceTexture, setTraceTexture] = useState<Texture>(Texture.EMPTY);
 	useEffect(() => {
@@ -136,23 +116,13 @@ export default function CollapseWindowLayer({
 		};
 	}, []);
 
-	if (!extractSpectrumData) return null;
-	return (
-		<pixiContainer ref={spriteRef}>
-			<pixiSprite
-				texture={textureRect}
-				x={startIdx}
-				y={spatialMin}
-				anchor={0}
-			/>
-			{showTraceOnSpectrum2D && (
-				<pixiSprite
-					texture={traceTexture}
-					x={0}
-					y={(apertureSize - 1) / 2}
-					anchor={{ x: 0, y: 0.5 }}
-				/>
-			)}
-		</pixiContainer>
-	);
+	return {
+		textureRect,
+		traceTexture,
+		showTraceOnSpectrum2D,
+		startIdx,
+		spatialMin,
+		apertureSize,
+		hasData: !!extractSpectrumData,
+	};
 }

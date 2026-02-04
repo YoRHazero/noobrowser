@@ -1,5 +1,5 @@
 import { produce } from "immer";
-import { v4 as uuidv4 } from "uuid";
+
 import { create } from "zustand";
 import type {
 	CollapseWindow,
@@ -15,8 +15,11 @@ interface SourcesState {
 	displayedTraceSourceId: string | null;
 	setTraceMode: (mode: boolean) => void;
 	addTraceSource: (
+		id: string,
 		x: number,
 		y: number,
+		ra: number,
+		dec: number,
 		groupId: string | null,
 		roi: { roiState: RoiState; collapseWindow: CollapseWindow },
 	) => void;
@@ -39,13 +42,15 @@ export const useSourcesStore = create<SourcesState>()((set, get) => ({
 	mainTraceSourceId: null,
 	displayedTraceSourceId: null,
 	setTraceMode: (mode) => set({ traceMode: mode }),
-	addTraceSource: (x, y, groupId, roi) =>
+	addTraceSource: (id, x, y, ra, dec, groupId, roi) =>
 		set(
 			produce((state: SourcesState) => {
 				const newSource: TraceSource = {
-					id: uuidv4(),
+					id,
 					x,
 					y,
+					ra,
+					dec,
 					groupId: groupId,
 					color: generateColor(state.traceSources.length),
 					spectrumReady: false,

@@ -1,6 +1,6 @@
 import { HStack, Stack } from "@chakra-ui/react";
-import Grism1DCanvas from "@/features/grism/GrismForward1DCanvas";
-import GrismForward2dCanvas from "@/features/grism/GrismForward2dCanvas";
+import Spectrum1DView from "@/features/grism/spectrum1d";
+import Spectrum2DView from "@/features/grism/spectrum2d";
 import GrismForwardTab from "@/features/grism/GrismForwardTab";
 import { useScrollFocus } from "@/hooks/ui/useScrollFocus";
 export default function GrismForward() {
@@ -10,8 +10,8 @@ export default function GrismForward() {
 	return (
 		<HStack alignItems={"stretch"} height="100vh" ref={containerRef}>
 			<Stack gap={2} flex="1" minW={0} height="100%">
-				<GrismForward2dCanvas />
-				<Grism1DCanvas />
+				<Spectrum2DView />
+				<Spectrum1DView />
 			</Stack>
 			<GrismForwardTab />
 		</HStack>

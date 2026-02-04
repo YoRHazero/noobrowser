@@ -7,7 +7,7 @@ import { memo } from "react";
 import { useColorModeValue } from "@/components/ui/color-mode";
 import { useWavelengthDisplay } from "@/features/grism/spectrum1d/hooks/useWavelengthDisplay";
 import type { Spectrum1D } from "@/utils/util-types";
-import type { Anchor, Label } from "./types";
+import type { Anchor, Label } from "../types";
 
 interface Spectrum1DSliceChartProps {
 	spectrum1D: Spectrum1D[];

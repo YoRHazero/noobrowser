@@ -104,7 +104,7 @@ export const useFitStore = create<FitState>()(
 			jobs: [],
 			tags: [],
 			selectedTagsByJob: {},
-			fitExtraction: { apertureSize: 5, extractMode: "GRISMR" },
+			fitExtraction: { apertureSize: 5, offset: 0, extractMode: "GRISMR" },
 			setWaveFrame: (frame) => set({ waveFrame: frame }),
 			setFitExtraction: (patch) =>
 				set((state) => ({

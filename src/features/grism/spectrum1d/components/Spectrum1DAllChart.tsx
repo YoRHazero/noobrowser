@@ -5,7 +5,7 @@ import type { ScaleLinear } from "d3-scale";
 import { memo } from "react";
 import { useColorModeValue } from "@/components/ui/color-mode";
 import type { Spectrum1D } from "@/utils/util-types";
-import type { Anchor } from "./types";
+import type { Anchor } from "../types";
 
 interface Spectrum1DAllChartProps {
 	spectrum1D: Spectrum1D[];

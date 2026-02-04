@@ -22,6 +22,10 @@ export function useExtractionSettings() {
 		setFitExtraction({ apertureSize: value });
 	};
 
+	const setFitOffset = (value: number) => {
+		setFitExtraction({ offset: value });
+	};
+
 	const setFitExtractMode = (value: string[]) => {
 		const nextMode =
 			(value[0] as FitExtractionSettings["extractMode"]) ??
@@ -34,8 +38,10 @@ export function useExtractionSettings() {
 	/* -------------------------------------------------------------------------- */
 	return {
 		fitApertureSize: fitExtraction.apertureSize,
+		fitOffset: fitExtraction.offset,
 		fitExtractMode: [fitExtraction.extractMode],
 		setFitApertureSize,
+		setFitOffset,
 		setFitExtractMode,
 	};
 }

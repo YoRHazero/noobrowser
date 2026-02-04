@@ -1,87 +1,35 @@
 import {
 	Box,
-	Button,
 	HStack,
 	Separator,
-	Switch,
 	Text,
 	VStack,
 } from "@chakra-ui/react";
-import { useEffect } from "react";
-import { FiDownload } from "react-icons/fi";
-import { useShallow } from "zustand/react/shallow";
 import { FilterSelectorCard } from "@/components/ui/FilterSelectorCard";
 import {
 	HorizontalNormRangeSlider,
 	HorizontalOpacitySlider,
 } from "@/components/ui/internal-slider";
-import { toaster } from "@/components/ui/toaster";
-import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
-import { useCounterpartImage } from "@/hooks/query/image/useCounterpartImage";
-import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
-import { useGlobeStore } from "@/stores/footprints";
-import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import CounterpartRetrieveButton from "./CounterpartRetrieveButton";
+import CounterpartVisibilitySwitch from "./CounterpartVisibilitySwitch";
+import { useCounterpartFilterControl } from "./hooks/useCounterpartFilterControl";
 
 export default function GrismBackwardCounterpartControl() {
 	const {
 		availableFilters,
-		setAvailableFilters,
 		filterRGB,
 		setFilterRGB,
 		displayMode,
-		setDisplayMode,
 		opacity,
-		setOpacity,
 		counterpartNorm,
-		setCounterpartNorm,
-	} = useCounterpartStore(
-		useShallow((state) => ({
-			availableFilters: state.availableFilters,
-			setAvailableFilters: state.setAvailableFilters,
-			filterRGB: state.filterRGB,
-			setFilterRGB: state.setFilterRGB,
-			displayMode: state.displayMode,
-			setDisplayMode: state.setDisplayMode,
-			opacity: state.opacity,
-			setOpacity: state.setOpacity,
-			counterpartNorm: state.counterpartNorm,
-			setCounterpartNorm: state.setCounterpartNorm,
-		})),
-	);
-	/* ------------------------- Fetch Available Filters ------------------------ */
-	const { data: filtersData, isSuccess: isFiltersSuccess } = useQueryAxiosGet<
-		Array<string>
-	>({
-		queryKey: ["available_filters"],
-		path: "/image/counterpart_meta/",
-	});
-	useEffect(() => {
-		if (isFiltersSuccess && filtersData) {
-			setAvailableFilters(filtersData);
-		}
-	}, [isFiltersSuccess, filtersData, setAvailableFilters]);
-	/* -------------------------------------------------------------------------- */
-	/*                                 Handlers                                  */
-	/* -------------------------------------------------------------------------- */
-	const handleNormPmaxChange = (value: number) => {
-		setCounterpartNorm({ pmax: value });
-	};
-	const handleNormPminChange = (value: number) => {
-		setCounterpartNorm({ pmin: value });
-	};
-	const handleOpacityChange = (value: number) => {
-		setOpacity(value);
-	};
-	const handleCardClick = (channel: "r" | "g" | "b") => {
-		if (displayMode === channel) {
-			setDisplayMode("rgb");
-		} else {
-			setDisplayMode(channel);
-		}
-	};
-	const isImageGray =
-		filterRGB.r === filterRGB.g && filterRGB.g === filterRGB.b;
-	const isRGBMode = displayMode === "rgb" && !isImageGray;
+		isImageGray,
+		isRGBMode,
+		handleNormPmaxChange,
+		handleNormPminChange,
+		handleOpacityChange,
+		handleCardClick,
+	} = useCounterpartFilterControl();
+
 	/* -------------------------------------------------------------------------- */
 	/*                                   Render                                   */
 	/* -------------------------------------------------------------------------- */
@@ -99,7 +47,7 @@ export default function GrismBackwardCounterpartControl() {
 				</Text>
 				<HStack gap={4}>
 					<CounterpartVisibilitySwitch />
-					<RetreiveButton />
+					<CounterpartRetrieveButton />
 				</HStack>
 			</HStack>
 			{/* Filter Selector */}
@@ -187,118 +135,5 @@ export default function GrismBackwardCounterpartControl() {
 			{/* Separator */}
 			<Separator my={5} />
 		</VStack>
-	);
-}
-
-function RetreiveButton() {
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
-	const filterRGB = useCounterpartStore((state) => state.filterRGB);
-
-	const {
-		refetch: refetchCounterpartImage,
-		isFetching: isFetchingCounterpartImage,
-		isSuccess: isSuccessCounterpartImage,
-		isError: isErrorCounterpartImage,
-		error: errorCounterpartImage,
-	} = useCounterpartImage({}); // automatically retrieved from store
-	const {
-		isFetching: isFetchingCounterpartFootprint,
-		isError: isErrorCounterpartFootprint,
-		error: errorCounterpartFootprint,
-	} = useCounterpartFootprint({});
-
-	useEffect(() => {
-		if (isErrorCounterpartFootprint && errorCounterpartFootprint) {
-			const message = errorCounterpartFootprint?.message ?? "Unknown error";
-			queueMicrotask(() => {
-				toaster.error({
-					title: "Failed to retrieve footprint",
-					description: message,
-				});
-			});
-		}
-		if (isErrorCounterpartImage && errorCounterpartImage) {
-			const message = errorCounterpartImage?.message ?? "Unknown error";
-			queueMicrotask(() => {
-				toaster.error({
-					title: "Failed to retrieve counterpart image",
-					description: message,
-				});
-			});
-		}
-		if (isSuccessCounterpartImage) {
-			queueMicrotask(() => {
-				toaster.success({ title: "The image is successfully retrieved" });
-			});
-		}
-	}, [
-		isErrorCounterpartFootprint,
-		errorCounterpartFootprint,
-		isErrorCounterpartImage,
-		errorCounterpartImage,
-		isSuccessCounterpartImage,
-	]);
-	return (
-		<Button
-			size="xs"
-			h="24px"
-			px={3}
-			variant="surface"
-			colorPalette="pink"
-			fontSize="xs"
-			fontWeight="bold"
-			loading={isFetchingCounterpartFootprint || isFetchingCounterpartImage}
-			onClick={() => {
-				if (!selectedFootprintId) {
-					toaster.error({
-						title: "No footprint selected",
-						description: "Please select a footprint first.",
-					});
-					return;
-				}
-				if (!filterRGB.r || !filterRGB.g || !filterRGB.b) {
-					toaster.error({
-						title: "Incomplete RGB filter",
-						description: "Please set all RGB filter values.",
-					});
-					return;
-				}
-				refetchCounterpartImage();
-			}}
-			_hover={{
-				bg: "pink.500",
-				color: "white",
-				borderColor: "pink.400",
-			}}
-		>
-			<FiDownload /> Retrieve
-		</Button>
-	);
-}
-
-function CounterpartVisibilitySwitch() {
-	const counterpartVisible = useGrismStore((state) => state.counterpartVisible);
-	const setCounterpartVisible = useGrismStore(
-		(state) => state.setCounterpartVisible,
-	);
-	return (
-		<HStack gap={2}>
-			<Text fontSize="xs" color={counterpartVisible ? "pink.400" : "gray.500"}>
-				Counterpart: {counterpartVisible ? "Visible" : "Hidden"}
-			</Text>
-			<Switch.Root
-				size="sm"
-				colorPalette="pink"
-				checked={counterpartVisible}
-				onCheckedChange={(e) => setCounterpartVisible(e.checked)}
-			>
-				<Switch.HiddenInput />
-				<Switch.Control>
-					<Switch.Thumb />
-				</Switch.Control>
-			</Switch.Root>
-		</HStack>
 	);
 }

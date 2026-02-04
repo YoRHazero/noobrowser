@@ -2,7 +2,7 @@ import { HStack, Stack, useSlotRecipe } from "@chakra-ui/react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
 import WavelengthControls from "./WavelengthControls";
-import { SectionHeader } from "./components/SectionHeader";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useRedshiftControls } from "./hooks/useRedshiftControls";
 import { redshiftControlsRecipe } from "./recipes/redshift-controls.recipe";
 

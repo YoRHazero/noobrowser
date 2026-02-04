@@ -1,7 +1,7 @@
 import {
 	Button,
 	createListCollection,
-	Heading,
+	// Heading,
 	HStack,
 	IconButton,
 	Portal,
@@ -10,6 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { LuPlus, LuRefreshCw, LuSave } from "react-icons/lu";
 import { Tooltip } from "@/components/ui/tooltip";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useFitHeader } from "./hooks/useFitHeader";
 import { fitHeaderRecipe } from "./recipes/fit-header.recipe";
 
@@ -35,77 +36,81 @@ export default function FitHeader() {
 
 	return (
 		<HStack css={styles.root}>
-			<Heading css={styles.title}>Model Fitting</Heading>
+			<SectionHeader
+				title="Model Fitting"
+				tip="Build spectral models by combining linear and non-linear components."
+				rightSlot={
+					<HStack css={styles.controls}>
+						<Select.Root
+							collection={modelTypeCollection}
+							size="xs"
+							width="120px"
+							value={selectedType}
+							onValueChange={({ value }) => setSelectedType(value)}
+						>
+							<Select.HiddenSelect />
+							<Select.Control css={styles.selectControl}>
+								<Select.Trigger>
+									<Select.ValueText placeholder="Type" />
+									<Select.Indicator />
+								</Select.Trigger>
+							</Select.Control>
+							<Portal>
+								<Select.Positioner>
+									<Select.Content css={styles.selectContent}>
+										{modelTypeCollection.items.map((item) => (
+											<Select.Item
+												key={item.value}
+												item={item}
+												css={styles.selectItem}
+											>
+												<Select.ItemText>{item.label}</Select.ItemText>
+												<Select.ItemIndicator />
+											</Select.Item>
+										))}
+									</Select.Content>
+								</Select.Positioner>
+							</Portal>
+						</Select.Root>
 
-			<HStack css={styles.controls}>
-				<Select.Root
-					collection={modelTypeCollection}
-					size="xs"
-					width="120px"
-					value={selectedType}
-					onValueChange={({ value }) => setSelectedType(value)}
-				>
-					<Select.HiddenSelect />
-					<Select.Control css={styles.selectControl}>
-						<Select.Trigger>
-							<Select.ValueText placeholder="Type" />
-							<Select.Indicator />
-						</Select.Trigger>
-					</Select.Control>
-					<Portal>
-						<Select.Positioner>
-							<Select.Content css={styles.selectContent}>
-								{modelTypeCollection.items.map((item) => (
-									<Select.Item
-										key={item.value}
-										item={item}
-										css={styles.selectItem}
-									>
-										<Select.ItemText>{item.label}</Select.ItemText>
-										<Select.ItemIndicator />
-									</Select.Item>
-								))}
-							</Select.Content>
-						</Select.Positioner>
-					</Portal>
-				</Select.Root>
+						<Button
+							size="xs"
+							variant="surface"
+							colorPalette="cyan"
+							css={styles.addButton}
+							onClick={handleAdd}
+						>
+							<LuPlus />
+							Add
+						</Button>
 
-				<Button
-					size="xs"
-					variant="surface"
-					colorPalette="cyan"
-					css={styles.addButton}
-					onClick={handleAdd}
-				>
-					<LuPlus />
-					Add
-				</Button>
+						<Tooltip content="Sync models to current slice window">
+							<IconButton
+								aria-label="Sync models"
+								size="xs"
+								variant="ghost"
+								css={styles.iconButton}
+								onClick={handleSync}
+								disabled={!hasModels}
+							>
+								<LuRefreshCw />
+							</IconButton>
+						</Tooltip>
 
-				<Tooltip content="Sync models to current slice window">
-					<IconButton
-						aria-label="Sync models"
-						size="xs"
-						variant="ghost"
-						css={styles.iconButton}
-						onClick={handleSync}
-						disabled={!hasModels}
-					>
-						<LuRefreshCw />
-					</IconButton>
-				</Tooltip>
-
-				<Tooltip content="Save configuration">
-					<IconButton
-						aria-label="Save configuration"
-						size="xs"
-						variant="ghost"
-						css={styles.iconButton}
-						onClick={handleSave}
-					>
-						<LuSave />
-					</IconButton>
-				</Tooltip>
-			</HStack>
+						<Tooltip content="Save configuration">
+							<IconButton
+								aria-label="Save configuration"
+								size="xs"
+								variant="ghost"
+								css={styles.iconButton}
+								onClick={handleSave}
+							>
+								<LuSave />
+							</IconButton>
+						</Tooltip>
+					</HStack>
+				}
+			/>
 		</HStack>
 	);
 }

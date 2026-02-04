@@ -134,6 +134,7 @@ export type FitConfiguration = {
 
 export type FitExtractionSettings = {
 	apertureSize: number;
+	offset: number;
 	extractMode: "GRISMR" | "GRISMC";
 };
 
@@ -224,8 +225,8 @@ export type TraceSource = {
 	y: number;
 	color: string;
 	spectrumReady: boolean;
-	ra?: number;
-	dec?: number;
+	ra: number;
+	dec: number;
 	z?: number;
 	raHms?: string;
 	decDms?: string;

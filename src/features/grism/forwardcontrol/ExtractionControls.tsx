@@ -10,7 +10,7 @@ import { useId } from "react";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Slider } from "@/components/ui/slider";
 import { Tooltip } from "@/components/ui/tooltip";
-import { SectionHeader } from "./components/SectionHeader";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useExtractionControls } from "./hooks/useExtractionControls";
 import { extractionControlsRecipe } from "./recipes/extraction-controls.recipe";
 
@@ -37,7 +37,7 @@ export default function ExtractionControls() {
 	return (
 		<Stack css={styles.root}>
 			<SectionHeader
-				title="ExtractionWindow"
+				title="Extraction Window"
 				tip="Adjust the extraction window (2D) and slice range (1D)."
 				rightSlot={
 					<Tooltip

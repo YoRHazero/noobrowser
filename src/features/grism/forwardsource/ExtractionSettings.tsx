@@ -1,4 +1,5 @@
 import {
+	Box,
 	Button,
 	createListCollection,
 	HStack,
@@ -12,8 +13,9 @@ import {
 import { Activity } from "lucide-react";
 import FitJobPoller from "../fitjob/FitJobPoller";
 import GrismFitJobDrawer from "../fitjob";
-import { SectionHeader } from "./components/SectionHeader";
+import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useExtractionSettings } from "./hooks/useExtractionSettings";
+import { Tooltip } from "@/components/ui/tooltip";
 import { extractionSettingsRecipe } from "./recipes/extraction-settings.recipe";
 
 const extractModeCollection = createListCollection({
@@ -26,8 +28,10 @@ const extractModeCollection = createListCollection({
 export default function ExtractionSettings() {
 	const {
 		fitApertureSize,
+		fitOffset,
 		fitExtractMode,
 		setFitApertureSize,
+		setFitOffset,
 		setFitExtractMode,
 	} = useExtractionSettings();
 	const recipe = useSlotRecipe({ recipe: extractionSettingsRecipe });
@@ -38,6 +42,7 @@ export default function ExtractionSettings() {
 			<FitJobPoller />
 			<SectionHeader
 				title="Extraction Settings"
+				tip="Configure parameters of spectrum extracted for fitting."
 				rightSlot={
 					<GrismFitJobDrawer>
 						<Button size="xs" variant="surface" colorPalette="cyan">
@@ -61,6 +66,26 @@ export default function ExtractionSettings() {
 						<NumberInput.Control css={styles.controlBase} />
 						<NumberInput.Input css={styles.input} />
 					</NumberInput.Root>
+				</Stack>
+
+				<Stack gap={0}>
+					<Text css={styles.label}>Offset (px)</Text>
+					<Tooltip content="Feature temporarily disabled: Backend support not ready">
+						<Box cursor="not-allowed" w="100px">
+							<NumberInput.Root
+								size="xs"
+								disabled
+								value={fitOffset.toString()}
+								onValueChange={(details) =>
+									setFitOffset(Number(details.value))
+								}
+								w="100%"
+							>
+								<NumberInput.Control css={styles.controlBase} />
+								<NumberInput.Input css={styles.input} />
+							</NumberInput.Root>
+						</Box>
+					</Tooltip>
 				</Stack>
 
 				<Stack gap={0}>
