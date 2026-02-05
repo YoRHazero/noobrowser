@@ -4,7 +4,7 @@ import { v4 as uuidv4 } from "uuid";
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
 import { DEFAULT_COLOR } from "@/components/ui/color-chooser";
-import type { FitJobResponse } from "@/hooks/query/fit/schemas";
+
 import type {
 	FitConfiguration,
 	FitExtractionSettings,
@@ -26,16 +26,16 @@ export interface FitState {
 	waveFrame: WaveFrame;
 	models: FitModel[];
 	configurations: FitConfiguration[];
-	jobs: FitJobResponse[];
 	tags: string[];
-	selectedTagsByJob: Record<string, string[]>;
+	selectedTags: string[];
 	fitExtraction: FitExtractionSettings;
 	setWaveFrame: (frame: WaveFrame) => void;
 	setFitExtraction: (patch: Partial<FitExtractionSettings>) => void;
 	setTags: (tags: string[]) => void;
 	addTags: (tags: string[]) => void;
-	setSelectedTagsForJob: (jobId: string, tags: string[]) => void;
-	clearSelectedTagsForJob: (jobId: string) => void;
+	setSelectedTags: (tags: string[]) => void;
+	addSelectedTags: (tags: string[]) => void;
+	removeSelectedTags: (tags: string[]) => void;
 
 	ensureInitialModels: (range: FitRange) => void;
 	duplicateNameIds: () => number[];
@@ -75,9 +75,7 @@ export interface FitState {
 	getSelectedConfiguration: () => FitConfiguration[];
 	setConfigurationName: (id: string, name: string) => void;
 
-	addJob: (job: FitJobResponse) => void;
-	removeJob: (id: string) => void;
-	updateJob: (job: FitJobResponse) => void;
+
 }
 
 /* -------------------------------- store ----------------------------------- */
@@ -101,9 +99,8 @@ export const useFitStore = create<FitState>()(
 			waveFrame: "observe",
 			models: [],
 			configurations: [],
-			jobs: [],
 			tags: [],
-			selectedTagsByJob: {},
+			selectedTags: [],
 			fitExtraction: { apertureSize: 5, offset: 0, extractMode: "GRISMR" },
 			setWaveFrame: (frame) => set({ waveFrame: frame }),
 			setFitExtraction: (patch) =>
@@ -115,20 +112,15 @@ export const useFitStore = create<FitState>()(
 				set((state) => ({
 					tags: normalizeTags([...state.tags, ...tags]),
 				})),
-			setSelectedTagsForJob: (jobId, tags) =>
+			setSelectedTags: (tags) => set({ selectedTags: normalizeTags(tags) }),
+			addSelectedTags: (tags) =>
 				set((state) => ({
-					selectedTagsByJob: {
-						...state.selectedTagsByJob,
-						[jobId]: normalizeTags(tags),
-					},
+					selectedTags: normalizeTags([...state.selectedTags, ...tags]),
 				})),
-			clearSelectedTagsForJob: (jobId) =>
-				set((state) => {
-					if (!(jobId in state.selectedTagsByJob)) return {};
-					const next = { ...state.selectedTagsByJob };
-					delete next[jobId];
-					return { selectedTagsByJob: next };
-				}),
+			removeSelectedTags: (tags) =>
+				set((state) => ({
+					selectedTags: state.selectedTags.filter((tag) => !tags.includes(tag)),
+				})),
 			ensureInitialModels: (range) => {
 				const state = get();
 				if (state.models.length > 0) return;
@@ -332,30 +324,14 @@ export const useFitStore = create<FitState>()(
 						c.id === id ? { ...c, name: name } : c,
 					),
 				})),
-			addJob: (job) => set((state) => ({ jobs: [...state.jobs, job] })),
-			removeJob: (id) =>
-				set((state) => {
-					const remainingJobs = state.jobs.filter((j) => j.job_id !== id);
-					if (!(id in state.selectedTagsByJob)) {
-						return { jobs: remainingJobs };
-					}
-					const nextTagsByJob = { ...state.selectedTagsByJob };
-					delete nextTagsByJob[id];
-					return { jobs: remainingJobs, selectedTagsByJob: nextTagsByJob };
-				}),
-			updateJob: (job) =>
-				set((state) => ({
-					jobs: state.jobs.map((j) => (j.job_id === job.job_id ? job : j)),
-				})),
+
 		};
 		},
 		{
 			name: "noobrowser-fit-store",
 			partialize: (state) => ({
 				configurations: state.configurations,
-				jobs: state.jobs,
 				tags: state.tags,
-				selectedTagsByJob: state.selectedTagsByJob,
 			}),
 		},
 	),

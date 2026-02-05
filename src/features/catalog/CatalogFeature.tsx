@@ -1,41 +1,31 @@
-import { Box, Grid } from "@chakra-ui/react";
-import { useState } from "react";
-import type { CatalogItemResponse } from "@/hooks/query/fit";
-import { CatalogDetail } from "./CatalogDetail";
-import { CatalogList } from "./CatalogList";
-
+import { Box, Grid, Stack } from "@chakra-ui/react";
+import { CatalogFitHistoryPanel } from "./components/CatalogFitHistoryPanel";
+import { CatalogListPanel } from "./components/CatalogListPanel";
+import { CatalogPlotsPanel } from "./components/CatalogPlotsPanel";
+import { CatalogSourceInfoPanel } from "./components/CatalogSourceInfoPanel";
 
 export function CatalogFeature() {
-	const [selectedItem, setSelectedItem] = useState<CatalogItemResponse | null>(
-		null,
-	);
-
 	return (
 		<Grid
-			templateColumns="350px 1fr"
-			h="100vh" // Or use a calculated height if strictly required, but 100vh is a good default for full screen
+			templateColumns={{ base: "1fr", lg: "340px 1fr" }}
 			gap={4}
 			p={4}
+			h="100vh"
 		>
 			<Box
 				overflowY="auto"
-				borderRightWidth="1px"
+				borderRightWidth={{ base: "0px", lg: "1px" }}
 				borderColor="border.muted"
-				pr={2}
+				pr={{ base: 0, lg: 2 }}
 			>
-				<CatalogList
-					selectedId={selectedItem?.id ?? null}
-					onSelect={setSelectedItem}
-				/>
+				<CatalogListPanel />
 			</Box>
 			<Box overflowY="auto" h="full">
-				{selectedItem ? (
-					<CatalogDetail item={selectedItem} />
-				) : (
-					<Box p={4} color="fg.muted">
-						Select an item to view details
-					</Box>
-				)}
+				<Stack gap={4}>
+					<CatalogSourceInfoPanel />
+					<CatalogFitHistoryPanel />
+					<CatalogPlotsPanel />
+				</Stack>
 			</Box>
 		</Grid>
 	);

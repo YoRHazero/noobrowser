@@ -1,25 +1,18 @@
-import { Badge, Flex, HStack, IconButton, Text } from "@chakra-ui/react";
-import { Ban, CheckCircle, Clock, Info, Trash2 } from "lucide-react";
-import type { FitJobResponse } from "@/hooks/query/fit/schemas";
+import { Badge, Flex, HStack, Text } from "@chakra-ui/react";
+import { Ban, CheckCircle, Clock, Info } from "lucide-react";
+import type { FitJobStatusResponse } from "@/hooks/query/fit";
 
 interface JobListItemProps {
-	job: FitJobResponse;
+	job: FitJobStatusResponse;
 	isSelected: boolean;
-	onSelect: (id: string, status: string) => void;
-	onRemove: (id: string) => void;
+	onSelect: (id: string) => void;
 }
 
-export function JobListItem({
-	job,
-	isSelected,
-	onSelect,
-	onRemove,
-}: JobListItemProps) {
-	const isCompleted = job.status === "completed";
-
+export function JobListItem({ job, isSelected, onSelect }: JobListItemProps) {
 	const getStatusIcon = (status: string) => {
 		switch (status) {
 			case "completed":
+			case "saved":
 				return <CheckCircle size={12} />;
 			case "processing":
 				return <Clock size={12} className="animate-pulse" />;
@@ -35,6 +28,7 @@ export function JobListItem({
 	const getStatusPalette = (status: string) => {
 		switch (status) {
 			case "completed":
+			case "saved":
 				return "green";
 			case "processing":
 				return "blue";
@@ -60,10 +54,10 @@ export function JobListItem({
 			p={2}
 			cursor="pointer"
 			_hover={{
-				borderColor: isCompleted ? "cyan.400" : undefined,
+				borderColor: "cyan.400",
 				bg: isSelected ? "cyan.900/40" : "whiteAlpha.100",
 			}}
-			onClick={() => onSelect(job.job_id, job.status)}
+			onClick={() => onSelect(job.job_id)}
 			transition="all 0.2s"
 		>
 			<HStack gap={3}>
@@ -81,21 +75,6 @@ export function JobListItem({
 					ID: {job.job_id.slice(0, 8)}
 				</Text>
 			</HStack>
-
-			{(job.status === "completed" || job.status === "failed") && (
-				<IconButton
-					size="xs"
-					variant="ghost"
-					colorPalette="red"
-					aria-label="Delete job"
-					onClick={(e) => {
-						e.stopPropagation();
-						onRemove(job.job_id);
-					}}
-				>
-					<Trash2 size={14} />
-				</IconButton>
-			)}
 		</Flex>
 	);
 }

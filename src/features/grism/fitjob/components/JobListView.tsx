@@ -1,21 +1,19 @@
-import { Box, CloseButton, Drawer, Flex, Heading, HStack, ScrollArea, Text } from "@chakra-ui/react";
-import { useFitJobActions } from "./hooks/useFitJobActions";
-import { useFitJobs } from "./hooks/useFitJobs";
-import { JobListItem } from "./components/JobListItem";
+import {
+	Box,
+	CloseButton,
+	Drawer,
+	Flex,
+	Heading,
+	HStack,
+	ScrollArea,
+	Spinner,
+	Text,
+} from "@chakra-ui/react";
+import { useJobListView } from "../hooks/useJobListView";
+import { JobListItem } from "./JobListItem";
 
-interface JobListViewProps {
-	selectedJobId: string | null;
-	onSelectJob: (id: string, status: string) => void;
-}
-
-export default function JobListView({
-	selectedJobId,
-	onSelectJob,
-}: JobListViewProps) {
-	const { jobs } = useFitJobs();
-	const { handleRemoveJob } = useFitJobActions();
-
-	// Sort logic: newest first
+export default function JobListView() {
+	const { jobs, selectedJobId, onSelect, isLoading, error } = useJobListView();
 	const sortedJobs = [...jobs].reverse();
 
 	return (
@@ -29,7 +27,6 @@ export default function JobListView({
 				</Drawer.CloseTrigger>
 			</HStack>
 
-			{/* Job List Header */}
 			<Box mt={4} mb={2}>
 				<ScrollArea.Root maxW="600px">
 					<ScrollArea.Viewport>
@@ -40,11 +37,31 @@ export default function JobListView({
 										key={job.job_id}
 										job={job}
 										isSelected={selectedJobId === job.job_id}
-										onSelect={onSelectJob}
-										onRemove={handleRemoveJob}
+										onSelect={onSelect}
 									/>
 								))}
-								{sortedJobs.length === 0 && (
+								{isLoading && (
+									<Flex
+										w="full"
+										py={2}
+										align="center"
+										justify="center"
+									>
+										<Spinner size="sm" color="cyan.300" />
+									</Flex>
+								)}
+								{!!error && (
+									<Text
+										color="red.400"
+										fontSize="xs"
+										textAlign="center"
+										py={2}
+										w="full"
+									>
+										{error}
+									</Text>
+								)}
+								{sortedJobs.length === 0 && !isLoading && !error && (
 									<Text
 										color="gray.500"
 										fontSize="xs"

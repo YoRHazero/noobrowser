@@ -1,7 +1,8 @@
-import { useMemo } from "react";
+import { useEffect, useState } from "react";
+import { useQueryClient } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
 import { toaster } from "@/components/ui/toaster";
-import { useSubmitFitJobMutation } from "@/hooks/query/fit/useSubmitFitJob";
+import { useSubmitFitJob } from "@/hooks/query/fit/useSubmitFitJob";
 import { useFitStore } from "@/stores/fit";
 import { useGrismStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
@@ -32,13 +33,24 @@ export function useSourceItem(source: TraceSource) {
 		})),
 	);
 
-	const { configurations, fitExtraction, jobs } = useFitStore(
+	const { configurations, fitExtraction } = useFitStore(
 		useShallow((state) => ({
 			configurations: state.configurations,
 			fitExtraction: state.fitExtraction,
-			jobs: state.jobs,
 		})),
 	);
+
+	/* -------------------------------------------------------------------------- */
+	/*                                 Local State                                */
+	/* -------------------------------------------------------------------------- */
+	const [cooldownUntil, setCooldownUntil] = useState<number | null>(null);
+
+	/* -------------------------------------------------------------------------- */
+	/*                              Mutations/Query                               */
+	/* -------------------------------------------------------------------------- */
+	const queryClient = useQueryClient();
+	const submitJob = useSubmitFitJob();
+	const cooldownMs = 5000;
 
 	/* -------------------------------------------------------------------------- */
 	/*                               Derived Values                               */
@@ -46,30 +58,32 @@ export function useSourceItem(source: TraceSource) {
 	const isSelected = displayedTraceSourceId === source.id;
 	const hasSelectedConfig = configurations.some((config) => config.selected);
 	const canRun = hasSelectedConfig;
-
-	const activeJob = useMemo(
-		() =>
-			jobs.find(
-				(job) =>
-					job.job_id === source.id &&
-					(job.status === "pending" || job.status === "processing"),
-			),
-		[jobs, source.id],
-	);
-	const isRunning = Boolean(activeJob);
+	const isCooldownActive = cooldownUntil !== null && cooldownUntil > Date.now();
+	const isSubmitting = submitJob.isPending;
+	const isRunning = isSubmitting || isCooldownActive;
 	const runVariant: "surface" | "ghost" =
 		canRun && !isRunning ? "surface" : "ghost";
 	const runPalette: "cyan" | "gray" = canRun && !isRunning ? "cyan" : "gray";
-	const tooltipContent = activeJob
-		? `Job Running (${activeJob.status})`
-		: canRun
-			? "Run MCMC Analysis"
-			: "Select a Config first";
+	const tooltipContent = isSubmitting
+		? "Submitting job..."
+		: isCooldownActive
+			? "Please wait 5 seconds before submitting again."
+			: canRun
+				? "Run MCMC Analysis"
+				: "Select a Config first";
 
-	/* -------------------------------------------------------------------------- */
-	/*                              Mutations/Query                               */
-	/* -------------------------------------------------------------------------- */
-	const { mutate: submitJob } = useSubmitFitJobMutation();
+	useEffect(() => {
+		if (!cooldownUntil) return undefined;
+		const remainingMs = cooldownUntil - Date.now();
+		if (remainingMs <= 0) {
+			setCooldownUntil(null);
+			return undefined;
+		}
+		const timeoutId = setTimeout(() => {
+			setCooldownUntil(null);
+		}, remainingMs);
+		return () => clearTimeout(timeoutId);
+	}, [cooldownUntil]);
 
 	/* -------------------------------------------------------------------------- */
 	/*                                   Handle                                   */
@@ -92,7 +106,7 @@ export function useSourceItem(source: TraceSource) {
 		});
 	};
 
-	const handleRun = () => {
+	const handleRun = async () => {
 		if (!hasSelectedConfig) {
 			toaster.create({
 				title: "Configuration Missing",
@@ -101,14 +115,51 @@ export function useSourceItem(source: TraceSource) {
 			});
 			return;
 		}
+		if (isSubmitting || isCooldownActive) return;
 
-		submitJob({
-			sourceId: source.id,
-			extractionConfig: {
-				aperture_size: fitExtraction.apertureSize,
-				extraction_mode: fitExtraction.extractMode,
-			},
-		});
+		setCooldownUntil(Date.now() + cooldownMs);
+
+		const selectedConfigs = configurations.filter((c) => c.selected);
+		const fitConfigs = selectedConfigs.map((c) => ({
+			model_name: c.name,
+			models: c.models,
+		}));
+
+		try {
+			const response = await submitJob.mutateAsync({
+				body: {
+					extraction: {
+						extraction_config: {
+							aperture_size: fitExtraction.apertureSize,
+							offset: fitExtraction.offset,
+							extract_mode: fitExtraction.extractMode,
+							wavelength_range: forwardWaveRange,
+						},
+						source_meta: {
+							source_id: source.id,
+							ra: source.ra,
+							dec: source.dec,
+							x: source.x,
+							y: source.y,
+							z: source.z,
+							group_id: source.groupId ? Number(source.groupId) : null,
+						},
+					},
+					fit: fitConfigs,
+				},
+			});
+			toaster.success({
+				title: "Fit Job Submitted",
+				description: `Job ID: ${response.job_id.slice(0, 8)}`,
+			});
+			queryClient.invalidateQueries({ queryKey: ["fit", "jobs"] });
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			toaster.error({
+				title: "Fit Job Submission Failed",
+				description: message,
+			});
+		}
 	};
 
 	/* -------------------------------------------------------------------------- */
@@ -117,7 +168,6 @@ export function useSourceItem(source: TraceSource) {
 	return {
 		isSelected,
 		canRun,
-		activeJob,
 		isRunning,
 		runVariant,
 		runPalette,
