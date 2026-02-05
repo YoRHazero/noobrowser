@@ -15,11 +15,11 @@ export function useEmissionLinesManager() {
 	/* -------------------------------------------------------------------------- */
 	/*                               Derived Values                               */
 	/* -------------------------------------------------------------------------- */
-	const sortedLineKeys = useMemo(
+	const sortedLineIds = useMemo(
 		() =>
 			Object.entries(emissionLines)
-				.sort(([, a], [, b]) => a - b)
-				.map(([name]) => name),
+				.sort(([, a], [, b]) => a.wavelength - b.wavelength)
+				.map(([id]) => id),
 		[emissionLines],
 	);
 
@@ -27,6 +27,6 @@ export function useEmissionLinesManager() {
 	/*                                   Return                                   */
 	/* -------------------------------------------------------------------------- */
 	return {
-		sortedLineKeys,
+		sortedLineIds,
 	};
 }

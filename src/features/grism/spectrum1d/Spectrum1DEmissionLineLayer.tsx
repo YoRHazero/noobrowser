@@ -26,14 +26,14 @@ const Spectrum1DEmissionLineLayer = memo(function Spectrum1DEmissionLineLayer(
 	const [waveMin, waveMax] = xScale.domain() as [number, number];
 	return (
 		<g pointerEvents={"none"}>
-			{Object.entries(selectedEmissionLines).map(([lineName, lineWave]) => {
-				const lineWaveObs = lineWave * (1 + zRedshift);
+			{Object.entries(selectedEmissionLines).map(([lineId, line]) => {
+				const lineWaveObs = line.wavelength * (1 + zRedshift);
 				if (lineWaveObs < waveMin || lineWaveObs > waveMax) {
 					return null;
 				}
 				const xPos = xScale(lineWaveObs);
 				return (
-					<g key={lineName}>
+					<g key={lineId}>
 						<line
 							x1={xPos}
 							x2={xPos}
@@ -49,7 +49,7 @@ const Spectrum1DEmissionLineLayer = memo(function Spectrum1DEmissionLineLayer(
 							fontSize={12}
 							fill={lineColor}
 						>
-							{lineName}
+							{line.name}
 						</text>
 					</g>
 				);

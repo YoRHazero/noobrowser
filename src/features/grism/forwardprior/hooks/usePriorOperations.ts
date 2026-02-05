@@ -93,7 +93,7 @@ export function usePriorOperations({
 				mu: model.sigma,
 				sigma: model.sigma / 2,
 				lower: lowerSigma,
-				upper: model.sigma * 2,
+				upper: model.sigma * 4,
 			});
 			count++;
 		});

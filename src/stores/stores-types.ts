@@ -15,6 +15,12 @@ export type XY = {
 	y: number;
 };
 
+export interface EmissionLine {
+	id: string;
+	name: string;
+	wavelength: number; // microns
+}
+
 export type MetaPosition = {
 	ra?: number;
 	dec?: number;

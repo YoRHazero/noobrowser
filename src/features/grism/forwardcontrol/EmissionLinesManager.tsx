@@ -7,7 +7,7 @@ import { useEmissionLinesManager } from "./hooks/useEmissionLinesManager";
 import { emissionLinesRecipe } from "./recipes/emission-lines.recipe";
 
 export default function EmissionLinesManager() {
-	const { sortedLineKeys } = useEmissionLinesManager();
+	const { sortedLineIds } = useEmissionLinesManager();
 
 	const recipe = useSlotRecipe({ recipe: emissionLinesRecipe });
 	const styles = recipe();
@@ -25,17 +25,17 @@ export default function EmissionLinesManager() {
 			<ScrollArea.Root flex="1" minH="0">
 				<ScrollArea.Viewport>
 					<ScrollArea.Content p={2} pb={8}>
-						{sortedLineKeys.length === 0 ? (
+						{sortedLineIds.length === 0 ? (
 							<Stack css={styles.emptyState}>
 								<LuList size={24} style={{ opacity: 0.3 }} />
 								<Text css={styles.emptyText}>NO DATA FOUND</Text>
 							</Stack>
 						) : (
 							<Stack gap={2}>
-								{sortedLineKeys.map((emissionName) => (
+								{sortedLineIds.map((emissionId) => (
 									<EmissionLineCard
-										key={emissionName}
-										emissionName={emissionName}
+										key={emissionId}
+										emissionId={emissionId}
 									/>
 								))}
 							</Stack>

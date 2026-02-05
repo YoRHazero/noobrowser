@@ -1,7 +1,10 @@
 import { useCallback, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGrismStore } from "@/stores/image";
-import { ANGSTROM_PER_MICRON } from "@/utils/wavelength";
+import {
+	ANGSTROM_PER_MICRON,
+	generateEmissionLineId,
+} from "@/utils/wavelength";
 
 export function useEmissionLineAdder() {
 	/* -------------------------------------------------------------------------- */
@@ -24,10 +27,23 @@ export function useEmissionLineAdder() {
 	/* -------------------------------------------------------------------------- */
 	/*                               Derived Values                               */
 	/* -------------------------------------------------------------------------- */
+	// Calculate ID to check duplication
+	const rawWavelength = parseFloat(wavelengthInput);
+	const targetWavelengthMicron =
+		Number.isFinite(rawWavelength) && waveUnit !== "µm"
+			? rawWavelength / ANGSTROM_PER_MICRON
+			: rawWavelength;
+
+	const generatedId =
+		name.trim().length > 0 && Number.isFinite(targetWavelengthMicron)
+			? generateEmissionLineId(name.trim(), targetWavelengthMicron)
+			: null;
+
 	const canAdd =
+		generatedId !== null &&
+		!Object.hasOwn(emissionLines, generatedId) &&
 		name.trim().length > 0 &&
-		!Number.isNaN(parseFloat(wavelengthInput)) &&
-		!emissionLines[name.trim()];
+		!Number.isNaN(rawWavelength);
 
 	/* -------------------------------------------------------------------------- */
 	/*                                   Handle                                   */

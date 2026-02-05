@@ -6,6 +6,25 @@ export const ANGSTROM_PER_MICRON = 1e4;
 export const MICRON_PER_ANGSTROM = 1e-4;
 export const SPEED_OF_LIGHT_KM_S = 299792.458;
 export const SIGMA_TO_FWHM = 2 * Math.sqrt(2 * Math.log(2)); // ≈ 2.35482
+
+export function generateEmissionLineId(
+	name: string,
+	wavelengthMicron: number,
+): string {
+	const lastChar = name.slice(-1);
+	const secondLastChar = name.slice(-2, -1);
+
+	// Check if name ends with 'I' or 2nd to last char is 'I'
+	if (lastChar === "I" || secondLastChar === "I") {
+		const wavelengthAngstrom = Math.round(
+			wavelengthMicron * ANGSTROM_PER_MICRON,
+		);
+		return `${name}λ${wavelengthAngstrom}`;
+	}
+
+	return name;
+}
+
 /**
  * Convert a number to input field string value,
  * rounding to specified number of digits.

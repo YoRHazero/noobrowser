@@ -187,7 +187,7 @@ export default function EmissionMaskLayer({
 				<emissionMaskMaterial
 					uTexture={texture}
 					uMaxValue={maxValue}
-					uThreshold={threshold}
+					uThreshold={mode === 'individual' ? 0 : threshold}
 					uPalette={paletteTexture}
 					uPaletteSize={EMISSION_MASK_COLORS.length}
 					uMaskFormat={format === 'uint32' ? 2 : format === 'uint16' ? 1 : 0}

@@ -12,15 +12,15 @@ import { useEmissionLineCard } from "./hooks/useEmissionLineCard";
 import { emissionLineCardRecipe } from "./recipes/emission-line-card.recipe";
 
 interface EmissionLineCardProps {
-	emissionName: string;
+	emissionId: string;
 }
 
 export const EmissionLineCard = memo(function EmissionLineCard({
-	emissionName,
+	emissionId,
 }: EmissionLineCardProps) {
 	const recipe = useSlotRecipe({ recipe: emissionLineCardRecipe });
 	const { name, isSelected, rest, obs, unit, toggleSelected, remove } =
-		useEmissionLineCard(emissionName);
+		useEmissionLineCard(emissionId);
 	const styles = recipe({ selected: isSelected });
 
 	return (

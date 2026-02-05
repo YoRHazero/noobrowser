@@ -3,7 +3,7 @@ import { useShallow } from "zustand/react/shallow";
 import { useGrismStore } from "@/stores/image";
 import { ANGSTROM_PER_MICRON } from "@/utils/wavelength";
 
-export function useEmissionLineCard(emissionName: string) {
+export function useEmissionLineCard(emissionId: string) {
 	/* -------------------------------------------------------------------------- */
 	/*                                Access Store                                */
 	/* -------------------------------------------------------------------------- */
@@ -28,10 +28,15 @@ export function useEmissionLineCard(emissionName: string) {
 	/* -------------------------------------------------------------------------- */
 	/*                               Derived Values                               */
 	/* -------------------------------------------------------------------------- */
-	const isSelected = Object.hasOwn(selectedEmissionLines, emissionName);
+	const isSelected = Object.hasOwn(selectedEmissionLines, emissionId);
+	const line = emissionLines[emissionId];
 
 	const formatted = useMemo(() => {
-		const restUm = emissionLines[emissionName];
+		if (!line) {
+			return { rest: "-", obs: "-", unit: waveUnit === "µm" ? "μm" : "Å" };
+		}
+
+		const restUm = line.wavelength;
 		const isMicron = waveUnit === "µm";
 		const unit = isMicron ? "μm" : "Å";
 		const digits = isMicron ? 4 : 1;
@@ -49,7 +54,7 @@ export function useEmissionLineCard(emissionName: string) {
 			obs: obsValNum.toFixed(digits),
 			unit,
 		};
-	}, [emissionLines, emissionName, waveUnit, zRedshift]);
+	}, [line, waveUnit, zRedshift]);
 
 	/* -------------------------------------------------------------------------- */
 	/*                                   Handle                                   */
@@ -57,25 +62,24 @@ export function useEmissionLineCard(emissionName: string) {
 	const toggleSelected = (checked: boolean) => {
 		const next = { ...selectedEmissionLines };
 		if (checked) {
-			const value = emissionLines[emissionName];
-			if (Number.isFinite(value)) {
-				next[emissionName] = value;
+			if (line) {
+				next[emissionId] = line;
 			}
 		} else {
-			delete next[emissionName];
+			delete next[emissionId];
 		}
 		setSelectedEmissionLines(next);
 	};
 
 	const remove = () => {
-		removeEmissionLine(emissionName);
+		removeEmissionLine(emissionId);
 	};
 
 	/* -------------------------------------------------------------------------- */
 	/*                                   Return                                   */
 	/* -------------------------------------------------------------------------- */
 	return {
-		name: emissionName,
+		name: line?.name ?? emissionId,
 		isSelected,
 		rest: formatted.rest,
 		obs: formatted.obs,

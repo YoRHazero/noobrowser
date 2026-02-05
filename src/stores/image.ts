@@ -11,7 +11,9 @@ import type {
 	WaveRange,
 	WaveUnit,
 	XY,
+	EmissionLine,
 } from "./stores-types.js";
+import { generateEmissionLineId } from "@/utils/wavelength.js";
 
 interface CounterpartState {
 	availableFilters: string[];
@@ -95,8 +97,8 @@ interface GrismState {
 	forwardWaveRange: WaveRange;
 	slice1DWaveRange: WaveRange;
 	collapseWindow: CollapseWindow;
-	emissionLines: Record<string, number>;
-	selectedEmissionLines: Record<string, number>;
+	emissionLines: Record<string, EmissionLine>;
+	selectedEmissionLines: Record<string, EmissionLine>;
 	showTraceOnSpectrum2D: boolean;
 	backwardGlobalNorm: NormParams;
 	backwardRoiNorm: NormParams;
@@ -118,10 +120,10 @@ interface GrismState {
 	setForwardWaveRange: (patch: Partial<WaveRange>) => void;
 	setSlice1DWaveRange: (patch: Partial<WaveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
-	setEmissionLines: (lines: Record<string, number>) => void;
+	setEmissionLines: (lines: Record<string, EmissionLine>) => void;
 	addEmissionLine: (name: string, wavelength: number) => void;
-	removeEmissionLine: (name: string) => void;
-	setSelectedEmissionLines: (lines: Record<string, number>) => void;
+	removeEmissionLine: (id: string) => void;
+	setSelectedEmissionLines: (lines: Record<string, EmissionLine>) => void;
 	switchShowTraceOnSpectrum2D: () => void;
 	setBackwardGlobalNorm: (patch: Partial<NormParams>) => void;
 	setBackwardRoiNorm: (patch: Partial<NormParams>) => void;
@@ -157,11 +159,19 @@ export const useGrismStore = create<GrismState>()(
 
 			emissionLines: {
 				// units in microns
-				"H⍺": 0.6563,
-				Hβ: 0.4861,
-				"[OIII]λ4959": 0.4959,
-				"[OIII]λ5007": 0.5007,
-				Paβ: 1.2818,
+				"H⍺": { id: "H⍺", name: "H⍺", wavelength: 0.6563 },
+				Hβ: { id: "Hβ", name: "Hβ", wavelength: 0.4861 },
+				"[OIII]λ4959": {
+					id: "[OIII]λ4959",
+					name: "[OIII]",
+					wavelength: 0.4959,
+				},
+				"[OIII]λ5007": {
+					id: "[OIII]λ5007",
+					name: "[OIII]",
+					wavelength: 0.5007,
+				},
+				Paβ: { id: "Paβ", name: "Paβ", wavelength: 1.2818 },
 			},
 			selectedEmissionLines: {},
 			showTraceOnSpectrum2D: true,
@@ -203,28 +213,35 @@ export const useGrismStore = create<GrismState>()(
 				})),
 			setEmissionLines: (lines) => {
 				const sortedLines = Object.fromEntries(
-					Object.entries(lines).sort((a, b) => a[1] - b[1]),
+					Object.entries(lines).sort((a, b) => a[1].wavelength - b[1].wavelength),
 				);
 				set({ emissionLines: sortedLines });
 			},
 			addEmissionLine: (name, wavelength) => {
 				set((state) => {
-					const updatedLines = { ...state.emissionLines, [name]: wavelength };
+					const id = generateEmissionLineId(name, wavelength);
+					const newLine: EmissionLine = { id, name, wavelength };
+					const updatedLines = { ...state.emissionLines, [id]: newLine };
 					const sortedLines = Object.fromEntries(
-						Object.entries(updatedLines).sort((a, b) => a[1] - b[1]),
+						Object.entries(updatedLines).sort(
+							(a, b) => a[1].wavelength - b[1].wavelength,
+						),
 					);
 					return { emissionLines: sortedLines };
 				});
 			},
-			removeEmissionLine: (name) => {
+			removeEmissionLine: (id) => {
 				set((state) => {
 					const updatedLines = { ...state.emissionLines };
-					delete updatedLines[name];
-					const { [name]: _, ...restSelectedLines } =
-						state.selectedEmissionLines;
+					delete updatedLines[id];
+					const updatedSelectedLines = { ...state.selectedEmissionLines };
+					if (updatedSelectedLines[id]) {
+						delete updatedSelectedLines[id];
+					}
+
 					return {
 						emissionLines: updatedLines,
-						selectedEmissionLines: restSelectedLines,
+						selectedEmissionLines: updatedSelectedLines,
 					};
 				});
 			},
