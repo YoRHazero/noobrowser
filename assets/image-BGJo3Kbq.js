@@ -1,0 +1,1 @@
+import{c as i,r as o,j as n,d as r,e as m}from"./index-Do8gBRn6.js";const{withContext:g}=i({key:"heading"}),x=g("h2");x.displayName="Heading";const d=o.forwardRef(function(a,e){const{align:t,fit:s="cover",...c}=a;return n.jsx(r.img,{ref:e,objectFit:s,objectPosition:t,className:m("chakra-image",a.className),...c})});d.displayName="Image";export{x as H,d as I};
