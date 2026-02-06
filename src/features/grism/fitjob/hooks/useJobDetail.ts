@@ -1,4 +1,4 @@
-import { useMemo } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFitJobSummary } from "@/hooks/query/fit";
 import {
 	usePlotCacheComparison,
@@ -26,15 +26,50 @@ export function useJobDetail() {
 	const status = selectedJob?.status ?? null;
 	const isCompleted = status === "completed" || status === "saved";
 	const jobId = selectedJob?.job_id ?? "";
+	const [selectedModelName, setSelectedModelName] = useState<string | null>(null);
+	const selectModelName = useCallback((modelName: string) => {
+		setSelectedModelName(modelName);
+	}, []);
 
 	/* -------------------------------------------------------------------------- */
 	/*                              Mutations/Query                               */
 	/* -------------------------------------------------------------------------- */
 	const summaryQuery = useFitJobSummary({ jobId, enabled: isCompleted });
 	const comparisonQuery = usePlotCacheComparison({ jobId, enabled: isCompleted });
-	const spectrumQuery = usePlotCacheSpectrum({ jobId, enabled: isCompleted });
-	const posteriorQuery = usePlotCachePosterior({ jobId, enabled: isCompleted });
-	const traceQuery = usePlotCacheTrace({ jobId, enabled: isCompleted });
+	const modelNameParam =
+		selectedModelName &&
+		summaryQuery.data?.best_model_name &&
+		selectedModelName === summaryQuery.data.best_model_name
+			? null
+			: selectedModelName;
+	const spectrumQuery = usePlotCacheSpectrum({
+		jobId,
+		enabled: isCompleted,
+		model_name: modelNameParam,
+	});
+	const posteriorQuery = usePlotCachePosterior({
+		jobId,
+		enabled: isCompleted,
+		model_name: modelNameParam,
+	});
+	const traceQuery = usePlotCacheTrace({
+		jobId,
+		enabled: isCompleted,
+		model_name: modelNameParam,
+	});
+
+	useEffect(() => {
+		if (!summaryQuery.data || summaryQuery.data.job_id !== jobId) {
+			setSelectedModelName(null);
+			return;
+		}
+
+		const available = summaryQuery.data.results.map((model) => model.model_name);
+		setSelectedModelName((prev) => {
+			if (prev && available.includes(prev)) return prev;
+			return summaryQuery.data.best_model_name ?? available[0] ?? null;
+		});
+	}, [jobId, summaryQuery.data]);
 
 	const plotUrls = usePlotBlobUrls({
 		comparison: comparisonQuery.data ?? null,
@@ -93,6 +128,8 @@ export function useJobDetail() {
 		summaryError: summaryQuery.isError
 			? (summaryQuery.error as Error)?.message
 			: null,
+		selectedModelName,
+		selectModelName,
 		plots,
 	};
 }

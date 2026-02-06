@@ -85,7 +85,7 @@ export function usePriorOperations({
 			});
 
 			// 3. Sigma
-			const sigmaDecrease = (100 * model.mu) / (C_LIGHT * SIGMA_TO_FWHM);
+			const sigmaDecrease = (150 * model.mu) / (C_LIGHT * SIGMA_TO_FWHM);
 			const lowerSigma = Math.max(0, model.sigma - sigmaDecrease);
 
 			updateModelPrior(model.id, "sigma", {

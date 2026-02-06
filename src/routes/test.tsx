@@ -1,37 +1,61 @@
+
+import {
+	Box,
+	Center,
+	Heading,
+	Image,
+	Stack,
+} from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
-import { useState } from "react";
 import Galaxy from "@/components/tailwind/Galaxy";
-import TailwindTest from "@/components/tailwind/TailwindTest";
-import { Slider } from "@/components/ui/slider";
+import GradientText from "@/components/tailwind/GradientText";
+import ShinyText from "@/components/tailwind/ShinyText";
+import { DarkMode } from "@/components/ui/color-mode";
+import logo from "@/logo.png";
 export const Route = createFileRoute("/test")({
-	component: RouteComponent,
+	component: App,
 });
 
-function RouteComponent() {
-	const [value, setValue] = useState([20, 80]);
-	const marks = [
-		{ value: 0, label: "0%" },
-		{ value: 25, label: "25%" },
-		{ value: 50, label: "50%" },
-		{ value: 75, label: "75%" },
-		{ value: 100, label: "100%" },
-	];
-
-	const handleValueChange = (newValue: number[]) => {
-		setValue(newValue);
-	};
+function App() {
 
 	return (
-		<>
-			<Slider
-				value={value}
-				marks={marks}
-				onValueChange={(details) => handleValueChange(details.value)}
-			/>
-			<TailwindTest />
-			<div style={{ width: "100%", height: "600px", position: "relative" }}>
-				<Galaxy />
+		<DarkMode>
+			<div style={{ position: "relative", width: "100%", height: "100vh" }}>
+				<Galaxy transparent={false} />
+				<Box minH="100vh" bg="transparent" color="fg">
+					<Center py="12">
+						<Stack gap="8" w="full" maxW="lg" px={{ base: 4, md: 6 }}>
+							<Stack align="center" gap="3">
+								<Image
+									src={logo}
+									alt="Noobrowser logo"
+									boxSize="40"
+									css={{ animation: "spin 20s linear infinite" }}
+								/>
+								<GradientText>
+									<Heading size="3xl">NooBrowser</Heading>
+								</GradientText>
+								<ShinyText
+									text="A web tool for wfss built with React"
+									disabled={false}
+									speed={5}
+									className="text-fg-muted"
+								/>
+							</Stack>
+						</Stack>
+					</Center>
+				<Heading size="5xl" textAlign="center">
+					Beyong Automated Pipeline: Recovering Lost Broad Lines
+				</Heading>
+				<Heading size="4xl" textAlign="center">
+					——A Human-in-the-loop approach to FRESCO WFSS DATA
+				</Heading>
+				
+				<Heading size="2xl" textAlign="center" py="8">
+					Zhu Chenghao Feb 2026
+				</Heading>
+				</Box>
 			</div>
-		</>
-	);
+		</DarkMode>
+	)
 }

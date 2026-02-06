@@ -11,7 +11,6 @@ import {
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { Activity } from "lucide-react";
-import FitJobPoller from "../fitjob/FitJobPoller";
 import GrismFitJobDrawer from "../fitjob";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useExtractionSettings } from "./hooks/useExtractionSettings";
@@ -39,7 +38,6 @@ export default function ExtractionSettings() {
 
 	return (
 		<Stack css={styles.root}>
-			<FitJobPoller />
 			<SectionHeader
 				title="Extraction Settings"
 				tip="Configure parameters of spectrum extracted for fitting."

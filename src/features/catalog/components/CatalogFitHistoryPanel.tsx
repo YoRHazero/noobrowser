@@ -2,18 +2,38 @@ import {
 	Badge,
 	Box,
 	Button,
+	createListCollection,
 	Heading,
 	HStack,
 	IconButton,
+	Portal,
+	Select,
 	Stack,
 	Text,
 } from "@chakra-ui/react";
+import { useMemo } from "react";
 import { LuTrash2 } from "react-icons/lu";
 import { useSelectedFitJob } from "../hooks/useSelectedFitJob";
 
 export function CatalogFitHistoryPanel() {
-	const { selectedSource, fitHistory, selectedFitJobId, setSelectedFitJobId } =
-		useSelectedFitJob();
+	const {
+		selectedSource,
+		fitHistory,
+		selectedFitEntry,
+		selectedFitJobId,
+		setSelectedFitJobId,
+		selectedPlotModelName,
+		setSelectedPlotModelName,
+	} = useSelectedFitJob();
+
+	const fitConfigNames = Object.keys(selectedFitEntry?.trace_url_dict ?? {});
+	const fitConfigCollection = useMemo(
+		() =>
+			createListCollection({
+				items: fitConfigNames.map((name) => ({ label: name, value: name })),
+			}),
+		[fitConfigNames],
+	);
 
 	if (!selectedSource) {
 		return (
@@ -37,11 +57,47 @@ export function CatalogFitHistoryPanel() {
 			borderRadius="lg"
 			bg="bg.surface"
 		>
-			<HStack justify="space-between" mb={3}>
+			<HStack justify="space-between" mb={3} align="center" flexWrap="wrap">
 				<Heading size="sm">Fit History</Heading>
-				<Button size="xs" variant="ghost" disabled>
-					Delete Selected
-				</Button>
+				<HStack gap={3} flexWrap="wrap">
+					{fitConfigNames.length > 0 && (
+						<Select.Root
+							collection={fitConfigCollection}
+							size="xs"
+							value={selectedPlotModelName ? [selectedPlotModelName] : []}
+							onValueChange={(event) =>
+								setSelectedPlotModelName(event.value[0] ?? null)
+							}
+						>
+							<Select.Trigger
+								minW="180px"
+								bg="transparent"
+								borderColor="border.muted"
+								color="fg.muted"
+								fontSize="xs"
+							>
+								<Select.ValueText placeholder="Select model config" />
+							</Select.Trigger>
+							<Portal>
+								<Select.Positioner>
+									<Select.Content
+										bg="bg.surface"
+										borderColor="border.muted"
+									>
+										{fitConfigCollection.items.map((item) => (
+											<Select.Item key={item.value} item={item}>
+												{item.label}
+											</Select.Item>
+										))}
+									</Select.Content>
+								</Select.Positioner>
+							</Portal>
+						</Select.Root>
+					)}
+					<Button size="xs" variant="ghost" disabled>
+						Delete Selected
+					</Button>
+				</HStack>
 			</HStack>
 
 			{fitHistory.length === 0 ? (

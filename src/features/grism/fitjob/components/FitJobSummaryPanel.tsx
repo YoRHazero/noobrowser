@@ -1,6 +1,7 @@
 import {
 	Badge,
 	Box,
+	Button,
 	Heading,
 	HStack,
 	Stack,
@@ -12,6 +13,8 @@ import type { FitJobSummary } from "../types";
 
 interface FitJobSummaryPanelProps {
 	summary: FitJobSummary;
+	selectedModelName?: string | null;
+	onSelectModelName?: (modelName: string) => void;
 }
 
 const formatNumber = (value: number | null, digits = 4) => {
@@ -19,7 +22,11 @@ const formatNumber = (value: number | null, digits = 4) => {
 	return value.toFixed(digits);
 };
 
-export function FitJobSummaryPanel({ summary }: FitJobSummaryPanelProps) {
+export function FitJobSummaryPanel({
+	summary,
+	selectedModelName,
+	onSelectModelName,
+}: FitJobSummaryPanelProps) {
 	return (
 		<VStack align="stretch" gap={4}>
 			<Box
@@ -58,7 +65,11 @@ export function FitJobSummaryPanel({ summary }: FitJobSummaryPanelProps) {
 					p={4}
 					borderRadius="md"
 					borderWidth="1px"
-					borderColor="whiteAlpha.100"
+					borderColor={
+						selectedModelName === model.model_name
+							? "cyan.300"
+							: "whiteAlpha.100"
+					}
 				>
 					<Stack gap={3}>
 						<HStack justify="space-between" align="center">
@@ -71,8 +82,24 @@ export function FitJobSummaryPanel({ summary }: FitJobSummaryPanelProps) {
 										BEST
 									</Badge>
 								)}
+								{selectedModelName === model.model_name && (
+									<Badge colorPalette="cyan" size="xs" variant="solid">
+										PLOTTING
+									</Badge>
+								)}
 							</HStack>
-							<HStack gap={6}>
+							<HStack gap={6} align="center">
+								{onSelectModelName && (
+									<Button
+										size="xs"
+										variant="outline"
+										colorPalette="cyan"
+										onClick={() => onSelectModelName(model.model_name)}
+										disabled={selectedModelName === model.model_name}
+									>
+										Use for plots
+									</Button>
+								)}
 								<Stack gap={0}>
 									<Text fontSize="2xs" color="gray.500">
 										WAIC

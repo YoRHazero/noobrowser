@@ -16,11 +16,13 @@ export const useSubmitFitJob = (
 	>,
 ) => {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
+	const username = useConnectionStore((state) => state.username);
 
 	return useMutation({
 		mutationFn: async ({ body, user }: SubmitFitJobParams) => {
-			const url = user
-				? `${backendUrl}/fit/submit/${user}/`
+			const effectiveUser = user ?? username;
+			const url = effectiveUser
+				? `${backendUrl}/fit/submit/${effectiveUser}/`
 				: `${backendUrl}/fit/submit/`;
 			const { data } = await axios.post<FitJobStatusResponse>(url, body);
 			return data;

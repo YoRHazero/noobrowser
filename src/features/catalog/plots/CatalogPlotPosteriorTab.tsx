@@ -5,10 +5,14 @@ import { PlotImagePanel } from "./PlotImagePanel";
 
 export function CatalogPlotPosteriorTab() {
 	const selectedFitJobId = useCatalogStore((state) => state.selectedFitJobId);
+	const selectedPlotModelName = useCatalogStore(
+		(state) => state.selectedPlotModelName,
+	);
 	const enabled = !!selectedFitJobId;
 	const query = usePlotCatalogPosterior({
 		jobId: selectedFitJobId ?? "",
 		enabled,
+		model_name: selectedPlotModelName,
 	});
 
 	return (

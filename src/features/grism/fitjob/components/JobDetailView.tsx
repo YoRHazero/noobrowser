@@ -5,8 +5,16 @@ import { FitJobSummaryPanel } from "./FitJobSummaryPanel";
 import { FitJobPlotsTabs } from "./FitJobPlotsTabs";
 
 export default function JobDetailView() {
-	const { selectedJob, status, summary, summaryLoading, summaryError, plots } =
-		useJobDetail();
+	const {
+		selectedJob,
+		status,
+		summary,
+		summaryLoading,
+		summaryError,
+		selectedModelName,
+		selectModelName,
+		plots,
+	} = useJobDetail();
 	if (!selectedJob || !status) {
 		return (
 			<Drawer.Body
@@ -94,8 +102,19 @@ export default function JobDetailView() {
 						{summaryError}
 					</Text>
 				)}
-				{summary && <FitJobSummaryPanel summary={summary} />}
-				{plots.length > 0 && <FitJobPlotsTabs plots={plots} />}
+				{summary && (
+					<FitJobSummaryPanel
+						summary={summary}
+						selectedModelName={selectedModelName}
+						onSelectModelName={selectModelName}
+					/>
+				)}
+				{plots.length > 0 && (
+					<FitJobPlotsTabs
+						plots={plots}
+						selectedModelName={selectedModelName}
+					/>
+				)}
 			</VStack>
 		</Drawer.Body>
 	);

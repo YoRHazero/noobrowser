@@ -8,10 +8,14 @@ export default function JobActionFooter() {
 		selectedTags,
 		handleTagsChange,
 		handleSave,
+		handleDelete,
 		isSaving,
+		isDeleting,
+		canDelete,
 		canSave,
 	} = useJobActionFooter();
 	const disabled = !canSave;
+	const deleteDisabled = !canDelete;
 	const placeholder = selectedJobId
 		? status === "completed" || status === "saved"
 			? "Add tag..."
@@ -32,6 +36,15 @@ export default function JobActionFooter() {
 						<TagsInput.Input placeholder={placeholder} />
 					</TagsInput.Control>
 				</TagsInput.Root>
+				<Button
+					variant="outline"
+					colorPalette="red"
+					onClick={handleDelete}
+					loading={isDeleting}
+					disabled={deleteDisabled}
+				>
+					Delete
+				</Button>
 				<Button
 					colorPalette="blue"
 					onClick={handleSave}

@@ -5,6 +5,8 @@ interface CatalogStoreState {
 	selectedSourceId: string | null;
 	selectedSource: CatalogItemResponse | null;
 	selectedFitJobId: string | null;
+	selectedPlotModelName: string | null;
+	subtractModelList: string[] | null;
 	page: number;
 	pageSize: number;
 	sortDesc: boolean;
@@ -17,6 +19,8 @@ interface CatalogStoreState {
 	toggleSelectedSource: (source: CatalogItemResponse) => void;
 	clearSelection: () => void;
 	setSelectedFitJobId: (jobId: string | null) => void;
+	setSelectedPlotModelName: (modelName: string | null) => void;
+	setSubtractModelList: (modelNames: string[] | null) => void;
 	syncSelectedSource: (source: CatalogItemResponse) => void;
 }
 
@@ -24,6 +28,8 @@ export const useCatalogStore = create<CatalogStoreState>()((set, get) => ({
 	selectedSourceId: null,
 	selectedSource: null,
 	selectedFitJobId: null,
+	selectedPlotModelName: null,
+	subtractModelList: null,
 	page: 1,
 	pageSize: 20,
 	sortDesc: true,
@@ -37,6 +43,8 @@ export const useCatalogStore = create<CatalogStoreState>()((set, get) => ({
 			selectedSource: source,
 			selectedSourceId: source?.id ?? null,
 			selectedFitJobId: null,
+			selectedPlotModelName: null,
+			subtractModelList: null,
 		}),
 	toggleSelectedSource: (source) =>
 		set((state) => {
@@ -45,12 +53,16 @@ export const useCatalogStore = create<CatalogStoreState>()((set, get) => ({
 					selectedSource: null,
 					selectedSourceId: null,
 					selectedFitJobId: null,
+					selectedPlotModelName: null,
+					subtractModelList: null,
 				};
 			}
 			return {
 				selectedSource: source,
 				selectedSourceId: source.id,
 				selectedFitJobId: null,
+				selectedPlotModelName: null,
+				subtractModelList: null,
 			};
 		}),
 	clearSelection: () =>
@@ -58,8 +70,21 @@ export const useCatalogStore = create<CatalogStoreState>()((set, get) => ({
 			selectedSource: null,
 			selectedSourceId: null,
 			selectedFitJobId: null,
+			selectedPlotModelName: null,
+			subtractModelList: null,
 		}),
-	setSelectedFitJobId: (jobId) => set({ selectedFitJobId: jobId }),
+	setSelectedFitJobId: (jobId) =>
+		set((state) => {
+			if (state.selectedFitJobId === jobId) return state;
+			return {
+				selectedFitJobId: jobId,
+				selectedPlotModelName: null,
+				subtractModelList: null,
+			};
+		}),
+	setSelectedPlotModelName: (modelName) =>
+		set({ selectedPlotModelName: modelName }),
+	setSubtractModelList: (modelNames) => set({ subtractModelList: modelNames }),
 	syncSelectedSource: (source) => {
 		const { selectedSourceId } = get();
 		if (!selectedSourceId || selectedSourceId !== source.id) return;

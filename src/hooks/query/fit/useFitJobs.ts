@@ -18,16 +18,17 @@ export const useFitJobs = ({
 
 	const returnType = "data";
 	const path = "/fit/jobs/";
+	const params: { user?: string; limit: number } = { limit };
+	if (effectiveUser) {
+		params.user = effectiveUser;
+	}
 
 	return useQueryAxiosGet<FitJobStatusResponse[]>({
-		queryKey: ["fit", "jobs", effectiveUser, limit],
+		queryKey: ["fit", "jobs", effectiveUser || "all", limit],
 		path,
 		enabled,
 		axiosGetParams: {
-			params: {
-				user: effectiveUser,
-				limit,
-			},
+			params,
 		},
 		returnType,
 	});

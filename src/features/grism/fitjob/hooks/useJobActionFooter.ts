@@ -2,6 +2,7 @@ import { useCallback, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { toaster } from "@/components/ui/toaster";
 import { useSaveFitResult } from "@/hooks/query/catalog/useSaveFitResult";
+import { useDeleteFitJob } from "@/hooks/query/fit";
 import { useFitStore } from "@/stores/fit";
 import { useFitJobSelection } from "./useFitJobSelection";
 import { useJobList } from "./useJobList";
@@ -34,11 +35,13 @@ export function useJobActionFooter() {
 
 	const canSave =
 		!!selectedJobId && (status === "completed" || status === "saved");
+	const canDelete = !!selectedJobId;
 
 	/* -------------------------------------------------------------------------- */
 	/*                              Mutations/Query                               */
 	/* -------------------------------------------------------------------------- */
 	const saveMutation = useSaveFitResult();
+	const deleteMutation = useDeleteFitJob();
 
 	/* -------------------------------------------------------------------------- */
 	/*                                   Handle                                   */
@@ -79,6 +82,24 @@ export function useJobActionFooter() {
 		}
 	}, [addTags, canSave, saveMutation, selectedJobId, selectedTags, setSelectedTags]);
 
+	const handleDelete = useCallback(async () => {
+		if (!selectedJobId || !canDelete) return;
+
+		try {
+			await deleteMutation.mutateAsync({ jobId: selectedJobId });
+			toaster.success({
+				title: "Fit Job Deleted",
+				description: `Job ${selectedJobId.slice(0, 8)} deleted.`,
+			});
+		} catch (error) {
+			const message = error instanceof Error ? error.message : String(error);
+			toaster.error({
+				title: "Delete Failed",
+				description: message,
+			});
+		}
+	}, [canDelete, deleteMutation, selectedJobId]);
+
 	/* -------------------------------------------------------------------------- */
 	/*                                   Return                                   */
 	/* -------------------------------------------------------------------------- */
@@ -87,9 +108,12 @@ export function useJobActionFooter() {
 		selectedJobId,
 		status,
 		selectedTags,
+		canDelete,
 		canSave,
 		isSaving: (saveMutation.isPending ?? saveMutation.isLoading) ?? false,
+		isDeleting: (deleteMutation.isPending ?? deleteMutation.isLoading) ?? false,
 		handleTagsChange,
 		handleSave,
+		handleDelete,
 	};
 }

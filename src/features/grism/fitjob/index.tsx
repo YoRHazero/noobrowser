@@ -1,9 +1,9 @@
 import { Drawer } from "@chakra-ui/react";
-import FitJobPoller from "./FitJobPoller";
 import JobActionFooter from "./components/JobActionFooter";
 import JobDetailView from "./components/JobDetailView";
 import JobListView from "./components/JobListView";
 import { FitJobSelectionProvider } from "./hooks/useFitJobSelection";
+import FitJobPoller from "./FitJobPoller";
 
 export default function GrismFitJobDrawer({
 	children,

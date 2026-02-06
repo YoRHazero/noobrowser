@@ -13,6 +13,7 @@ import type {
 	XY,
 	EmissionLine,
 } from "./stores-types.js";
+import { EMISSIONLINES } from "./tmp_dict.js";
 import { generateEmissionLineId } from "@/utils/wavelength.js";
 
 interface CounterpartState {
@@ -159,19 +160,9 @@ export const useGrismStore = create<GrismState>()(
 
 			emissionLines: {
 				// units in microns
-				"H⍺": { id: "H⍺", name: "H⍺", wavelength: 0.6563 },
-				Hβ: { id: "Hβ", name: "Hβ", wavelength: 0.4861 },
-				"[OIII]λ4959": {
-					id: "[OIII]λ4959",
-					name: "[OIII]",
-					wavelength: 0.4959,
-				},
-				"[OIII]λ5007": {
-					id: "[OIII]λ5007",
-					name: "[OIII]",
-					wavelength: 0.5007,
-				},
+				...EMISSIONLINES,
 				Paβ: { id: "Paβ", name: "Paβ", wavelength: 1.2818 },
+				"Pa⍺": { id: "Pa⍺", name: "Pa⍺", wavelength: 1.8756 },
 			},
 			selectedEmissionLines: {},
 			showTraceOnSpectrum2D: true,

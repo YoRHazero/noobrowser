@@ -33,7 +33,12 @@ export default function TraceSourceDrawer() {
 
 
 	return (
-		<Drawer.Root placement="end" size="md">
+		<Drawer.Root
+			placement="end"
+			size="md"
+			lazyMount={false}
+			unmountOnExit={false}
+		>
 			<Drawer.Backdrop />
 			<Drawer.Trigger asChild>
 				<Button

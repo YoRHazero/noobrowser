@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { useQueryClient } from "@tanstack/react-query";
 import { useShallow } from "zustand/react/shallow";
 import { toaster } from "@/components/ui/toaster";
 import { useSubmitFitJob } from "@/hooks/query/fit/useSubmitFitJob";
@@ -48,7 +47,6 @@ export function useSourceItem(source: TraceSource) {
 	/* -------------------------------------------------------------------------- */
 	/*                              Mutations/Query                               */
 	/* -------------------------------------------------------------------------- */
-	const queryClient = useQueryClient();
 	const submitJob = useSubmitFitJob();
 	const cooldownMs = 5000;
 
@@ -133,7 +131,6 @@ export function useSourceItem(source: TraceSource) {
 							aperture_size: fitExtraction.apertureSize,
 							offset: fitExtraction.offset,
 							extract_mode: fitExtraction.extractMode,
-							wavelength_range: forwardWaveRange,
 						},
 						source_meta: {
 							source_id: source.id,
@@ -152,7 +149,6 @@ export function useSourceItem(source: TraceSource) {
 				title: "Fit Job Submitted",
 				description: `Job ID: ${response.job_id.slice(0, 8)}`,
 			});
-			queryClient.invalidateQueries({ queryKey: ["fit", "jobs"] });
 		} catch (error) {
 			const message = error instanceof Error ? error.message : String(error);
 			toaster.error({
