@@ -178,9 +178,23 @@ export type ModelSummary = {
 	components: ComponentSummary[];
 };
 
+export type FitSourceSummary = {
+	source_id: string;
+	ra: number | null;
+	dec: number | null;
+	ra_hms: string | null;
+	dec_dms: string | null;
+	x: number | null;
+	y: number | null;
+	z: number | null;
+	ref_basename: string | null;
+	group_id: number | null;
+};
+
 export type FitJobSummaryResponse = {
 	job_id: string;
 	created_at: string | null;
 	best_model_name: string | null;
+	source: FitSourceSummary | null;
 	results: ModelSummary[];
 };

@@ -1,7 +1,14 @@
-import { Button, Drawer, Flex, TagsInput } from "@chakra-ui/react";
-import { useJobActionFooter } from "../hooks/useJobActionFooter";
+import {
+	Button,
+	Drawer,
+	Flex,
+	TagsInput,
+	useSlotRecipe,
+} from "@chakra-ui/react";
+import { useFitJobActions } from "./hooks/useFitJobActions";
+import { fitJobDrawerRecipe } from "./recipes/fit-job-drawer.recipe";
 
-export default function JobActionFooter() {
+export default function FitJobActions() {
 	const {
 		selectedJobId,
 		status,
@@ -13,9 +20,14 @@ export default function JobActionFooter() {
 		isDeleting,
 		canDelete,
 		canSave,
-	} = useJobActionFooter();
+	} = useFitJobActions();
+
+	const recipe = useSlotRecipe({ recipe: fitJobDrawerRecipe });
+	const styles = recipe();
+
 	const disabled = !canSave;
 	const deleteDisabled = !canDelete;
+
 	const placeholder = selectedJobId
 		? status === "completed" || status === "saved"
 			? "Add tag..."
@@ -23,7 +35,7 @@ export default function JobActionFooter() {
 		: "Select a job to add tags";
 
 	return (
-		<Drawer.Footer borderTop="1px solid #333">
+		<Drawer.Footer css={styles.footer}>
 			<Flex w="full" gap={2}>
 				<TagsInput.Root
 					flex={1}

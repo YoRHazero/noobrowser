@@ -11,7 +11,7 @@ export const useFitJobSummary = ({
 	enabled = true,
 }: UseFitJobSummaryParams) => {
 	const returnType = "data";
-	const path = `/fit/summary/${jobId}/`;
+	const path = `/fit/summary/${jobId}`;
 
 	return useQueryAxiosGet<FitJobSummaryResponse>({
 		queryKey: ["fit", "summary", jobId],

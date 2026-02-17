@@ -1,6 +1,7 @@
-import { Badge, Flex, HStack, Text } from "@chakra-ui/react";
+import { Badge, Flex, HStack, Text, useSlotRecipe } from "@chakra-ui/react";
 import { Ban, CheckCircle, Clock, Info } from "lucide-react";
 import type { FitJobStatusResponse } from "@/hooks/query/fit";
+import { jobListItemRecipe } from "../recipes/job-list-item.recipe";
 
 interface JobListItemProps {
 	job: FitJobStatusResponse;
@@ -9,6 +10,9 @@ interface JobListItemProps {
 }
 
 export function JobListItem({ job, isSelected, onSelect }: JobListItemProps) {
+	const recipe = useSlotRecipe({ recipe: jobListItemRecipe });
+	const styles = recipe();
+
 	const getStatusIcon = (status: string) => {
 		switch (status) {
 			case "completed":
@@ -43,22 +47,9 @@ export function JobListItem({ job, isSelected, onSelect }: JobListItemProps) {
 
 	return (
 		<Flex
-			flex="0 0 auto"
-			minW="200px"
-			justify="space-between"
-			align="center"
-			bg={isSelected ? "cyan.900/30" : "whiteAlpha.50"}
-			borderColor={isSelected ? "cyan.500" : "whiteAlpha.100"}
-			borderWidth="1px"
-			borderRadius="md"
-			p={2}
-			cursor="pointer"
-			_hover={{
-				borderColor: "cyan.400",
-				bg: isSelected ? "cyan.900/40" : "whiteAlpha.100",
-			}}
+			css={styles.root}
 			onClick={() => onSelect(job.job_id)}
-			transition="all 0.2s"
+			data-selected={isSelected || undefined}
 		>
 			<HStack gap={3}>
 				<Badge
@@ -71,7 +62,7 @@ export function JobListItem({ job, isSelected, onSelect }: JobListItemProps) {
 						<Text>{job.status.toUpperCase()}</Text>
 					</HStack>
 				</Badge>
-				<Text fontSize="xs" fontFamily="mono" color="gray.400">
+				<Text css={styles.jobId}>
 					ID: {job.job_id.slice(0, 8)}
 				</Text>
 			</HStack>

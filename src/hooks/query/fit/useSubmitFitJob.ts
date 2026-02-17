@@ -1,4 +1,4 @@
-import { useMutation, type UseMutationOptions } from "@tanstack/react-query";
+import { useMutation, type UseMutationOptions, useQueryClient } from "@tanstack/react-query";
 import axios, { type AxiosError } from "axios";
 import { useConnectionStore } from "@/stores/connection";
 import type { FitBodyRequest, FitJobStatusResponse } from "./schemas";
@@ -17,6 +17,7 @@ export const useSubmitFitJob = (
 ) => {
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 	const username = useConnectionStore((state) => state.username);
+	const queryClient = useQueryClient();
 
 	return useMutation({
 		mutationFn: async ({ body, user }: SubmitFitJobParams) => {
@@ -28,5 +29,9 @@ export const useSubmitFitJob = (
 			return data;
 		},
 		...options,
+		onSuccess: (...args) => {
+			queryClient.invalidateQueries({ queryKey: ["fit", "jobs"] });
+			options?.onSuccess?.(...args);
+		},
 	});
 };

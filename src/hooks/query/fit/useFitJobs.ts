@@ -1,3 +1,4 @@
+import { type UseQueryOptions } from "@tanstack/react-query";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 import { useConnectionStore } from "@/stores/connection";
 import type { FitJobStatusResponse } from "./schemas";
@@ -6,12 +7,17 @@ type UseFitJobsParams = {
 	user?: string;
 	limit?: number;
 	enabled?: boolean;
+	options?: Omit<
+		UseQueryOptions<FitJobStatusResponse[]>,
+		"queryKey" | "queryFn" | "enabled"
+	>;
 };
 
 export const useFitJobs = ({
 	user,
 	limit = 50,
 	enabled = true,
+	options,
 }: UseFitJobsParams = {}) => {
 	const username = useConnectionStore((state) => state.username);
 	const effectiveUser = user ?? username;
@@ -31,5 +37,6 @@ export const useFitJobs = ({
 			params,
 		},
 		returnType,
+		queryOptions: options,
 	});
 };
