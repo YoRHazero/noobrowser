@@ -286,9 +286,17 @@ export const useFitStore = create<FitState>()(
 			saveCurrentConfiguration: () =>
 				set((state) => {
 					const modelsSnapshot = JSON.parse(JSON.stringify(state.models));
+					const gaussianCount = state.models.filter(
+						(m) => m.kind === "gaussian",
+					).length;
+					let name = `${gaussianCount} gaussian`;
+					if (gaussianCount === 1) name = "single gaussian";
+					else if (gaussianCount === 2) name = "double gaussian";
+					else if (gaussianCount === 3) name = "triple gaussian";
+
 					const newConfig: FitConfiguration = {
 						id: uuidv4(),
-						name: `Config ${state.configurations.length + 1}`,
+						name,
 						models: modelsSnapshot,
 						selected: true,
 					};

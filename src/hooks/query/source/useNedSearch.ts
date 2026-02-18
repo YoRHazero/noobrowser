@@ -4,7 +4,7 @@ import type { NedSearchResult } from "./schemas";
 export function useNedSearch({
 	ra,
 	dec,
-	radius,
+	radius, // arcsec
 	enabled = false,
 }: {
 	ra?: number;

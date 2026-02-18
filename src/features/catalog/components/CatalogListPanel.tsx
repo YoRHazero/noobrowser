@@ -28,8 +28,8 @@ export function CatalogListPanel() {
 
 	const { data, isLoading, isError, error } = useCatalogList({
 		page,
-		page_size: pageSize,
-		sort_desc: sortDesc,
+		pageSize,
+		sortDesc,
 		user: user ?? undefined,
 	});
 

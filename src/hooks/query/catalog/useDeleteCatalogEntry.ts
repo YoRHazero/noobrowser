@@ -1,33 +1,18 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
-import axios from "axios";
 import { useConnectionStore } from "@/stores/connection";
-import type { DeleteCatalogResponse } from "./schemas";
+import axios from "axios";
 
 export function useDeleteCatalogEntry() {
-  /* -------------------------------------------------------------------------- */
-  /*                                Access Store                                */
-  /* -------------------------------------------------------------------------- */
   const backendUrl = useConnectionStore((state) => state.backendUrl);
-
-  /* -------------------------------------------------------------------------- */
-  /*                              Mutations/Query                               */
-  /* -------------------------------------------------------------------------- */
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<DeleteCatalogResponse, Error, string>({
+  return useMutation({
     mutationFn: async (sourceId: string) => {
-      // NOTE: Trailing slash is important based on backend router
-      const url = `${backendUrl}/catalog/${sourceId}/`;
-      const response = await axios.delete(url);
-      return response.data;
+      const { data } = await axios.delete(`${backendUrl}/catalog/${sourceId}/`);
+      return data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["catalog"] });
     },
   });
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   Return                                   */
-  /* -------------------------------------------------------------------------- */
-  return mutation;
 }

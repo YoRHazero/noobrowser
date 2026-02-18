@@ -1,9 +1,9 @@
 import { create } from "zustand";
-import type { CatalogItemResponse } from "@/hooks/query/catalog";
+import type { CatalogItemListResponse, CatalogSourceDetailResponse } from "@/hooks/query/catalog";
 
 interface CatalogStoreState {
 	selectedSourceId: string | null;
-	selectedSource: CatalogItemResponse | null;
+	selectedSource: CatalogItemListResponse | CatalogSourceDetailResponse | null;
 	selectedFitJobId: string | null;
 	selectedPlotModelName: string | null;
 	subtractModelList: string[] | null;
@@ -15,13 +15,13 @@ interface CatalogStoreState {
 	setPageSize: (pageSize: number) => void;
 	setSortDesc: (sortDesc: boolean) => void;
 	setUser: (user: string | null) => void;
-	setSelectedSource: (source: CatalogItemResponse | null) => void;
-	toggleSelectedSource: (source: CatalogItemResponse) => void;
+	setSelectedSource: (source: CatalogItemListResponse | CatalogSourceDetailResponse | null) => void;
+	toggleSelectedSource: (source: CatalogItemListResponse | CatalogSourceDetailResponse) => void;
 	clearSelection: () => void;
 	setSelectedFitJobId: (jobId: string | null) => void;
 	setSelectedPlotModelName: (modelName: string | null) => void;
 	setSubtractModelList: (modelNames: string[] | null) => void;
-	syncSelectedSource: (source: CatalogItemResponse) => void;
+	syncSelectedSource: (source: CatalogItemListResponse | CatalogSourceDetailResponse) => void;
 }
 
 export const useCatalogStore = create<CatalogStoreState>()((set, get) => ({

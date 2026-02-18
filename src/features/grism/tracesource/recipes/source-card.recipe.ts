@@ -48,8 +48,9 @@ export const sourceCardRecipe = defineSlotRecipe({
 
 		actionGroup: {
 			display: "flex",
-			flexDirection: "column",
-			gap: 2,
+			flexDirection: "row",
+			alignItems: "center",
+			gap: 1,
 		},
 	},
 

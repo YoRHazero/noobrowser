@@ -13,6 +13,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import type { TraceSource } from "@/stores/stores-types";
 import { useSourceCard } from "./hooks/useSourceCard";
 import { sourceCardRecipe } from "./recipes/source-card.recipe";
+import NedSearchDialog from "./components/NedSearchDialog";
 export default function SourceCard({ source }: { source: TraceSource }) {
 	const {
 		// state
@@ -168,6 +169,10 @@ export default function SourceCard({ source }: { source: TraceSource }) {
 							)}
 						</IconButton>
 					</Tooltip>
+
+					{source.ra !== undefined && source.dec !== undefined && (
+						<NedSearchDialog ra={source.ra} dec={source.dec} />
+					)}
 				</Box>
 			</Flex>
 		</Box>

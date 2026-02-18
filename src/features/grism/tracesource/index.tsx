@@ -17,27 +17,23 @@ import { useShallow } from "zustand/react/shallow";
 import GlobalControls from "./GlobalControls";
 import SourceCard from "./SourceCard";
 import SpectrumPoller from "./SpectrumPoller";
-import LinkSearchPanel from "./NedSearchPanel";
 import { useSourcesStore } from "@/stores/sources";
 
 export default function TraceSourceDrawer() {
-	const { traceMode, traceSources, mainTraceSourceId } = useSourcesStore(
+	const { traceMode, traceSources } = useSourcesStore(
 		useShallow((state) => ({
 			traceMode: state.traceMode,
 			traceSources: state.traceSources,
-			mainTraceSourceId: state.mainTraceSourceId,
 		})),
 	);
 
-	const mainSource = traceSources.find((s) => s.id === mainTraceSourceId);
+
 
 
 	return (
 		<Drawer.Root
 			placement="end"
 			size="md"
-			lazyMount={false}
-			unmountOnExit={false}
 		>
 			<Drawer.Backdrop />
 			<Drawer.Trigger asChild>
@@ -107,7 +103,7 @@ export default function TraceSourceDrawer() {
 									direction="column"
 									align="center"
 									justify="center"
-									h="100%" // 充满可用高度
+									h="100%"
 									color="fg.muted"
 								>
 									<Target
@@ -129,9 +125,7 @@ export default function TraceSourceDrawer() {
 
 						{/* Footer / Global Controls - Fixed at bottom */}
 						<Box flexShrink={0}>
-							{mainSource?.ra !== undefined && mainSource?.dec !== undefined && (
-								<LinkSearchPanel ra={mainSource.ra} dec={mainSource.dec} />
-							)}
+
 							<GlobalControls />
 						</Box>
 					</Drawer.Content>

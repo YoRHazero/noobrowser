@@ -1,35 +1,38 @@
 import { useConnectionStore } from "@/stores/connection";
-import {
-  useQueryAxiosGet,
-} from "../useQueryAxiosGet";
-import type {
-  PaginatedCatalogResponse,
-  SaveFitResultQueryRequest,
-} from "./schemas";
+import { useQueryAxiosGet } from "../useQueryAxiosGet";
+import type { PaginatedCatalogListResponse } from "./schemas";
 
-export function useCatalogList(params: SaveFitResultQueryRequest = {}) {
-  /* -------------------------------------------------------------------------- */
-  /*                              Mutations/Query                               */
-  /* -------------------------------------------------------------------------- */
-  const { page = 1, page_size = 20, sort_desc = true, user } = params;
+interface UseCatalogListParams {
+  page?: number;
+  pageSize?: number;
+  sortDesc?: boolean;
+  user?: string;
+  enabled?: boolean;
+}
+
+export function useCatalogList({
+  page = 1,
+  pageSize = 20,
+  sortDesc = true,
+  user,
+  enabled = true,
+}: UseCatalogListParams = {}) {
   const username = useConnectionStore((state) => state.username);
-  const effectiveUser = user ?? username;
+  const userToUse = user !== undefined ? user : username;
+  
+  const queryKey = ["catalog", "list", { page, pageSize, sortDesc, user: userToUse }];
 
-  const query = useQueryAxiosGet<PaginatedCatalogResponse>({
-    queryKey: ["catalog", page, page_size, sort_desc, effectiveUser],
+  return useQueryAxiosGet<PaginatedCatalogListResponse>({
+    queryKey,
     path: "/catalog/",
     axiosGetParams: {
       params: {
         page,
-        page_size,
-        sort_desc,
-        user: effectiveUser,
+        page_size: pageSize,
+        sort_desc: sortDesc,
+        ...(userToUse ? { user: userToUse } : {}),
       },
     },
+    enabled,
   });
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   Return                                   */
-  /* -------------------------------------------------------------------------- */
-  return query;
 }

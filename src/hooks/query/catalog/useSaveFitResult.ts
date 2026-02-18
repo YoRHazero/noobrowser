@@ -1,41 +1,34 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import axios from "axios";
 import { useConnectionStore } from "@/stores/connection";
-import type {
-  SaveFitResultResponse,
-  SaveFitResultVariables,
-} from "./schemas";
+
+interface SaveFitResultVariables {
+  jobId: string;
+  tags: string[];
+}
+
+interface SaveFitResultResponse {
+  status: string;
+  message: string;
+  source_id: string;
+}
 
 export function useSaveFitResult() {
-  /* -------------------------------------------------------------------------- */
-  /*                                Access Store                                */
-  /* -------------------------------------------------------------------------- */
   const backendUrl = useConnectionStore((state) => state.backendUrl);
-
-  /* -------------------------------------------------------------------------- */
-  /*                              Mutations/Query                               */
-  /* -------------------------------------------------------------------------- */
   const queryClient = useQueryClient();
 
-  const mutation = useMutation<
-    SaveFitResultResponse,
-    Error,
-    SaveFitResultVariables
-  >({
-    mutationFn: async ({ jobId, tags = [] }) => {
-      const url = `${backendUrl}/catalog/save/${jobId}/`;
-      const response = await axios.post(url, { tags });
-      return response.data;
+  return useMutation({
+    mutationFn: async ({ jobId, tags }: SaveFitResultVariables) => {
+      const { data } = await axios.post<SaveFitResultResponse>(
+        `${backendUrl}/catalog/save/${jobId}/`,
+        { tags }
+      );
+      return data;
     },
     onSuccess: () => {
-      // Invalidate catalog list and potentially fit job status
+      // Invalidate relevant queries
       queryClient.invalidateQueries({ queryKey: ["catalog"] });
-      queryClient.invalidateQueries({ queryKey: ["fit-jobs"] });
+      queryClient.invalidateQueries({ queryKey: ["fit"] });
     },
   });
-
-  /* -------------------------------------------------------------------------- */
-  /*                                   Return                                   */
-  /* -------------------------------------------------------------------------- */
-  return mutation;
 }

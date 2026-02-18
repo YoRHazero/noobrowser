@@ -25,7 +25,7 @@ export function useSelectedFitJob() {
 	);
 
 	const fitHistory = useMemo(() => {
-		if (!selectedSource?.fit_history) return [];
+		if (!selectedSource || !("fit_history" in selectedSource)) return [];
 		return sortFitHistoryByCreatedAt(selectedSource.fit_history);
 	}, [selectedSource]);
 
