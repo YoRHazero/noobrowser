@@ -11,34 +11,11 @@ import {
 import { useState } from "react";
 import { LuChevronsUpDown, LuPlus } from "react-icons/lu";
 import { toaster } from "@/components/ui/toaster";
-import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
 import { useSourcePosition } from "@/hooks/query/source/useSourcePosition";
-import { useGrismStore } from "@/stores/image";
+import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import { useGlobeStore } from "@/stores/footprints";
 import { useSourcesStore } from "@/stores/sources";
 
-function isPointInPolygon(
-	point: [number, number],
-	vs: Array<[number, number]>,
-): boolean {
-	// ray-casting algorithm based on
-	// https://github.com/substack/point-in-polygon
-	const x = point[0];
-	const y = point[1];
-
-	let inside = false;
-	for (let i = 0, j = vs.length - 1; i < vs.length; j = i++) {
-		const xi = vs[i][0];
-		const yi = vs[i][1];
-		const xj = vs[j][0];
-		const yj = vs[j][1];
-
-		const intersect =
-			yi > y !== yj > y && x < ((xj - xi) * (y - yi)) / (yj - yi) + xi;
-		if (intersect) inside = !inside;
-	}
-
-	return inside;
-}
 
 export default function ManualSourceForm() {
 	/* -------------------------------------------------------------------------- */
@@ -52,6 +29,7 @@ export default function ManualSourceForm() {
 	/* -------------------------------------------------------------------------- */
 	/*                                Access Store                                */
 	/* -------------------------------------------------------------------------- */
+    const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
 	const addTraceSource = useSourcesStore((state) => state.addTraceSource);
 	const roiState = useGrismStore((state) => state.roiState);
 	const collapseWindow = useGrismStore((state) => state.collapseWindow);
@@ -59,9 +37,6 @@ export default function ManualSourceForm() {
 	/* -------------------------------------------------------------------------- */
 	/*                                   Queries                                  */
 	/* -------------------------------------------------------------------------- */
-	// We always want the current footprint to check against
-	const footprintQuery = useCounterpartFootprint({ enabled: true });
-
 	// We use this imperatively via refetch
 	const sourcePosQuery = useSourcePosition({
 		ra: parseFloat(ra),
@@ -84,13 +59,15 @@ export default function ManualSourceForm() {
 			return;
 		}
 
-		if (!footprintQuery.data?.footprint?.vertices) {
-			toaster.error({
-				title: "No Footprint",
-				description: "Counterpart footprint is not loaded.",
-			});
-			return;
-		}
+            // Check if width/height are set in store
+            const { width, height } = useCounterpartStore.getState().counterpartPosition;
+            if (!width || !height) {
+                 toaster.error({
+                    title: "No Footprint",
+                    description: "Counterpart footprint is not loaded.",
+                });
+                return;
+            }
 
 		setIsValidating(true);
 		try {
@@ -103,11 +80,14 @@ export default function ManualSourceForm() {
 
 			const { x, y, ref_basename } = result.data;
 
-			// 2. Check if inside footprint
-			const inside = isPointInPolygon(
-				[x, y],
-				footprintQuery.data.footprint.vertices,
-			);
+			// 2. Check if inside footprint (Rectangular check)
+			const { x0, y0, width, height } = useCounterpartStore.getState().counterpartPosition;
+			
+            const inside =
+                x >= x0 &&
+                x <= x0 + width &&
+                y >= y0 &&
+                y <= y0 + height;
 
 			if (!inside) {
 				toaster.error({
@@ -121,7 +101,7 @@ export default function ManualSourceForm() {
 			// Generate ID matching useGrismBackwardCounterpartLayer pattern
 			const id = `${ref_basename}_${raVal.toFixed(6)}_${decVal.toFixed(6)}`;
 
-			addTraceSource(id, x, y, raVal, decVal, null, {
+			addTraceSource(id, x, y, raVal, decVal, selectedFootprintId, {
 				roiState,
 				collapseWindow,
 			});

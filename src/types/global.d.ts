@@ -23,6 +23,7 @@ declare global {
 				};
 
 				pixiFootprintContainer: PixiReactElementProps<FootprintContainer>;
+				pixiUserPointsContainer: any;
 
 				pixiGraticuleGraphics: PixiReactElementProps<GraticuleGraphics>;
 

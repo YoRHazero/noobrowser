@@ -14,8 +14,8 @@ extend({ Container });
 
 const FRICTION = 0.9;
 const STOP_THRESHOLD = 0.01;
-const MIN_SCALE = 0.1;
-const MAX_SCALE = 1000;
+export const MIN_SCALE = 0.1;
+export const MAX_SCALE = 1000;
 const SENSITIVITY = 1;
 const ZOOM_SENSITIVITY = 0.0015;
 

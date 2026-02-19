@@ -15,6 +15,7 @@ import {
 import { Crosshair, ListFilter, Target } from "lucide-react";
 import { useShallow } from "zustand/react/shallow";
 import GlobalControls from "./GlobalControls";
+import ManualSourceForm from "./ManualSourceForm";
 import SourceCard from "./SourceCard";
 import SpectrumPoller from "./SpectrumPoller";
 import { useSourcesStore } from "@/stores/sources";
@@ -98,6 +99,7 @@ export default function TraceSourceDrawer() {
 							px={4}
 							pb={4}
 						>
+							<ManualSourceForm />
 							{traceSources.length === 0 ? (
 								<Flex
 									direction="column"

@@ -10,6 +10,7 @@ import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
 import { useGlobeStore } from "@/stores/footprints";
 import type { RenderLayerInstance } from "@/types/pixi-react";
 import FootprintManager from "./FootprintManager";
+import UserPointsLayer from "./UserPointsLayer";
 
 extend({
 	Container,
@@ -81,6 +82,7 @@ export default function FootprintCanvas() {
 					<pixiRenderLayer ref={backgroundRef} sortableChildren={true} />
 					<pixiRenderLayer ref={worldLayerRef} sortableChildren={true} />
 					<FootprintManager layerRef={worldLayerRef} />
+					<UserPointsLayer layerRef={worldLayerRef} />
 					<GlobeGrid layerRef={backgroundRef} />
 					<GlobeBackground layerRef={backgroundRef} />
 					<FootprintTooltip />
