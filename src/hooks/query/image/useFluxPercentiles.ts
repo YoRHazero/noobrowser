@@ -1,5 +1,5 @@
 import { useGlobeStore } from "@/stores/footprints";
-import type { RoiState } from "@/stores/stores-types";
+import type { RoiState } from "@/stores/inspector/types";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 import type { PercentileData } from "./schemas";
 

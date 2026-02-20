@@ -1,12 +1,12 @@
 import { useShallow } from "zustand/react/shallow";
-import { useGrismStore } from "@/stores/image";
-import type { TraceSource } from "@/stores/stores-types";
+import { useAnalyzerStore } from "@/stores/analyzer";
+import type { Source } from "@/stores/source/types";
 import { useExtractSpectrum } from "./useExtractSpectrum";
 import { useSourcePosition } from "./useSourcePosition";
 
 /**
  * Hook to get source position and spectrum data
- * @param source TraceSource object
+ * @param source Source object
  * @param apertureSize Optional aperture size for spectrum extraction
  * @param waveMin Optional minimum wavelength for spectrum extraction
  * @param waveMax Optional maximum wavelength for spectrum extraction
@@ -22,7 +22,7 @@ export function useSource({
 	posEnabled = false,
 	specEnabled = false,
 }: {
-	source: TraceSource;
+	source: Source;
 	apertureSize?: number;
 	waveMin?: number;
 	waveMax?: number;
@@ -43,11 +43,11 @@ export function useSource({
 	const dec = source.dec ?? positionQuery.data?.dec;
 	const raDecReady = typeof ra === "number" && typeof dec === "number";
 
-	const globalApertureSize = useGrismStore(
+	const globalApertureSize = useAnalyzerStore(
 		useShallow((state) => state.apertureSize),
 	);
 	const finalApertureSize = apertureSize ?? globalApertureSize;
-	const forwardWaveRange = useGrismStore(
+	const forwardWaveRange = useAnalyzerStore(
 		useShallow((state) => state.forwardWaveRange),
 	);
 	const finalWaveMin = waveMin ?? forwardWaveRange.min;
