@@ -3,12 +3,13 @@
 import { Box, HStack, Tabs, Text } from "@chakra-ui/react";
 import type { IconType } from "react-icons";
 import { LuChartSpline, LuList, LuSlidersHorizontal } from "react-icons/lu";
-import GrismForwardControl from "@/features/grism/forwardcontrol";
-// Components
-import GrismForwardFit from "@/features/grism/forwardfit";
-import GrismForwardSource from "@/features/grism/forwardsource";
 
-// --- 1. 定义 Tab 配置结构 ---
+// Components
+import AnalyzerControls from "@/features/analyzer/controls";
+import AnalyzerModels from "@/features/analyzer/models";
+import GrismForwardSource from "@/features/grism/forwardsource"; // Note: This will be migrated later
+
+// --- 1. Define Tab Config Structure ---
 interface TabConfig {
 	value: string;
 	title: string;
@@ -16,19 +17,19 @@ interface TabConfig {
 	content: React.ReactNode;
 }
 
-// --- 2. 配置数组 (在此处添加、删除或排序 Tab) ---
+// --- 2. Configure Array ---
 const TAB_ITEMS: TabConfig[] = [
 	{
 		value: "panel",
 		title: "Extract",
 		icon: LuSlidersHorizontal,
-		content: <GrismForwardControl />,
+		content: <AnalyzerControls />,
 	},
 	{
 		value: "fit",
 		title: "Fit",
 		icon: LuChartSpline,
-		content: <GrismForwardFit />,
+		content: <AnalyzerModels />,
 	},
 	{
 		value: "sources",
@@ -38,7 +39,7 @@ const TAB_ITEMS: TabConfig[] = [
 	},
 ];
 
-export default function GrismForwardTab() {
+export default function AnalyzerSidebar() {
 	return (
 		<Box w="425px" h="100vh">
 			<Tabs.Root

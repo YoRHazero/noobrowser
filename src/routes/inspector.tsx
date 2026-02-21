@@ -2,7 +2,7 @@ import { VStack } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import Title from "@/components/layout/Title";
 import Footprint from "@/features/Footprint";
-import Grism from "@/features/Grism";
+import Analyzer from "@/features/analyzer/AnalyzerView";
 
 export const Route = createFileRoute("/inspector")({
 	component: RouteComponent,
@@ -14,7 +14,7 @@ function RouteComponent() {
 			<Title />
 			<Footprint />
 			{/*			<Counterpart /> */}
-			<Grism />
+			<Analyzer />
 		</VStack>
 	);
 }
