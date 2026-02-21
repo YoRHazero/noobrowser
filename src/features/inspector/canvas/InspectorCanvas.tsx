@@ -19,7 +19,7 @@ import { useGrismInfoLegend } from "@/features/grism/backward/hooks/useGrismInfo
 import { useCameraCenteringOnRoi } from "@/features/grism/backward/hooks/useCameraCenteringOnRoi";
 import { useCameraFollowRoi } from "@/features/grism/backward/hooks/useCameraFollowRoi";
 
-export default function GrismBackwardMainCanvas({
+export default function InspectorCanvas({
 	currentBasename,
 }: {
 	currentBasename: string | undefined;
