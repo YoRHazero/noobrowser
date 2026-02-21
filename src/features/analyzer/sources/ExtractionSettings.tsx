@@ -11,7 +11,7 @@ import {
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { Activity } from "lucide-react";
-import GrismFitJobDrawer from "@/features/grism/fitjob";
+import AnalyzerFitJobDrawer from "@/features/analyzer/fitjob";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useExtractionSettings } from "./hooks/useExtractionSettings";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -42,11 +42,11 @@ export default function ExtractionSettings() {
 				title="Extraction Settings"
 				tip="Configure parameters of spectrum extracted for fitting."
 				rightSlot={
-					<GrismFitJobDrawer>
+					<AnalyzerFitJobDrawer>
 						<Button size="xs" variant="surface" colorPalette="cyan">
 							<Activity size={12} style={{ marginRight: 4 }} /> Jobs
 						</Button>
-					</GrismFitJobDrawer>
+					</AnalyzerFitJobDrawer>
 				}
 			/>
 

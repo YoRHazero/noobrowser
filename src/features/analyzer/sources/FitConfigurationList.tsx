@@ -6,7 +6,7 @@ import {
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
-import GrismForwardPriorDrawer from "@/features/grism/forwardprior";
+import AnalyzerPriorsDrawer from "@/features/analyzer/priors";
 import FitConfigurationCard from "./components/FitConfigurationCard";
 import { SectionHeader } from "@/components/layout/SectionHeader";
 import { useFitConfigurationList } from "./hooks/useFitConfigurationList";
@@ -60,7 +60,7 @@ export default function FitConfigurationList() {
 				</Box>
 			)}
 
-			<GrismForwardPriorDrawer
+			<AnalyzerPriorsDrawer
 				configId={editingId}
 				isOpen={Boolean(editingId)}
 				onClose={closePrior}
