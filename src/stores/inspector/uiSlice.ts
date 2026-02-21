@@ -6,11 +6,15 @@ export interface UiSlice {
 	goToCutoutRequested: boolean;
 	counterpartVisible: boolean;
 	followRoiCamera: boolean;
+	emissionMaskMode: "hidden" | "individual" | "total";
+	emissionMaskThreshold: number;
 
 	setShowCutout: (show: boolean) => void;
 	setGoToCutoutRequested: (requested: boolean) => void;
 	setCounterpartVisible: (visible: boolean) => void;
 	setFollowRoiCamera: (follow: boolean) => void;
+	setEmissionMaskMode: (mode: "hidden" | "individual" | "total") => void;
+	setEmissionMaskThreshold: (threshold: number) => void;
 }
 
 export const createUiSlice: StateCreator<InspectorState, [], [], UiSlice> = (
@@ -20,10 +24,15 @@ export const createUiSlice: StateCreator<InspectorState, [], [], UiSlice> = (
 	goToCutoutRequested: false,
 	counterpartVisible: true,
 	followRoiCamera: false,
+	emissionMaskMode: "hidden",
+	emissionMaskThreshold: 2,
 
 	setShowCutout: (show) => set({ showCutout: show }),
 	setGoToCutoutRequested: (requested) =>
 		set({ goToCutoutRequested: requested }),
 	setCounterpartVisible: (visible) => set({ counterpartVisible: visible }),
 	setFollowRoiCamera: (follow) => set({ followRoiCamera: follow }),
+	setEmissionMaskMode: (mode) => set({ emissionMaskMode: mode }),
+	setEmissionMaskThreshold: (threshold) =>
+		set({ emissionMaskThreshold: threshold }),
 });
