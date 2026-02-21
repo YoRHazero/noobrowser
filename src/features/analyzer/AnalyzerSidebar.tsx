@@ -7,7 +7,7 @@ import { LuChartSpline, LuList, LuSlidersHorizontal } from "react-icons/lu";
 // Components
 import AnalyzerControls from "@/features/analyzer/controls";
 import AnalyzerModels from "@/features/analyzer/models";
-import GrismForwardSource from "@/features/grism/forwardsource"; // Note: This will be migrated later
+import AnalyzerSources from "@/features/analyzer/sources";
 
 // --- 1. Define Tab Config Structure ---
 interface TabConfig {
@@ -35,7 +35,7 @@ const TAB_ITEMS: TabConfig[] = [
 		value: "sources",
 		title: "Sources",
 		icon: LuList,
-		content: <GrismForwardSource />,
+		content: <AnalyzerSources />,
 	},
 ];
 
