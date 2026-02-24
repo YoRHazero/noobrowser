@@ -1,6 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
 import { useEmissionMask } from "@/hooks/query/image";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
 export function useEmissionMaskControl() {
 	/* -------------------------------------------------------------------------- */
@@ -11,7 +11,7 @@ export function useEmissionMaskControl() {
 		setEmissionMaskMode,
 		emissionMaskThreshold,
 		setEmissionMaskThreshold,
-	} = useGrismStore(
+	} = useInspectorStore(
 		useShallow((state) => ({
 			emissionMaskMode: state.emissionMaskMode,
 			setEmissionMaskMode: state.setEmissionMaskMode,

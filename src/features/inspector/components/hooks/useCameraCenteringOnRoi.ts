@@ -3,12 +3,12 @@ import gsap from "gsap";
 import { type RefObject } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import type { MapControls } from "three-stdlib";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
 export function useCameraCenteringOnRoi(
 	controlRef: RefObject<MapControls | null>,
 ) {
-	const roiState = useGrismStore((state) => state.roiState);
+	const roiState = useInspectorStore((state) => state.roiState);
 	const { camera } = useThree();
 	useHotkeys(
 		"shift+c",

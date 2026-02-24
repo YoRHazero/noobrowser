@@ -2,7 +2,7 @@ import { useCallback } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useFluxPercentiles } from "@/hooks/query/image/useFluxPercentiles";
 import { useDebouncedRoiState } from "@/features/grism/hooks/useDebouncedRoiState";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 import type { NormParams } from "@/stores/stores-types";
 import { clamp } from "@/utils/projection";
 
@@ -17,7 +17,7 @@ export function useBackwardNormControl() {
 		setBackwardRoiNorm,
 		backwardNormIndependent,
 		setBackwardNormIndependent,
-	} = useGrismStore(
+	} = useInspectorStore(
 		useShallow((state) => ({
 			backwardGlobalNorm: state.backwardGlobalNorm,
 			setBackwardGlobalNorm: state.setBackwardGlobalNorm,

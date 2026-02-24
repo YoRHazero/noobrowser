@@ -1,5 +1,5 @@
 import { Box, HStack, Text } from "@chakra-ui/react";
-import { EMISSION_MASK_COLORS } from "@/features/grism/backward/layers/EmissionMaskLayer";
+import { EMISSION_MASK_COLORS } from "@/features/inspector/layers/EmissionMaskLayer";
 
 interface EmissionMaskColorLegendProps {
 	frameCount: number;

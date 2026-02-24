@@ -1,9 +1,9 @@
 import { HStack, Switch, Text } from "@chakra-ui/react";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
 export default function CounterpartVisibilitySwitch() {
-	const counterpartVisible = useGrismStore((state) => state.counterpartVisible);
-	const setCounterpartVisible = useGrismStore(
+	const counterpartVisible = useInspectorStore((state) => state.counterpartVisible);
+	const setCounterpartVisible = useInspectorStore(
 		(state) => state.setCounterpartVisible,
 	);
 	return (

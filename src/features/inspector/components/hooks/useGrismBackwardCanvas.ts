@@ -1,11 +1,11 @@
 import { useGrismData, useGrismOffsets } from "@/hooks/query/image";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 import { useShallow } from "zustand/react/shallow";
 
 export function useGrismBackwardCanvas({
 	currentBasename,
 }: { currentBasename: string | undefined }) {
-	const { roiState, backwardGlobalNorm } = useGrismStore(
+	const { roiState, backwardGlobalNorm } = useInspectorStore(
 		useShallow((state) => ({
 			roiState: state.roiState,
 			backwardGlobalNorm: state.backwardGlobalNorm,

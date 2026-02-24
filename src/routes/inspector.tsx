@@ -3,6 +3,7 @@ import { createFileRoute } from "@tanstack/react-router";
 import Title from "@/components/layout/Title";
 import Footprint from "@/features/Footprint";
 import Analyzer from "@/features/analyzer/AnalyzerView";
+import Inspector from "@/features/inspector/InspectorView";
 
 export const Route = createFileRoute("/inspector")({
 	component: RouteComponent,
@@ -15,6 +16,7 @@ function RouteComponent() {
 			<Footprint />
 			{/*			<Counterpart /> */}
 			<Analyzer />
+			<Inspector />
 		</VStack>
 	);
 }

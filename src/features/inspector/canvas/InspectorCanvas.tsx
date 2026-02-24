@@ -10,14 +10,14 @@ import { RoiIndicator } from "@/components/three/RoiComponent";
 import CounterpartLayer from "@/features/inspector/layers/CounterpartLayer";
 import TraceSourceLayer from "@/features/inspector/layers/TraceSourceLayer";
 import EmissionMaskLayer from "@/features/inspector/layers/EmissionMaskLayer";
-import GrismBackwardFetchControl from "@/features/grism/backward/GrismBackwardFetchControl";
-import GrismBackwardToolbar from "@/features/grism/backwardtoolbar";
+import GrismBackwardFetchControl from "@/features/inspector/components/GrismBackwardFetchControl";
+import GrismBackwardToolbar from "@/features/inspector/toolbar";
 //import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
 import TraceSourceDrawer from "@/features/grism/tracesource";
-import { useGrismBackwardCanvas } from "@/features/grism/backward/hooks/useGrismBackwardCanvas";
-import { useGrismInfoLegend } from "@/features/grism/backward/hooks/useGrismInfoLegend";
-import { useCameraCenteringOnRoi } from "@/features/grism/backward/hooks/useCameraCenteringOnRoi";
-import { useCameraFollowRoi } from "@/features/grism/backward/hooks/useCameraFollowRoi";
+import { useGrismBackwardCanvas } from "@/features/inspector/components/hooks/useGrismBackwardCanvas";
+import { useGrismInfoLegend } from "@/features/inspector/components/hooks/useGrismInfoLegend";
+import { useCameraCenteringOnRoi } from "@/features/inspector/components/hooks/useCameraCenteringOnRoi";
+import { useCameraFollowRoi } from "@/features/inspector/components/hooks/useCameraFollowRoi";
 
 export default function InspectorCanvas({
 	currentBasename,

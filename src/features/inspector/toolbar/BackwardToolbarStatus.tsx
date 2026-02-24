@@ -1,10 +1,10 @@
 import { Text } from "@chakra-ui/react";
 import { useShallow } from "zustand/react/shallow";
 import { useIdSyncCounterpartPosition } from "@/features/grism/hooks/useIdSyncCounterpartPosition";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
 export default function BackwardToolbarStatus() {
-	const { roiState } = useGrismStore(
+	const { roiState } = useInspectorStore(
 		useShallow((state) => ({
 			roiState: state.roiState,
 		})),

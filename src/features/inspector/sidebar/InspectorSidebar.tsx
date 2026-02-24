@@ -7,14 +7,14 @@ import {
 	CollapseRegionIndicator,
 	RoiCameraRig,
 } from "@/components/three/RoiComponent";
-import GrismBackward1DChart from "@/features/grism/backward/GrismBackward1DChart";
-import EmissionMaskLayer from "@/features/grism/backward/layers/EmissionMaskLayer";
-import { TraceLinesLayer } from "@/features/grism/backward/layers/GrismBackwardTraceLayer";
+import GrismBackward1DChart from "@/features/inspector/components/GrismBackward1DChart";
+import EmissionMaskLayer from "@/features/inspector/layers/EmissionMaskLayer";
+import { TraceLinesLayer } from "@/features/inspector/layers/TraceSourceLayer";
 import { useGrismData } from "@/hooks/query/image/useGrismData";
 import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
-export default function GrismBackwardAnalysisPanel({
+export default function InspectorSidebar({
 	currentBasename,
 }: {
 	currentBasename: string | undefined;
@@ -52,7 +52,7 @@ function RoiZoomView({
 		backwardGlobalNorm,
 		backwardRoiNorm,
 		backwardNormIndependent,
-	} = useGrismStore(
+	} = useInspectorStore(
 		useShallow((state) => ({
 			roiState: state.roiState,
 			backwardGlobalNorm: state.backwardGlobalNorm,

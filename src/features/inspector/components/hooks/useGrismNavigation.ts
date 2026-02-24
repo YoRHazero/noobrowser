@@ -1,7 +1,8 @@
 import { useState } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
-import { useCounterpartStore, useGrismStore } from "@/stores/image";
+import { useCounterpartStore } from "@/stores/image";
 import { useSourcesStore } from "@/stores/sources";
+import { useInspectorStore } from "@/stores/inspector";
 import type { RoiState } from "@/stores/stores-types";
 
 export type MoveConfig = {
@@ -15,11 +16,11 @@ export function useGrismNavigation(
 	moveConfig?: MoveConfig,
 ) {
 	const [currentImageIndex, setCurrentImageIndex] = useState(0);
-	const setRoi = useGrismStore((state) => state.setRoiState);
-	const setEmissionMaskMode = useGrismStore(
+	const setRoi = useInspectorStore((state) => state.setRoiState);
+	const setEmissionMaskMode = useInspectorStore(
 		(state) => state.setEmissionMaskMode,
 	);
-	const setFollowRoiCamera = useGrismStore(
+	const setFollowRoiCamera = useInspectorStore(
 		(state) => state.setFollowRoiCamera,
 	);
 	const setTraceMode = useSourcesStore((state) => state.setTraceMode);
@@ -31,7 +32,7 @@ export function useGrismNavigation(
 	const fastMoveStep = moveConfig?.fastMoveStep ?? 10;
 
 	const updateRoi = (updater: (prev: RoiState) => Partial<RoiState>) => {
-		const { roiState } = useGrismStore.getState();
+		const { roiState } = useInspectorStore.getState();
 		const patch = updater(roiState);
 		setRoi(patch);
 	};
@@ -89,7 +90,7 @@ export function useGrismNavigation(
 		"shift+m",
 		(e) => {
 			e.preventDefault();
-			const currentMode = useGrismStore.getState().emissionMaskMode;
+			const currentMode = useInspectorStore.getState().emissionMaskMode;
 			const nextMode =
 				currentMode === "hidden"
 					? "individual"
@@ -104,7 +105,7 @@ export function useGrismNavigation(
 		"shift+f",
 		(e) => {
 			e.preventDefault();
-			setFollowRoiCamera(!useGrismStore.getState().followRoiCamera);
+			setFollowRoiCamera(!useInspectorStore.getState().followRoiCamera);
 		},
 		hotkeyConfig,
 	);

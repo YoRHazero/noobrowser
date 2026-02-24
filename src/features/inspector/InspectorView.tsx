@@ -1,13 +1,13 @@
 import { Grid, GridItem } from "@chakra-ui/react";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import GrismBackwardAnalysisPanel from "@/features/grism/GrismBackwardAnalysisPanel";
+import InspectorSidebar from "@/features/inspector/sidebar/InspectorSidebar";
 import InspectorCanvas from "@/features/inspector/canvas/InspectorCanvas";
-import { useGrismNavigation } from "@/features/grism/backward/hooks/useGrismNavigation";
+import { useGrismNavigation } from "@/features/inspector/components/hooks/useGrismNavigation";
 import { useScrollFocus } from "@/hooks/ui/useScrollFocus";
 import { useGlobeStore } from "@/stores/footprints";
 
-export default function GrismBackward() {
+export default function InspectorView() {
 	const containerRef = useScrollFocus<HTMLDivElement>("shift+3", {
 		offset: 0,
 	});
@@ -48,7 +48,7 @@ export default function GrismBackward() {
 				<InspectorCanvas currentBasename={currentBasename} />
 			</GridItem>
 			<GridItem>
-				<GrismBackwardAnalysisPanel currentBasename={currentBasename} />
+				<InspectorSidebar currentBasename={currentBasename} />
 			</GridItem>
 		</Grid>
 	);

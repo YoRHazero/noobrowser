@@ -3,10 +3,10 @@ import gsap from "gsap";
 import { type RefObject, useEffect } from "react";
 import type { MapControls } from "three-stdlib";
 import { useShallow } from "zustand/react/shallow";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
 export function useCameraFollowRoi(controlRef: RefObject<MapControls | null>) {
-	const { roiState, followRoiCamera } = useGrismStore(
+	const { roiState, followRoiCamera } = useInspectorStore(
 		useShallow((state) => ({
 			roiState: state.roiState,
 			followRoiCamera: state.followRoiCamera,
