@@ -1,5 +1,5 @@
 import type { StateCreator } from "zustand";
-import type { WaveUnit, WaveRange } from "@/types/common";
+import type { WaveUnit, WaveRange, WaveFrame, NormParams } from "@/types/common";
 import type { CollapseWindow } from "@/stores/inspector/types";
 import type { AnalyzerState } from "./index";
 
@@ -10,6 +10,14 @@ export interface SpectrumSlice {
 	slice1DWaveRange: WaveRange;
 	collapseWindow: CollapseWindow;
 	showTraceOnSpectrum2D: boolean;
+	
+	// Viewing parameters moved from fitSlice
+	waveFrame: WaveFrame;
+	apertureSize: number;
+	grismNorm: NormParams;
+	extractedSpecSortedArray: number[] | null;
+	normInWindow: boolean;
+	spectrumQueryKey: Array<unknown> | null;
 
 	setWaveUnit: (unit: WaveUnit) => void;
 	setZRedshift: (z: number) => void;
@@ -17,15 +25,30 @@ export interface SpectrumSlice {
 	setSlice1DWaveRange: (patch: Partial<WaveRange>) => void;
 	setCollapseWindow: (patch: Partial<CollapseWindow>) => void;
 	switchShowTraceOnSpectrum2D: () => void;
+	
+	// Viewing setters moved from fitSlice
+	setWaveFrame: (frame: WaveFrame) => void;
+	setApertureSize: (size: number) => void;
+	setGrismNorm: (patch: Partial<NormParams>) => void;
+	setExtractedSpecSortedArray: (array: number[] | null) => void;
+	setNormInWindow: (inWindow: boolean) => void;
+	setSpectrumQueryKey: (key: Array<unknown> | null) => void;
 }
 
 export const createSpectrumSlice: StateCreator<AnalyzerState, [], [], SpectrumSlice> = (set) => ({
 	waveUnit: "µm",
 	zRedshift: 0,
-	forwardWaveRange: { min: 0, max: 1 },
-	slice1DWaveRange: { min: 0, max: 1 },
-	collapseWindow: { waveMin: 0, waveMax: 1, spatialMin: 0, spatialMax: 1 },
+	forwardWaveRange: { min: 3.8, max: 5.0 },
+	slice1DWaveRange: { min: 3.8, max: 5.0 },
+	collapseWindow: { waveMin: 3.8, waveMax: 5.0, spatialMin: 0, spatialMax: 4 },
 	showTraceOnSpectrum2D: false,
+	
+	waveFrame: "observe",
+	apertureSize: 5,
+	grismNorm: { pmin: 5, pmax: 95 },
+	extractedSpecSortedArray: null,
+	normInWindow: false,
+	spectrumQueryKey: null,
 
 	setWaveUnit: (unit) => set({ waveUnit: unit }),
 	setZRedshift: (z) => set({ zRedshift: z }),
@@ -45,4 +68,12 @@ export const createSpectrumSlice: StateCreator<AnalyzerState, [], [], SpectrumSl
 		set((state) => ({
 			showTraceOnSpectrum2D: !state.showTraceOnSpectrum2D,
 		})),
+		
+	setWaveFrame: (frame) => set({ waveFrame: frame }),
+	setApertureSize: (size) => set({ apertureSize: size }),
+	setGrismNorm: (patch) =>
+		set((state) => ({ grismNorm: { ...state.grismNorm, ...patch } })),
+	setExtractedSpecSortedArray: (array) => set({ extractedSpecSortedArray: array }),
+	setNormInWindow: (inWindow) => set({ normInWindow: inWindow }),
+	setSpectrumQueryKey: (key) => set({ spectrumQueryKey: key }),
 });
