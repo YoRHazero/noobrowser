@@ -7,7 +7,7 @@ import {
 	CollapseRegionIndicator,
 	RoiCameraRig,
 } from "@/components/three/RoiComponent";
-import GrismBackward1DChart from "@/features/inspector/components/GrismBackward1DChart";
+import Inspector1DChart from "@/features/inspector/components/Inspector1DChart";
 import EmissionMaskLayer from "@/features/inspector/layers/EmissionMaskLayer";
 import { TraceLinesLayer } from "@/features/inspector/layers/TraceSourceLayer";
 import { useGrismData } from "@/hooks/query/image/useGrismData";
@@ -29,7 +29,7 @@ export default function InspectorSidebar({
 		>
 			<RoiZoomView currentBasename={currentBasename} />
 			<Box flex={1} minH={0} overflow="hidden">
-				<GrismBackward1DChart currentBasename={currentBasename} />
+				<Inspector1DChart currentBasename={currentBasename} />
 			</Box>
 			<ShortcutLegend />
 		</VStack>

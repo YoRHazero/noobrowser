@@ -13,7 +13,7 @@ import EmissionMaskLayer from "@/features/inspector/layers/EmissionMaskLayer";
 import GrismBackwardFetchControl from "@/features/inspector/components/GrismBackwardFetchControl";
 import GrismBackwardToolbar from "@/features/inspector/toolbar";
 //import GrismTraceSourceDrawer from "@/features/grism/GrismTraceSourceDrawer";
-import TraceSourceDrawer from "@/features/grism/tracesource";
+import TraceSourceDrawer from "@/features/inspector/tracesource";
 import { useGrismBackwardCanvas } from "@/features/inspector/components/hooks/useGrismBackwardCanvas";
 import { useGrismInfoLegend } from "@/features/inspector/components/hooks/useGrismInfoLegend";
 import { useCameraCenteringOnRoi } from "@/features/inspector/components/hooks/useCameraCenteringOnRoi";

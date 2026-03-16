@@ -1,5 +1,5 @@
 import { toaster } from "@/components/ui/toaster";
-import { useIdSyncCounterpartPosition } from "@/features/grism/hooks/useIdSyncCounterpartPosition";
+import { useIdSyncCounterpartPosition } from "@/features/inspector/hooks/useIdSyncCounterpartPosition";
 import { useCounterpartImage } from "@/hooks/query/image/useCounterpartImage";
 import { useSourcePosition } from "@/hooks/query/source/useSourcePosition";
 import { useCounterpartStore } from "@/stores/image";

@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useFitRangeClamp } from "@/features/grism/forwardfit/hooks/utils/useFitRangeClamp";
-import { useFitStepScaler } from "@/features/grism/forwardfit/hooks/utils/useFitStepScaler";
-import { useWavelengthUpdate } from "@/features/grism/forwardfit/hooks/utils/useWavelengthUpdate";
+import { useFitRangeClamp } from "@/features/analyzer/models/hooks/utils/useFitRangeClamp";
+import { useFitStepScaler } from "@/features/analyzer/models/hooks/utils/useFitStepScaler";
+import { useWavelengthUpdate } from "@/features/analyzer/models/hooks/utils/useWavelengthUpdate";
 import { useAnalyzerStore } from "@/stores/analyzer";
 import type { FitLinearModel } from "@/stores/stores-types";
 import { toDisplayWavelength } from "@/utils/wavelength";

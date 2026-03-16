@@ -6,36 +6,33 @@ import { ParentSize } from "@visx/responsive";
 import { scaleLinear } from "@visx/scale";
 import { AreaClosed, Line, LinePath } from "@visx/shape";
 import type { ScaleLinear } from "d3-scale";
-import { memo, useMemo, useState } from "react";
+import { memo, useMemo } from "react";
 import { HorizontalSpec1DParamsSlider } from "@/components/ui/internal-slider";
-import { useRoiSpectrum1D } from "@/features/grism/hooks/useRoiSpectrum1D";
-import { useDispersionTrace } from "@/hooks/query/source/useDispersionTrace";
 import type { Spectrum1D } from "@/utils/util-types";
-import { SPEED_OF_LIGHT_KM_S } from "@/utils/wavelength";
+import { useInspector1DChart } from "./hooks/useInspector1DChart";
 
 const MARGIN = { top: 20, right: 20, bottom: 50, left: 50 };
-export default function GrismBackward1DChart({
+
+export default function Inspector1DChart({
 	currentBasename,
 }: {
 	currentBasename: string | undefined;
 }) {
-	/* -------------------------------------------------------------------------- */
-	/*                                 Data Access                                */
-	/* -------------------------------------------------------------------------- */
-	const { spectrum1D, roiCollapseWindow } = useRoiSpectrum1D(currentBasename);
-	const [refIndex, setRefIndex] = useState<number>(roiCollapseWindow.waveMin);
-	const [Lambda0, setLambda0] = useState<number>(40000); // in Angstrom
-	const [FWHM, setFWHM] = useState<number>(1000); // in km/s
+	const {
+		spectrum1D,
+		roiCollapseWindow,
+		refIndex,
+		setRefIndex,
+		Lambda0,
+		setLambda0,
+		FWHM,
+		setFWHM,
+		isSuccess,
+		kmsPerPixel,
+		hasData,
+	} = useInspector1DChart({ currentBasename });
 
-	// Compute angstrom per pixel scale from dispersion trace
-	const { data: dispersionTrace, isSuccess } = useDispersionTrace({
-		enabled: true,
-		waveMin: 4,
-		waveMax: 4.8,
-	});
-	const angstromPerPixel =
-		isSuccess && dispersionTrace ? dispersionTrace.mean_pixel_scale * 10000 : 1; // mean_pixel_scale in micron -> angstrom; default to 1 if no data
-	if (spectrum1D.length === 0) {
+	if (!hasData) {
 		return (
 			<Box
 				w="100%"
@@ -50,7 +47,6 @@ export default function GrismBackward1DChart({
 			</Box>
 		);
 	}
-	const kmsPerPixel = (angstromPerPixel * SPEED_OF_LIGHT_KM_S) / Lambda0;
 
 	return (
 		<VStack w="100%" h="100%" gap={1} align="stretch">

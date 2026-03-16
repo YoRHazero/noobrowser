@@ -1,6 +1,6 @@
 import { Text } from "@chakra-ui/react";
 import { useShallow } from "zustand/react/shallow";
-import { useIdSyncCounterpartPosition } from "@/features/grism/hooks/useIdSyncCounterpartPosition";
+import { useIdSyncCounterpartPosition } from "@/features/inspector/hooks/useIdSyncCounterpartPosition";
 import { useInspectorStore } from "@/stores/inspector";
 
 export default function BackwardToolbarStatus() {

@@ -1,5 +1,6 @@
 import { useShallow } from "zustand/react/shallow";
-import { useAnalyzerStore } from "@/stores/analyzer";
+import { useFitStore } from "@/stores/fit";
+import { useGrismStore } from "@/stores/image";
 import {
 	displayFactor,
 	formatWavelength,
@@ -22,10 +23,14 @@ import {
  * - label: Label string for wavelength axis.
 */
 export function useWavelengthDisplay() {
-	const { waveUnit, zRedshift, waveFrame } = useAnalyzerStore(
+	const { waveUnit, zRedshift } = useGrismStore(
 		useShallow((state) => ({
 			waveUnit: state.waveUnit,
 			zRedshift: state.zRedshift,
+		})),
+	);
+	const { waveFrame } = useFitStore(
+		useShallow((state) => ({
 			waveFrame: state.waveFrame,
 		})),
 	);
