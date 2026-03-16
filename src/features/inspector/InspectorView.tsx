@@ -36,11 +36,12 @@ export default function InspectorView() {
 	/* -------------------------------------------------------------------------- */
 	return (
 		<Grid
+			w="full"
 			templateColumns="1fr 600px"
 			h="100vh"
 			bg="gray.900"
 			color="white"
-			overflow={"auto"}
+			overflow="hidden"
 			gap={0}
 			ref={containerRef}
 		>

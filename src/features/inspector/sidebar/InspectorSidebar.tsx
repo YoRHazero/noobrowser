@@ -28,7 +28,7 @@ export default function InspectorSidebar({
 			borderLeft="1px solid #222"
 		>
 			<RoiZoomView currentBasename={currentBasename} />
-			<Box flex={1} minH="200px">
+			<Box flex={1} minH={0} overflow="hidden">
 				<GrismBackward1DChart currentBasename={currentBasename} />
 			</Box>
 			<ShortcutLegend />

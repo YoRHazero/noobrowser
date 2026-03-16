@@ -40,11 +40,11 @@ export const createSpectrumSlice: StateCreator<AnalyzerState, [], [], SpectrumSl
 	zRedshift: 0,
 	forwardWaveRange: { min: 3.8, max: 5.0 },
 	slice1DWaveRange: { min: 3.8, max: 5.0 },
-	collapseWindow: { waveMin: 3.8, waveMax: 5.0, spatialMin: 0, spatialMax: 4 },
+	collapseWindow: { waveMin: 3.8, waveMax: 5.0, spatialMin: 45, spatialMax: 54 },
 	showTraceOnSpectrum2D: false,
 	
 	waveFrame: "observe",
-	apertureSize: 5,
+	apertureSize: 100,
 	grismNorm: { pmin: 5, pmax: 95 },
 	extractedSpecSortedArray: null,
 	normInWindow: false,

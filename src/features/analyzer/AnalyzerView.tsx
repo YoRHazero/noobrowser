@@ -10,7 +10,13 @@ export default function AnalyzerView() {
 	});
 
 	return (
-		<HStack alignItems={"stretch"} height="100vh" ref={containerRef}>
+		<HStack
+			w="full"
+			alignItems={"stretch"}
+			h="100vh"
+			overflow="hidden"
+			ref={containerRef}
+		>
 			<Stack gap={2} flex="1" minW={0} height="100%">
 				<Spectrum2DView />
 				<Spectrum1DView />
