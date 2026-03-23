@@ -9,19 +9,19 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as WfssRouteImport } from './routes/wfss'
 import { Route as TestRouteImport } from './routes/test'
-import { Route as InspectorRouteImport } from './routes/inspector'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as IndexRouteImport } from './routes/index'
 
+const WfssRoute = WfssRouteImport.update({
+  id: '/wfss',
+  path: '/wfss',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const TestRoute = TestRouteImport.update({
   id: '/test',
   path: '/test',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const InspectorRoute = InspectorRouteImport.update({
-  id: '/inspector',
-  path: '/inspector',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogRoute = CatalogRouteImport.update({
@@ -38,51 +38,51 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/inspector': typeof InspectorRoute
   '/test': typeof TestRoute
+  '/wfss': typeof WfssRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/inspector': typeof InspectorRoute
   '/test': typeof TestRoute
+  '/wfss': typeof WfssRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/inspector': typeof InspectorRoute
   '/test': typeof TestRoute
+  '/wfss': typeof WfssRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/catalog' | '/inspector' | '/test'
+  fullPaths: '/' | '/catalog' | '/test' | '/wfss'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/catalog' | '/inspector' | '/test'
-  id: '__root__' | '/' | '/catalog' | '/inspector' | '/test'
+  to: '/' | '/catalog' | '/test' | '/wfss'
+  id: '__root__' | '/' | '/catalog' | '/test' | '/wfss'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogRoute: typeof CatalogRoute
-  InspectorRoute: typeof InspectorRoute
   TestRoute: typeof TestRoute
+  WfssRoute: typeof WfssRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/wfss': {
+      id: '/wfss'
+      path: '/wfss'
+      fullPath: '/wfss'
+      preLoaderRoute: typeof WfssRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/test': {
       id: '/test'
       path: '/test'
       fullPath: '/test'
       preLoaderRoute: typeof TestRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/inspector': {
-      id: '/inspector'
-      path: '/inspector'
-      fullPath: '/inspector'
-      preLoaderRoute: typeof InspectorRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalog': {
@@ -105,8 +105,8 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogRoute: CatalogRoute,
-  InspectorRoute: InspectorRoute,
   TestRoute: TestRoute,
+  WfssRoute: WfssRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)

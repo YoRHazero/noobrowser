@@ -5,7 +5,7 @@ import Footprint from "@/features/Footprint";
 import Analyzer from "@/features/analyzer/AnalyzerView";
 import Inspector from "@/features/inspector/InspectorView";
 
-export const Route = createFileRoute("/inspector")({
+export const Route = createFileRoute("/wfss")({
 	component: RouteComponent,
 });
 
@@ -18,5 +18,5 @@ function RouteComponent() {
 			<Analyzer />
 			<Inspector />
 		</VStack>
-	);
+	)
 }

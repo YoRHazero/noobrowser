@@ -12,9 +12,8 @@ export default function Header() {
 					</CLink>
 
 					<CLink asChild fontWeight="semibold">
-						<RouterLink to="/inspector">Inspector</RouterLink>
+						<RouterLink to="/wfss">Wfss</RouterLink>
 					</CLink>
-
 					<CLink asChild fontWeight="semibold">
 						<RouterLink to="/catalog">Catalog</RouterLink>
 					</CLink>
