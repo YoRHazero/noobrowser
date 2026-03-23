@@ -98,9 +98,9 @@ export default function ManualSourceForm() {
 				return;
 			}
 
-			// 3. Add to Store
-			// Generate ID matching useGrismBackwardCounterpartLayer pattern
-			const id = `${ref_basename}_${raVal.toFixed(6)}_${decVal.toFixed(6)}`;
+				// 3. Add to Store
+				// Generate a stable source ID from the resolved footprint and coordinates.
+				const id = `${ref_basename}_${raVal.toFixed(6)}_${decVal.toFixed(6)}`;
 
 			addTraceSource(id, x, y, raVal, decVal, selectedFootprintId, {
 				roiState,
