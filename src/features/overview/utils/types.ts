@@ -26,9 +26,14 @@ export interface GraticuleConfig {
 
 export type FootprintGeometryVertex = EquatorialCoordinate;
 
+export interface OverviewFootprintMeta {
+	included_files?: string[];
+	[key: string]: unknown;
+}
+
 export interface OverviewFootprintRecord {
 	id: string;
 	vertices: EquatorialCoordinate[];
 	center: EquatorialCoordinate;
-	meta: Record<string, unknown>;
+	meta: OverviewFootprintMeta;
 }

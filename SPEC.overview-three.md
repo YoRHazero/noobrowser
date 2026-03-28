@@ -1,255 +1,126 @@
-# SPEC: Overview Three Phase 2 Scaffold
+# SPEC: Overview Three Phase 4 Hover-First Interaction
 
 ## Goal
 
-Move the `overview` module from Phase 1 bootstrap placeholders to an initial implementation scaffold that a later session can build file-by-file.
+Move the `overview` module from a renderable Phase 3 scene into the first usable interactive canvas.
 
-This phase must:
+This phase must deliver:
 
-1. establish the first usable `src/stores/overview/` scaffolding
-2. establish the first usable overview query and feature hook scaffolding
-3. establish the first usable `src/features/overview/canvas/` shell composition
-4. preserve the folder boundaries already defined in `src/features/overview/canvas/README.md`
+1. formal footprint hover interaction
+2. a lightweight DOM tooltip for hovered footprints
+3. continued click selection alongside hover
+4. stable coexistence of hover state and selected state
 
-This phase does not migrate legacy `footprint` code and does not aim for finished Three visuals.
+This phase is still not a sidebar phase, not a legacy migration phase, and not a camera UX phase.
 
 ## Scope
 
 ### Baseline
 
-- Assume the Phase 1 folder structure already exists.
-- Assume `src/features/overview/canvas/README.md` remains the source of truth for folder boundaries.
-- `useQueryAxiosGet` is a low-level query primitive and must only be used under `src/hooks/query/**`.
-- Continue using the current naming already present in the repo:
-  - `targetsSlice.ts`
-  - `manualTargets`
-  - `ManualTargetsLayer.tsx`
-  - `ManualTargetMarker.tsx`
+- Assume the Phase 3 renderable scene is already the baseline.
+- Assume `src/features/overview/canvas/README.md` remains the source of truth for folder boundaries and dependency rules.
+- Keep the current public names unchanged:
+  - `useGrismFootprints`
+  - `useClearImageFilters`
+  - `useOverviewFootprints`
+  - `useOverviewStore`
+- `useQueryAxiosGet` remains a low-level query primitive and must only be used under `src/hooks/query/**`.
+- `OverviewCanvas.tsx` must continue to read Zustand state directly with `useOverviewStore(useShallow(...))`.
+- Do not introduce `useOverviewSelection.ts` or any equivalent Zustand pass-through wrapper hook.
 
-### Store Scaffolding
+### Interaction Scope
 
-Implement the initial overview store scaffolding under `src/stores/overview/`.
+Phase 4 is a hover-first canvas interaction phase.
 
-- `types.ts`
-  - define store-internal shared types only
-  - include `OverviewHoverAnchor`
-  - include `OverviewManualTarget` with:
-    - `id: string`
-    - `ra: number`
-    - `dec: number`
-    - `label?: string`
-  - do not place slice state/action interfaces here
-- `footprintSlice.ts`
-  - own shared footprint interaction state only
-  - define the `OverviewFootprintSlice` interface in this file
-  - state:
-    - `selectedFootprintId: string | null`
-    - `hoveredFootprintId: string | null`
-    - `hoveredFootprintAnchor: OverviewHoverAnchor | null`
-  - actions:
-    - `setSelectedFootprintId(id: string | null)`
-    - `setHoveredFootprint(id: string | null, anchor?: OverviewHoverAnchor | null)`
-    - `clearHoveredFootprint()`
-    - `clearFootprintSelection()`
-- `targetsSlice.ts`
-  - own `manualTargets` and their CRUD only
-  - define the `OverviewTargetsSlice` interface in this file
-  - do not store remote footprint query payload here
-  - state:
-    - `manualTargets: OverviewManualTarget[]`
-  - actions:
-    - `addManualTarget(target: OverviewManualTarget)`
-    - `updateManualTarget(id: string, patch: Partial<OverviewManualTarget>)`
-    - `removeManualTarget(id: string)`
-    - `clearManualTargets()`
-  - persistence is allowed for `manualTargets`
-- `viewerSlice.ts`
-  - own overview-wide viewer flags and fly-to intent only
-  - define the `OverviewViewerSlice` interface in this file
-  - state:
-    - `showGrid: boolean`
-    - `showAtmosphere: boolean`
-    - `pendingFlyToTargetId: string | null`
-  - actions:
-    - `setShowGrid(show: boolean)`
-    - `setShowAtmosphere(show: boolean)`
-    - `requestFlyToTarget(id: string | null)`
-    - `clearPendingFlyToTarget()`
-- `index.ts`
-  - compose the three slices using the repo's existing Zustand slice-composition pattern
-  - define and export `OverviewStoreState` as the composition of the three slice interfaces
-  - export a single `useOverviewStore`
-  - keep the store scoped to shared interactive state and manual targets
-  - do not move remote footprint query data into the store
+- hover applies only to **footprints**
+- click selection remains active and must coexist with hover
+- manual targets remain render-only in this phase
+- tooltip is a lightweight DOM overlay rendered by `OverviewCanvas.tsx`
+- tooltip uses a **screen-space anchor**
+- tooltip anchor continues to use `OverviewHoverAnchor = { x, y }`
+- tooltip anchor comes from the canvas-level pointer path
+- tooltip does not use world-point projection as the primary Phase 4 strategy
+- `useTooltipProjection.ts` may remain in the codebase, but it is not a primary Phase 4 delivery target
+- footprint hover and click are resolved from the projected polygon area rather than the rendered outline line
+- overlapping footprints must prefer the later-entered footprint as the active hover target
 
-### Query And Feature Hook Scaffolding
+### Tooltip Content
 
-Implement the overview query hook under `src/hooks/query/overview/` and the feature-level hook under `src/features/overview/hooks/`.
+Tooltip content is fixed in this phase and must not be redesigned per implementation:
 
-- `src/hooks/query/overview/useGrismFootprints.ts`
-  - be the overview-specific concrete query hook for `/overview/grism_footprints`
-  - be the only overview-specific location allowed to call `useQueryAxiosGet` for grism footprints
-  - query path:
-    - `/overview/grism_footprints`
-  - expose the raw query result in a concrete overview query hook
-- `src/hooks/query/overview/useClearImageFilters.ts`
-  - be the overview-specific concrete query hook for `/overview/clear_image_filters`
-  - call `useQueryAxiosGet` directly inside the query layer
-  - expose the raw clear image filter response
+- line 1: `Footprint {id}`
+- line 2: `{included_files.length} files`
+- line 3:
+  - show the first 2 filenames from `included_files`
+  - if more than 2 exist, end with `+N more`
+- if `included_files` is missing or empty, omit line 3
+- do not add a richer metadata panel in this phase
+
+### Store And Query Boundary
+
+`src/stores/overview/` and `src/hooks/query/overview/` remain baseline dependencies, not the primary delivery surface.
+
+- `src/stores/overview/footprintSlice.ts`
+  - remains the shared source of selected and hovered footprint state
+  - `hoveredFootprintAnchor` becomes a formal Phase 4 data path rather than future-only plumbing
 - `src/features/overview/hooks/useOverviewFootprints.ts`
-  - consume `src/hooks/query/overview/useGrismFootprints.ts`
-  - normalize the response into overview-local records
-  - the normalized record shape must include:
-    - `id`
-    - `vertices`
-    - `center`
-    - `meta`
-  - expose query-derived state needed by Phase 2 shell rendering:
-    - `footprints`
-    - `isLoading`
-    - `isError`
-    - `error`
-  - keep remote data in the hook layer; do not write footprint payload into Zustand
-  - do not import `useQueryAxiosGet` directly
-- do not add `src/features/overview/hooks/useOverviewSelection.ts`
-  - components that need overview selection state must read `useOverviewStore` directly with `useShallow`
-  - do not add feature hooks whose only job is to wrap Zustand selectors and actions
-
-### Canvas Shell Scaffolding
-
-Implement the first shell-level canvas composition under `src/features/overview/canvas/`.
-
-- `OverviewCanvas.tsx`
-  - create the initial React Three Fiber shell
-  - render a `Canvas` tree and compose:
-    - `SceneEnvironment`
-    - `CameraRig`
-    - `GlobeLayer`
-    - `GraticuleLayer`
-    - `FootprintsLayer`
-    - `ManualTargetsLayer`
-  - source data from:
-    - `useOverviewFootprints`
-    - `useOverviewStore`
-  - read store state and actions locally with `useOverviewStore(useShallow(...))`
-  - pass data into layers through props
-  - do not place remote data fetching into `canvas/hooks/`
-  - do not add sidebar UI here
-
-### Canvas Core, Layers, Objects, Hooks
-
-Implement the first minimal compileable scaffolding for the existing canvas subfolders.
-
-- `core/`
-  - `CameraRig.tsx`
-    - provide initial camera/controls shell only
-    - accept or observe fly-to intent but do not implement polished flight behavior
-  - `SceneEnvironment.tsx`
-    - provide minimal lighting/background/environment shell only
-  - `constants.ts`
-    - define canvas-local constants required by the shell, such as globe radius and basic camera distances
-- `layers/`
-  - `GlobeLayer.tsx`
-    - compose `GlobeSphere`
-    - conditionally include `AtmosphereSphere` based on viewer flags
-  - `GraticuleLayer.tsx`
-    - conditionally render graticule content from pure helpers and shell props
-  - `FootprintsLayer.tsx`
-    - receive normalized footprints and selection/hover handlers
-    - map footprint data into `FootprintMesh` props
-  - `ManualTargetsLayer.tsx`
-    - receive `manualTargets`
-    - map manual target data into `ManualTargetMarker` props
-- `objects/`
-  - `GlobeSphere.tsx`
-    - render only a minimal globe shell object
-  - `AtmosphereSphere.tsx`
-    - render only a minimal optional atmosphere shell object
-  - `GraticuleLines.tsx`
-    - render only from props or precomputed pure helper output
-  - `FootprintMesh.tsx`
-    - receive all footprint render state through props
-    - do not access store or query hooks directly
-  - `ManualTargetMarker.tsx`
-    - receive all manual target render state through props
-    - do not access store directly
-- `canvas/hooks/`
-  - `useCameraFlight.ts`
-    - define the first shell for fly-to behavior
-    - no polished interpolation or scene choreography yet
-  - `useFootprintEvents.ts`
-    - define the bridge between object events and store selection/hover actions
-  - `useTooltipProjection.ts`
-    - define the shell for projecting a world position to screen space
-    - no high-precision tooltip behavior yet
-
-### Utility Layout And Type Rules
-
-Implement shared utility contracts under `src/features/overview/utils/`.
-
-- `types.ts`
-  - hold reusable utility-level types shared by multiple utils, hooks, layers, or objects
-  - move broadly reusable geometry and coordinate types here
-  - examples of likely shared types:
-    - equatorial coordinates
-    - cartesian coordinates
-    - projected screen points
-- `constant.ts`
-  - hold reusable utility-level constants needed by multiple utils or canvas files
-  - do not duplicate shared numeric constants across utility files
-- other files under `utils/`
-  - import shared types from `utils/types.ts`
-  - import shared constants from `utils/constant.ts`
-  - if a type is only local to one file and unlikely to be reused, keep it private in that file and do not export it
-
-### Hook Export Rules
-
-- hooks may only export their public input/output contract types
-- allowed exported hook types are limited to:
-  - `*Params`
-  - `*Result`
-  - equivalent public handler/props contract types when they are the hook output contract
-- do not export raw API payload types, normalization-only shapes, or other private intermediate types from hook files
-- when a hook needs a reusable shared type, first source it from `src/features/overview/utils/types.ts`
-- if the type is broadly reusable, add it to `utils/types.ts`; otherwise keep it private inside the hook file
-- do not export private hook-local types
+  - continues to normalize query data only
+  - must not move remote footprint payload into Zustand
+- `src/hooks/query/overview/`
+  - remains the only place where overview-specific query hooks directly use `useQueryAxiosGet`
+  - `useClearImageFilters` remains prepared-only and unused by feature or UI flow in this phase
 
 ## Non-goals
 
 This phase must explicitly avoid the following:
 
-- real globe shading, atmosphere effects, or production-quality Three visuals
-- full footprint geometry generation or triangulation logic
-- precise hover or click picking
-- production tooltip placement behavior
-- sidebar migration
-- routing integration
-- deletion or modification of legacy `src/features/footprint/`
-- deletion or modification of legacy `src/stores/footprints.ts`
-- moving remote footprint payload into Zustand
+- sidebar or any sidebar shell
+- legacy `src/features/footprint/` migration or replacement
+- modification of `src/stores/footprints.ts`
+- clear image filters UI integration
+- manual target CRUD UI
+- manual target hover interaction
+- manual target tooltip UI
+- high-precision picking
+- world-projected tooltip following
+- camera fly-to
+- polished camera choreography
+- filled footprint mesh rendering
+- triangulation or production footprint geometry pipelines
+- introducing `useOverviewSelection.ts`
 - direct `useQueryAxiosGet` usage from `src/features/overview/hooks/`
-- adding Zustand pass-through wrapper hooks such as `useOverviewSelection.ts`
+- changing the public names `useGrismFootprints`, `useClearImageFilters`, `useOverviewFootprints`, or `useOverviewStore`
 
 ## Target Files
 
+### Primary Phase 4 Implementation Surface
+
 ```text
-src/hooks/query/overview/
-  useGrismFootprints.ts
-  useClearImageFilters.ts
+src/features/overview/canvas/
+  OverviewCanvas.tsx
+
+  layers/
+    FootprintsLayer.tsx
+
+  objects/
+    FootprintMesh.tsx
+
+  hooks/
+    useFootprintEvents.ts
+    useFootprintInteractionResolver.ts
+    useTooltipProjection.ts
 
 src/stores/overview/
-  types.ts
   footprintSlice.ts
-  targetsSlice.ts
-  viewerSlice.ts
-  index.ts
+```
 
+### Baseline Dependency Surface
+
+```text
 src/features/overview/hooks/
   useOverviewFootprints.ts
 
 src/features/overview/canvas/
-  OverviewCanvas.tsx
-
   core/
     CameraRig.tsx
     SceneEnvironment.tsx
@@ -258,20 +129,13 @@ src/features/overview/canvas/
   layers/
     GlobeLayer.tsx
     GraticuleLayer.tsx
-    FootprintsLayer.tsx
     ManualTargetsLayer.tsx
 
   objects/
     GlobeSphere.tsx
     AtmosphereSphere.tsx
     GraticuleLines.tsx
-    FootprintMesh.tsx
     ManualTargetMarker.tsx
-
-  hooks/
-    useCameraFlight.ts
-    useFootprintEvents.ts
-    useTooltipProjection.ts
 
 src/features/overview/utils/
   types.ts
@@ -279,150 +143,140 @@ src/features/overview/utils/
   celestial.ts
   graticule.ts
   footprintGeometry.ts
+
+src/hooks/query/overview/
+  useGrismFootprints.ts
+  useClearImageFilters.ts
+
+src/stores/overview/
+  targetsSlice.ts
+  viewerSlice.ts
+  index.ts
+  types.ts
 ```
+
+These baseline files may be adjusted only when required to support Phase 4 hover, tooltip, and selection flow.
 
 ## Responsibilities
 
-### `src/stores/overview/`
-
-- hold shared interactive state and manual target state only
-- remain the single shared state entrypoint for overview interactions
-- avoid storing remote footprint query payload
-
-### `src/hooks/query/overview/`
-
-- own overview-specific concrete query hooks
-- be the only overview layer that directly uses `useQueryAxiosGet`
-- return backend-facing query results to higher-level feature hooks
-
-### `src/features/overview/hooks/`
-
-- own feature-level orchestration and normalization logic
-- consume concrete query hooks from `src/hooks/query/**`
-- must not import `useQueryAxiosGet` directly
-- must not exist solely to wrap Zustand selectors/actions
-- normalize backend data into overview-local shapes before canvas layers consume it
-
 ### `src/features/overview/canvas/OverviewCanvas.tsx`
 
-- own top-level scene composition only
-- pull together feature hooks, direct store selectors, and scene layers
-- pass props downward; do not absorb sidebar or unrelated page UI
+- remain the scene shell and composition root
+- read store state locally with `useOverviewStore(useShallow(...))`
+- read normalized footprint data from `useOverviewFootprints`
+- derive the hovered footprint record from normalized footprints plus `hoveredFootprintId`
+- render the tooltip as a DOM sibling outside the `Canvas`
+- keep the shell safe under loading, empty, and partial-data conditions
+- do not fetch data directly with low-level query primitives
+- do not host sidebar logic
 
-### `src/features/overview/canvas/core/`
+### `src/features/overview/canvas/layers/FootprintsLayer.tsx`
 
-- own scene infrastructure only
-- no footprint business rules
+- receive normalized footprints plus selected or hovered identifiers
+- map those values into `FootprintMesh` props
+- preserve the layer-level bridge from feature data to render objects
+- do not own tooltip DOM rendering
+- do not own polygon hit testing
 
-### `src/features/overview/canvas/layers/`
+### `src/features/overview/canvas/objects/FootprintMesh.tsx`
 
-- own scene-layer composition
-- may read shared store state and feature hooks
-- must delegate single-object rendering to `objects/`
+- remain outline-only
+- receive all render state through props
+- remain props-only
+- do not access Zustand or query hooks directly
+- do not own hover or click hit testing
 
-### `src/features/overview/canvas/objects/`
+### `src/features/overview/canvas/hooks/useFootprintInteractionResolver.ts`
 
-- own reusable single render objects only
-- receive all state via props
-- must not access Zustand stores directly
-- must not run remote queries
+- resolve footprint hover and click from projected screen-space polygons
+- own canvas-level pointer tracking and polygon hit testing
+- update hover state using `hoveredFootprintId` and `hoveredFootprintAnchor`
+- prefer the later-entered footprint when multiple projected polygons overlap
+- clear hover state when the pointer leaves the canvas or no polygon remains under the pointer
+- keep hit resolution out of `FootprintMesh.tsx`
 
-### `src/features/overview/canvas/hooks/`
+### `src/features/overview/canvas/hooks/useFootprintEvents.ts`
 
-- own canvas-only interaction helpers
-- may use React Three Fiber APIs
-- must not own remote data fetching
+- become the store bridge used by the canvas-level interaction resolver
+- write `selectedFootprintId`, `hoveredFootprintId`, and `hoveredFootprintAnchor` through provided store actions
+- support click selection and hover state updates without object-level pointer handlers
+- clearing hover must not clear selection state
 
-### `src/features/overview/utils/`
+### `src/features/overview/canvas/hooks/useTooltipProjection.ts`
 
-- keep shared utility contracts in `types.ts` and `constant.ts`
-- keep file-local helper types private unless they are reused elsewhere
-- remain pure and framework-free
+- may remain available, but is not the primary tooltip strategy in this phase
+- must not become the required path for Phase 4 tooltip positioning
+
+### `src/stores/overview/footprintSlice.ts`
+
+- continue to own:
+  - `selectedFootprintId`
+  - `hoveredFootprintId`
+  - `hoveredFootprintAnchor`
+- no new slice should be introduced for tooltip state
+- keep the store shape minimal and interaction-focused
+
+### `src/features/overview/hooks/useOverviewFootprints.ts`
+
+- continue as the feature-level normalization hook
+- keep `included_files` available in normalized metadata so tooltip rendering does not need to look at raw query payload
+- do not change the query/store layering
 
 ## Step-by-step Plan
 
-### Step 1: Tighten Store Types
+1. Formalize hover data flow.
+   - Treat `hoveredFootprintId` and `hoveredFootprintAnchor` as first-class Phase 4 state.
+   - Ensure the canvas-level interaction bridge writes both values through the existing footprint slice.
 
-- reduce `types.ts` to shared store-internal types only
-- define slice state and action interfaces in their corresponding slice files
-- define `OverviewStoreState` where the slices are composed
+2. Upgrade footprint event handling.
+   - Resolve hover and click from projected polygon hit areas instead of the rendered outline line.
+   - Keep selection and hover independent enough that hover exit does not clear selection.
+   - Prefer the later-entered footprint when projected polygons overlap.
 
-### Step 2: Add Shared Utility Contracts
+3. Finalize hover-aware footprint rendering.
+   - Pass hover and selected state through `FootprintsLayer.tsx` into `FootprintMesh.tsx`.
+   - Preserve outline-only rendering while allowing hover-specific styling differences.
+   - Keep `FootprintMesh.tsx` visual-only.
 
-- create `src/features/overview/utils/types.ts`
-- create `src/features/overview/utils/constant.ts`
-- move reusable utility-level types and constants into these files before expanding other utils or hooks
+4. Add DOM tooltip rendering.
+   - In `OverviewCanvas.tsx`, derive the currently hovered footprint record from normalized data.
+   - Render a lightweight DOM tooltip as a sibling to the `Canvas`.
+   - Position it from `hoveredFootprintAnchor`.
 
-### Step 3: Implement Slice Scaffolding
+5. Lock tooltip content.
+   - Render `Footprint {id}`.
+   - Render the file count from `included_files`.
+   - Render up to 2 filenames and `+N more` when applicable.
+   - Omit the filename line when no filenames are available.
 
-- implement minimal state and action scaffolding in:
-  - `footprintSlice.ts`
-  - `targetsSlice.ts`
-  - `viewerSlice.ts`
-- keep logic intentionally shallow and explicit
-- wire the slices together in `index.ts`
+6. Preserve existing scene behavior.
+   - Keep globe, graticule, footprint outline, and manual target marker rendering intact.
+   - Keep manual targets out of hover and tooltip behavior in this phase.
 
-### Step 4: Implement Query And Feature Hook Scaffolding
-
-- implement `src/hooks/query/overview/useGrismFootprints.ts` as the overview-specific concrete query hook for grism footprints
-- implement `src/hooks/query/overview/useClearImageFilters.ts` as the overview-specific concrete query hook for clear image filters
-- implement `src/features/overview/hooks/useOverviewFootprints.ts` as the normalization entrypoint on top of that query hook
-- do not add `useOverviewSelection.ts`
-- keep hook outputs stable enough for canvas shell composition
-- keep hook exports limited to public params/result contract types
-
-### Step 5: Implement Canvas Shell Composition
-
-- implement `OverviewCanvas.tsx` as the top-level R3F shell
-- mount the initial `core/` infrastructure and four scene layers
-- use `useOverviewStore(useShallow(...))` directly where store data is needed
-- pass normalized footprint data, manual target data, and viewer flags into the appropriate layers
-
-### Step 6: Implement Minimal Core, Layer, Object, and Canvas Hook Shells
-
-- implement the first compileable shell behavior for:
-  - `core/`
-  - `layers/`
-  - `objects/`
-  - `canvas/hooks/`
-- stop at minimal scene composition and simple prop plumbing
-- do not continue into final visuals, precise picking, or complete geometry
-
-### Step 7: Validate Boundaries
-
-- confirm `objects/` remain props-only
-- confirm `canvas/hooks/` do not fetch remote data
-- confirm `useQueryAxiosGet` is only used under `src/hooks/query/**`
-- confirm footprint query data remains owned by the query + feature hook layers
-- confirm no Zustand pass-through wrapper hook was introduced under `src/features/overview/hooks/`
-
-### Step 8: Verify Build and Isolation
-
-- run `npm run build`
-- verify no changes were made under:
-  - `src/features/footprint/`
-  - `src/stores/footprints.ts`
+7. Verify boundaries and build health.
+   - Run `npm run build`.
+   - Confirm no changes to legacy `src/features/footprint/` or `src/stores/footprints.ts`.
+   - Confirm `useClearImageFilters` remains prepared-only.
+   - Use the current `/test` route as the default manual validation sandbox, but do not make that route itself a Phase 4 target.
 
 ## Acceptance Criteria
 
-- the Phase 2 implementation plan is explicit enough that another session can implement it file-by-file without redefining responsibilities
-- `src/stores/overview/` has a clear split between:
-  - footprint interaction state
-  - manual target state
-  - viewer flags and fly-to intent
-- `src/hooks/query/overview/` owns direct `useQueryAxiosGet` usage for overview
-- `src/features/overview/hooks/` do not directly use `useQueryAxiosGet`
-- `manualTargets` are managed in the overview store
-- remote footprint query payload remains outside Zustand and is accessed through the overview query + feature hook layers
-- no `useOverviewSelection.ts` or equivalent Zustand pass-through wrapper hook is introduced
-- `OverviewCanvas.tsx` is defined as scene-shell composition only
-- `OverviewCanvas.tsx` and other consumers use `useOverviewStore(useShallow(...))` directly when selecting store state
-- `core/`, `layers/`, `objects/`, and `canvas/hooks/` each have a defined Phase 2 implementation boundary
-- `objects/` remain props-only and do not access Zustand directly
-- `src/features/overview/utils/types.ts` and `src/features/overview/utils/constant.ts` exist and are the shared utility contract entrypoints
-- hook files export only public params/result contract types; private intermediate types are not exported
-- sidebar migration is still out of scope
-- legacy `footprint` code remains untouched
-- verification for the implementation session is:
-  - `npm run build` passes
-  - no legacy footprint files are modified
+- Hovering a footprint shows a tooltip.
+- The tooltip is positioned from a screen-space anchor near the pointer.
+- Tooltip line 1 is `Footprint {id}`.
+- Tooltip line 2 shows the number of files.
+- Tooltip line 3 shows at most 2 filenames and `+N more` when applicable.
+- If no filenames are available, the tooltip omits the filename line.
+- Moving the pointer out of all projected footprint polygons hides the tooltip and clears hover state.
+- Clicking a footprint updates selection state and selection highlighting remains intact.
+- Footprint hover and click do not depend on the rendered line object receiving pointer events.
+- In overlapping regions, the later-entered footprint becomes the active hover target.
+- Hover exit does not clear the selected footprint.
+- Globe, graticule, footprint outline, and manual target marker rendering remain functional.
+- Manual targets do not gain hover or tooltip behavior in this phase.
+- `useClearImageFilters` remains available in `src/hooks/query/overview/` but is not integrated into feature or UI flow.
+- `useOverviewSelection.ts` is not introduced.
+- `useQueryAxiosGet` is not called from `src/features/overview/hooks/`.
+- `src/features/footprint/` remains untouched.
+- `src/stores/footprints.ts` remains untouched.
+- `npm run build` passes.

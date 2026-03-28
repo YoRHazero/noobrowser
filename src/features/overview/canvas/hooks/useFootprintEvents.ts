@@ -1,6 +1,8 @@
 import type { OverviewHoverAnchor } from "@/stores/overview";
 
 export interface UseFootprintEventsParams {
+	selectedFootprintId: string | null;
+	hoveredFootprintId: string | null;
 	setSelectedFootprintId: (id: string | null) => void;
 	setHoveredFootprint: (
 		id: string | null,
@@ -9,28 +11,36 @@ export interface UseFootprintEventsParams {
 	clearHoveredFootprint: () => void;
 }
 
-export interface FootprintEventHandlers {
-	onFootprintClick: (footprintId: string) => void;
-	onFootprintPointerOver: (
+export interface UseFootprintEventsResult {
+	onFootprintClick: () => void;
+	onFootprintHover: (
 		footprintId: string,
 		anchor?: OverviewHoverAnchor | null,
 	) => void;
-	onFootprintPointerOut: () => void;
+	onFootprintHoverClear: () => void;
 }
 
 export function useFootprintEvents({
+	selectedFootprintId,
+	hoveredFootprintId,
 	setSelectedFootprintId,
 	setHoveredFootprint,
 	clearHoveredFootprint,
-}: UseFootprintEventsParams): FootprintEventHandlers {
+}: UseFootprintEventsParams): UseFootprintEventsResult {
 	return {
-		onFootprintClick: (footprintId) => {
-			setSelectedFootprintId(footprintId);
+		onFootprintClick: () => {
+			if (!hoveredFootprintId) {
+				return;
+			}
+
+			setSelectedFootprintId(
+				hoveredFootprintId === selectedFootprintId ? null : hoveredFootprintId,
+			);
 		},
-		onFootprintPointerOver: (footprintId, anchor = null) => {
+		onFootprintHover: (footprintId, anchor = null) => {
 			setHoveredFootprint(footprintId, anchor);
 		},
-		onFootprintPointerOut: () => {
+		onFootprintHoverClear: () => {
 			clearHoveredFootprint();
 		},
 	};
