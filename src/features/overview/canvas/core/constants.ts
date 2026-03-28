@@ -1,5 +1,16 @@
 export const OVERVIEW_CANVAS_CONSTANTS = {
 	globeRadius: 1,
-	minCameraDistance: 1.5,
-	maxCameraDistance: 4,
+	atmosphereRadius: 1.035,
+	cameraPosition: [0, 0, 3.25] as [number, number, number],
+	cameraFov: 50,
+	cameraNear: 0.1,
+	cameraFar: 100,
+	minCameraDistance: 1.8,
+	maxCameraDistance: 8,
+	backgroundColor: "#03060a",
+	globeColor: "#101820",
+	orbitColor: "#9fb3c8",
+	graticuleColor: "#4f667a",
+	footprintColor: "#7dd3fc",
+	manualTargetColor: "#f59e0b",
 } as const;

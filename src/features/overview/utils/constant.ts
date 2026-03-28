@@ -1,0 +1,10 @@
+export const DEG_TO_RAD = Math.PI / 180;
+export const RAD_TO_DEG = 180 / Math.PI;
+
+export const GRATICULE_POINT_STEP_DEG = 10;
+export const DEFAULT_GRATICULE_MERIDIAN_STEP_DEG = 30;
+export const DEFAULT_GRATICULE_PARALLEL_STEP_DEG = 30;
+
+export const FOOTPRINT_LINE_RADIUS_OFFSET = 1.005;
+export const FOOTPRINT_CENTER_RADIUS_OFFSET = 1.012;
+export const MANUAL_TARGET_RADIUS_OFFSET = 1.02;

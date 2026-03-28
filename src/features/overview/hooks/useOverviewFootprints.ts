@@ -1,21 +1,51 @@
-export interface OverviewFootprintVertex {
-	ra: number;
-	dec: number;
-}
+import { useGrismFootprints } from "@/hooks/query/overview";
+import type { GrismFootprintItem } from "@/hooks/query/overview";
+import type { EquatorialCoordinate, OverviewFootprintRecord } from "../utils/types";
 
-export interface OverviewFootprintRecord {
-	id: string;
-	vertices: OverviewFootprintVertex[];
+export interface UseOverviewFootprintsParams {
+	enabled?: boolean;
 }
 
 export interface UseOverviewFootprintsResult {
 	footprints: OverviewFootprintRecord[];
 	isLoading: boolean;
+	isError: boolean;
+	error: Error | null;
 }
 
-export function useOverviewFootprints(): UseOverviewFootprintsResult {
+function normalizeFootprint(
+	item: GrismFootprintItem,
+): OverviewFootprintRecord {
+	const vertices: EquatorialCoordinate[] = item.footprint.vertices.map(
+		([ra, dec]) => ({ ra, dec }),
+	);
+	const center: EquatorialCoordinate = {
+		ra: item.footprint.center[0],
+		dec: item.footprint.center[1],
+	};
+
 	return {
-		footprints: [],
-		isLoading: false,
+		id: item.id,
+		vertices,
+		center,
+		meta: {
+			...(item.meta ?? {}),
+			center,
+		},
+	};
+}
+
+export function useOverviewFootprints({
+	enabled = true,
+}: UseOverviewFootprintsParams = {}): UseOverviewFootprintsResult {
+	const query = useGrismFootprints({
+		enabled,
+	});
+
+	return {
+		footprints: (query.data ?? []).map(normalizeFootprint),
+		isLoading: query.isLoading,
+		isError: query.isError,
+		error: query.error ?? null,
 	};
 }
