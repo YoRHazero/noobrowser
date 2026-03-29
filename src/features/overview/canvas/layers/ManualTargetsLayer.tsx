@@ -3,11 +3,13 @@ import type { OverviewManualTarget } from "@/stores/overview";
 
 export interface ManualTargetsLayerProps {
 	manualTargets: OverviewManualTarget[];
+	selectedTargetIds: string[];
 	radius: number;
 }
 
 export function ManualTargetsLayer({
 	manualTargets,
+	selectedTargetIds,
 	radius,
 }: ManualTargetsLayerProps) {
 	return (
@@ -15,8 +17,11 @@ export function ManualTargetsLayer({
 			{manualTargets.map((target) => (
 				<ManualTargetMarker
 					key={target.id}
-					target={target}
+					coordinate={target}
 					radius={radius}
+					variant={
+						selectedTargetIds.includes(target.id) ? "selected" : "committed"
+					}
 				/>
 			))}
 		</>

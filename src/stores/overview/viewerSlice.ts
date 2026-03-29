@@ -2,6 +2,7 @@ import type { StateCreator } from "zustand";
 import type { OverviewStoreState } from "./index";
 import type {
 	OverviewCursorWorldCoordinate,
+	OverviewSidebarTab,
 	OverviewTooltipMode,
 } from "./types";
 
@@ -9,12 +10,14 @@ export interface OverviewViewerSlice {
 	showGrid: boolean;
 	pendingFlyToTargetId: string | null;
 	tooltipMode: OverviewTooltipMode;
+	activeSidebarTab: OverviewSidebarTab;
 	targetCoordinatePrecision: number;
 	cursorWorldCoordinate: OverviewCursorWorldCoordinate | null;
 	setShowGrid: (show: boolean) => void;
 	requestFlyToTarget: (id: string | null) => void;
 	clearPendingFlyToTarget: () => void;
 	setTooltipMode: (mode: OverviewTooltipMode) => void;
+	setActiveSidebarTab: (tab: OverviewSidebarTab) => void;
 	setTargetCoordinatePrecision: (precision: number) => void;
 	setCursorWorldCoordinate: (
 		coordinate: OverviewCursorWorldCoordinate | null,
@@ -31,6 +34,7 @@ export const createOverviewViewerSlice: StateCreator<
 	showGrid: true,
 	pendingFlyToTargetId: null,
 	tooltipMode: "footprint",
+	activeSidebarTab: "footprints",
 	targetCoordinatePrecision: 6,
 	cursorWorldCoordinate: null,
 	setShowGrid: (show) => set({ showGrid: show }),
@@ -42,6 +46,7 @@ export const createOverviewViewerSlice: StateCreator<
 			cursorWorldCoordinate:
 				mode === "footprint" ? null : state.cursorWorldCoordinate,
 		})),
+	setActiveSidebarTab: (tab) => set({ activeSidebarTab: tab }),
 	setTargetCoordinatePrecision: (precision) =>
 		set({
 			targetCoordinatePrecision: Math.max(

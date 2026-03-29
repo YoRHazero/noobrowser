@@ -4,6 +4,7 @@ export interface OverviewHoverAnchor {
 }
 
 export type OverviewTooltipMode = "footprint" | "target";
+export type OverviewSidebarTab = "footprints" | "targets";
 
 export interface OverviewCursorWorldCoordinate {
 	ra: number;
@@ -15,5 +16,6 @@ export interface OverviewManualTarget {
 	id: string;
 	ra: number;
 	dec: number;
-	label?: string;
+	label: string;
+	createdAt: string;
 }

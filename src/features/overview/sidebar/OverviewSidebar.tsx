@@ -1,4 +1,7 @@
 import { Box, Tabs, useSlotRecipe } from "@chakra-ui/react";
+import { useShallow } from "zustand/react/shallow";
+import type { OverviewSidebarTab } from "@/stores/overview";
+import { useOverviewStore } from "@/stores/overview";
 import { FootprintsSection } from "./FootprintsSection";
 import { TargetsSection } from "./TargetsSection";
 import { overviewSidebarShellRecipe } from "./recipes/overview-sidebar-shell.recipe";
@@ -6,11 +9,20 @@ import { overviewSidebarShellRecipe } from "./recipes/overview-sidebar-shell.rec
 export function OverviewSidebar() {
 	const recipe = useSlotRecipe({ recipe: overviewSidebarShellRecipe });
 	const styles = recipe();
+	const { activeSidebarTab, setActiveSidebarTab } = useOverviewStore(
+		useShallow((state) => ({
+			activeSidebarTab: state.activeSidebarTab,
+			setActiveSidebarTab: state.setActiveSidebarTab,
+		})),
+	);
 
 	return (
 		<Box as="aside" css={styles.root}>
 			<Tabs.Root
-				defaultValue="footprints"
+				value={activeSidebarTab}
+				onValueChange={(details) =>
+					setActiveSidebarTab(details.value as OverviewSidebarTab)
+				}
 				variant="line"
 				fitted
 				colorPalette="cyan"

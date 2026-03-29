@@ -1,225 +1,158 @@
-# SPEC: Overview Three Phase 5 Sidebar Footprint Cards
+# SPEC: Overview Three Phase 7 Target List Selection, Rename, And Delete
 
 ## Goal
 
-Move the `overview` module from an interactive canvas-first implementation into the first sidebar-backed feature shell.
+Phase 6 established the target add workflow:
+
+1. a real `Targets` tab with an add form
+2. right-click coordinate fill from `cursorWorldCoordinate`
+3. committed targets rendered on the globe
+4. valid draft coordinates rendered as a draft preview
+
+Phase 7 builds on that baseline and turns the committed target list into a manageable working surface.
 
 This phase must deliver:
 
-1. a feature-level sidebar beside the existing overview canvas
-2. a footprint card list sourced from normalized overview footprint data
-3. shared selection between canvas and sidebar through the existing overview store
-4. a target section placeholder only, with no target workflow implementation
+1. multi-selection from the `Target List`
+2. inline label rename inside the list
+3. direct target deletion from the list
+4. selected committed targets rendered on the globe with a distinct selected color
 
-This phase is still not a target workflow phase, not a legacy migration phase, and not a camera UX phase.
+This is still not a target hover phase, not a target fly-to phase, and not a canvas-driven selection phase.
 
 ## Scope
 
-### Baseline
+### Selection Contract
 
-- Assume the current interactive `overview` canvas is already the baseline.
-- Assume `src/features/overview/canvas/README.md` remains the source of truth for folder boundaries and dependency rules.
-- Keep the current public names unchanged:
-  - `useGrismFootprints`
-  - `useClearImageFilters`
-  - `useOverviewFootprints`
-  - `useOverviewStore`
-- `useQueryAxiosGet` remains a low-level query primitive and must only be used under `src/hooks/query/**`.
-- `OverviewCanvas.tsx` must continue to read Zustand state directly with `useOverviewStore(useShallow(...))`.
-- Do not introduce `useOverviewSelection.ts`, `useOverviewSidebarState.ts`, or any equivalent Zustand pass-through wrapper hook.
+- target selection originates only from the `Target List`
+- clicking a target card toggles that target in the shared selected set
+- clicking an already selected card deselects it
+- multiple committed targets may be selected at the same time
+- selection is UI-only and does not persist across refresh
+- canvas markers do not become interactive in this phase
 
-### Sidebar Scope
+### Inline Rename Contract
 
-Phase 5 is a sidebar shell phase.
+- rename happens only inside the `Target List`
+- do not reuse the top `Add Target` form for rename
+- only one target may be in editing mode at a time
+- clicking `Edit` switches that card into inline edit mode
+- edit mode replaces the label text with an input and shows `Save` and `Cancel`
+- `Save` rules:
+  - use `trim()`
+  - empty labels are invalid
+  - errors stay local to the list card
+  - valid labels update the existing committed target via `updateManualTarget`
+- `Cancel` rules:
+  - discard the local edit value
+  - clear the local error
+  - exit edit mode
+- rename must not clear or change the selection state
 
-- the sidebar lives outside `src/features/overview/canvas/`
-- the sidebar is composed at the feature level by `src/features/overview/index.tsx`
-- the sidebar contains exactly 2 top-level sections in this phase:
-  - `Footprints`
-  - `Targets`
-- the `Footprints` section renders one card per normalized footprint
-- card highlighting is driven only by `selectedFootprintId`
-- hover remains a canvas concern and does not drive sidebar highlight state in this phase
-- clicking an unselected card selects that footprint
-- clicking the selected card clears selection
-- clicking a different card switches selection to that footprint
-- canvas selection and sidebar selection must stay synchronized because they share the same store state
-- the `Targets` section is a placeholder shell only in this phase
+### Delete Contract
 
-### Footprint Card Content
+- delete happens directly from the list card
+- no confirmation dialog
+- no browser `confirm`
+- deleting a committed target must:
+  - remove the target from the committed target collection
+  - remove its canvas marker immediately
+  - remove its id from the shared selected set if present
+- delete does not affect the `Add Target` draft fields
 
-Footprint card content is intentionally lightweight in this phase:
+### Canvas Display Contract
 
-- line 1: `Footprint {id}`
-- line 2: `Center: ({ra}°, {dec}°)`
-- line 3: `{included_files.length} files`
-- optional supporting line:
-  - show up to the first 2 filenames from `included_files`
-  - if no filenames exist, omit that line
-- do not add per-card action menus, filter controls, badges, or dense metadata panels in this phase
+- committed target markers keep the Phase 6 billboard/sprite implementation
+- draft preview keeps the Phase 6 billboard/sprite implementation
+- a third committed marker visual state is added for selected targets
+- marker variants are:
+  - `committed`: bright green
+  - `selected`: bright cyan
+  - `draft`: near-white
+- selected targets only change color in this phase
+- do not change marker size, labels, tooltips, hover, or click behavior
+- draft preview never enters the selected state
+- footprint selection and target selection remain independent
 
-### Target Section Scope
+## Store And Data Boundaries
 
-The target section is present only as a future-facing entry point.
+### Targets Slice
 
-- render the section shell and title
-- render placeholder copy indicating that target list and target actions are not implemented yet
-- do not render target cards or target rows
-- do not wire target add, edit, remove, select, hover, or fly-to behavior
+- committed target persistence remains unchanged:
+  - persist `manualTargets`
+  - persist `nextTargetSequence`
+- draft state remains unchanged and non-persisted:
+  - `targetDraftLabel`
+  - `targetDraftRa`
+  - `targetDraftDec`
+  - `targetDraftFocusToken`
+- add new UI-only selection state:
+  - `selectedTargetIds: string[]`
+- add new selection actions:
+  - `toggleSelectedTarget`
+  - `clearSelectedTargets`
+- `selectedTargetIds` must not be persisted
+- `removeManualTarget` must also remove the target id from `selectedTargetIds`
 
-### Store And Query Boundary
+### Sidebar Component Boundary
 
-`src/stores/overview/` and `src/hooks/query/overview/` remain baseline dependencies, not the primary delivery surface.
+- `TargetsSection.tsx` continues to own:
+  - add-form validation errors
+  - inline rename editing state
+  - inline rename validation errors
+- keep rename UI local to the list component:
+  - `editingTargetId`
+  - `editingLabelValue`
+  - `editingLabelError`
+- do not move list editing state into Zustand
 
-- `src/stores/overview/footprintSlice.ts`
-  - remains the shared source of `selectedFootprintId`
-  - continues to own hover state, but hover is not a sidebar concern in this phase
-- `src/stores/overview/targetsSlice.ts`
-  - remains baseline-only plumbing
-  - its mutation actions must not be surfaced in the sidebar UI in this phase
-- `src/features/overview/hooks/useOverviewFootprints.ts`
-  - continues to normalize query data only
-  - must not move remote footprint payload into Zustand
-- `src/hooks/query/overview/`
-  - remains the only place where overview-specific query hooks directly use `useQueryAxiosGet`
-  - `useClearImageFilters` remains prepared-only and unused by the sidebar flow in this phase
-- sidebar components may read `useOverviewStore(useShallow(...))` and `useOverviewFootprints` directly at the call site
-- do not add feature hooks whose only purpose is forwarding Zustand selectors or actions
+### Canvas Boundary
 
-## Non-goals
-
-This phase must explicitly avoid the following:
-
-- target list implementation
-- manual target CRUD UI
-- target hover interaction
-- target tooltip UI
-- target selection state
-- target fly-to
-- camera fly-to choreography
-- camera control redesign
-- graticule UX redesign
-- viewer HUD migration or redesign
-- clear image filters UI integration
-- overview search, filter, sort, or pagination controls
-- virtualized list behavior
-- moving remote footprint payload into Zustand
-- introducing `useOverviewSelection.ts` or equivalent pass-through hooks
-- direct `useQueryAxiosGet` usage from `src/features/overview/**`
-- editing legacy code under `src/features/footprint/`
-- replacing `/wfss` or any legacy route wiring in this phase
+- `OverviewCanvas.tsx` consumes the shared selected ids
+- `ManualTargetsLayer.tsx` decides whether each committed target uses:
+  - `committed`
+  - `selected`
+- `DraftTargetLayer.tsx` stays separate and continues to render only draft preview state
+- canvas remains display-only for target markers in this phase
 
 ## Target Files
 
-### Primary Phase 5 Implementation Surface
-
 ```text
-src/features/overview/
-  index.tsx
+SPEC.overview-three.md
 
-  sidebar/
-    OverviewSidebar.tsx
-    FootprintsSection.tsx
-    OverviewFootprintCard.tsx
-    TargetsSection.tsx
-```
+src/features/overview/sidebar/
+  TargetsSection.tsx
+  OverviewSidebar.tsx
 
-### Baseline Dependency Surface
-
-```text
 src/features/overview/canvas/
   OverviewCanvas.tsx
-  README.md
-
-src/features/overview/hooks/
-  useOverviewFootprints.ts
-
-src/hooks/query/overview/
-  useGrismFootprints.ts
-  useClearImageFilters.ts
+  layers/
+    ManualTargetsLayer.tsx
+    DraftTargetLayer.tsx
+  objects/
+    ManualTargetMarker.tsx
 
 src/stores/overview/
-  footprintSlice.ts
   targetsSlice.ts
-  viewerSlice.ts
   index.ts
-  types.ts
-
-src/features/overview/controls/
-  OverviewViewerHud.tsx
 ```
 
-These baseline files may be adjusted only when required to support the new feature-level layout and shared selection flow.
+## Non-goals
 
-## Responsibilities
+- canvas marker click selection
+- target hover state
+- target marker tooltip UI
+- target fly-to
+- camera choreography
+- rename of RA/Dec
+- delete confirmation or undo
+- backend persistence
+- bulk import
+- legacy `src/features/footprint/` replacement work
+- `/wfss` route replacement
 
-### `src/features/overview/index.tsx`
+## Build Check
 
-- becomes the feature-level layout root
-- compose the overview canvas area and the new sidebar area
-- keep sidebar UI out of `canvas/`
-- preserve the existing overview feature shell behavior outside this new layout responsibility
-
-### `src/features/overview/sidebar/OverviewSidebar.tsx`
-
-- remain the sidebar composition root
-- structure the `Footprints` and `Targets` sections
-- read only the state and data needed for sidebar rendering
-- keep the sidebar focused on page-level UI rather than scene logic
-
-### `src/features/overview/sidebar/FootprintsSection.tsx`
-
-- read normalized footprint data from `useOverviewFootprints`
-- read `selectedFootprintId` and `setSelectedFootprintId` from the overview store
-- render loading, empty, and populated states safely
-- map footprint records into `OverviewFootprintCard` props
-- own the simple card click-to-toggle selection behavior
-- do not fetch data with low-level query primitives
-
-### `src/features/overview/sidebar/OverviewFootprintCard.tsx`
-
-- remain props-only
-- remain visual-only
-- render the lightweight card content defined above
-- reflect selected versus unselected styling
-- do not access Zustand or query hooks directly
-
-### `src/features/overview/sidebar/TargetsSection.tsx`
-
-- render a stable section shell and placeholder copy only
-- do not render target list rows
-- do not own target mutations or target workflow behavior
-
-### `src/features/overview/canvas/OverviewCanvas.tsx`
-
-- remain the scene shell and composition root for canvas behavior
-- continue to use the shared store so canvas-side selection stays synchronized with sidebar-side selection
-- do not absorb sidebar responsibilities
-
-### `src/features/overview/hooks/useOverviewFootprints.ts`
-
-- continue as the feature-level normalization hook
-- keep card-friendly metadata available from normalized records
-- do not change the query/store layering
-
-## Step-by-step Plan
-
-1. Add the feature-level sidebar shell.
-   - Update `src/features/overview/index.tsx` so overview is no longer only `canvas + HUD`.
-   - Keep the sidebar outside `canvas/`.
-
-2. Add the footprint cards section.
-   - Read normalized footprint data from `useOverviewFootprints`.
-   - Render one lightweight card per footprint.
-
-3. Wire shared selection.
-   - Use the existing `selectedFootprintId` store path.
-   - Toggle selection on card click without introducing new selection state.
-
-4. Add the targets placeholder section.
-   - Render section framing and placeholder copy only.
-   - Do not wire target mutations or target workflow actions.
-
-5. Verify shared behavior and build health.
-   - Confirm canvas and sidebar stay synchronized through the shared store.
-   - Confirm the phase does not break existing overview canvas behavior.
+- the only automated verification step for this phase is:
+  - `npm run build`
+- this phase is not complete if either `vite build` or `tsc` fails

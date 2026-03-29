@@ -21,6 +21,7 @@ export type {
 	OverviewCursorWorldCoordinate,
 	OverviewHoverAnchor,
 	OverviewManualTarget,
+	OverviewSidebarTab,
 	OverviewTooltipMode,
 } from "./types";
 export type { OverviewFootprintSlice } from "./footprintSlice";
@@ -38,6 +39,7 @@ export const useOverviewStore = create<OverviewStoreState>()(
 			name: "noobrowser-overview-store",
 			partialize: (state) => ({
 				manualTargets: state.manualTargets,
+				nextTargetSequence: state.nextTargetSequence,
 				tooltipMode: state.tooltipMode,
 				targetCoordinatePrecision: state.targetCoordinatePrecision,
 			}),

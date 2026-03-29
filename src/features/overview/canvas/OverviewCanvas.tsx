@@ -7,9 +7,11 @@ import { createGraticuleLines } from "../utils/graticule";
 import { GRATICULE_RADIUS_OFFSET } from "../utils/constant";
 import type { GraticuleLine, HoveredGraticule } from "../utils/types";
 import { useOverviewFootprints } from "../hooks/useOverviewFootprints";
+import { parseOverviewTargetDraft } from "../utils/targets";
 import { CameraRig } from "./core/CameraRig";
 import { OVERVIEW_CANVAS_CONSTANTS } from "./core/constants";
 import { SceneEnvironment } from "./core/SceneEnvironment";
+import { DraftTargetLayer } from "./layers/DraftTargetLayer";
 import { FootprintsLayer } from "./layers/FootprintsLayer";
 import { GlobeLayer } from "./layers/GlobeLayer";
 import { GraticuleLayer } from "./layers/GraticuleLayer";
@@ -121,9 +123,12 @@ export function OverviewCanvas() {
 	const { footprints } = useOverviewFootprints();
 	const {
 		manualTargets,
+		selectedTargetIds,
 		showGrid,
 		pendingFlyToTargetId,
 		tooltipMode,
+		targetDraftRa,
+		targetDraftDec,
 		targetCoordinatePrecision,
 		cursorWorldCoordinate,
 		selectedFootprintId,
@@ -132,14 +137,19 @@ export function OverviewCanvas() {
 		setSelectedFootprintId,
 		setHoveredFootprint,
 		clearHoveredFootprint,
+		setActiveSidebarTab,
+		fillTargetDraftCoordinates,
 		setCursorWorldCoordinate,
 		clearCursorWorldCoordinate,
 	} = useOverviewStore(
 		useShallow((state) => ({
 			manualTargets: state.manualTargets,
+			selectedTargetIds: state.selectedTargetIds,
 			showGrid: state.showGrid,
 			pendingFlyToTargetId: state.pendingFlyToTargetId,
 			tooltipMode: state.tooltipMode,
+			targetDraftRa: state.targetDraftRa,
+			targetDraftDec: state.targetDraftDec,
 			targetCoordinatePrecision: state.targetCoordinatePrecision,
 			cursorWorldCoordinate: state.cursorWorldCoordinate,
 			selectedFootprintId: state.selectedFootprintId,
@@ -148,10 +158,16 @@ export function OverviewCanvas() {
 			setSelectedFootprintId: state.setSelectedFootprintId,
 			setHoveredFootprint: state.setHoveredFootprint,
 			clearHoveredFootprint: state.clearHoveredFootprint,
+			setActiveSidebarTab: state.setActiveSidebarTab,
+			fillTargetDraftCoordinates: state.fillTargetDraftCoordinates,
 			setCursorWorldCoordinate: state.setCursorWorldCoordinate,
 			clearCursorWorldCoordinate: state.clearCursorWorldCoordinate,
 		})),
 	);
+	const draftTargetPreview = parseOverviewTargetDraft({
+		raInput: targetDraftRa,
+		decInput: targetDraftDec,
+	});
 
 	const hoveredFootprint =
 		footprints.find((footprint) => footprint.id === hoveredFootprintId) ?? null;
@@ -214,6 +230,23 @@ export function OverviewCanvas() {
 			h="100%"
 			minH="0"
 			overflow="hidden"
+			onContextMenu={(event) => {
+				if (tooltipMode !== "target") {
+					return;
+				}
+
+				event.preventDefault();
+
+				if (!cursorWorldCoordinate) {
+					return;
+				}
+
+				setActiveSidebarTab("targets");
+				fillTargetDraftCoordinates({
+					ra: cursorWorldCoordinate.ra,
+					dec: cursorWorldCoordinate.dec,
+				});
+			}}
 		>
 			<Canvas
 				dpr={[1, 2]}
@@ -251,6 +284,11 @@ export function OverviewCanvas() {
 				/>
 				<ManualTargetsLayer
 					manualTargets={manualTargets}
+					selectedTargetIds={selectedTargetIds}
+					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
+				/>
+				<DraftTargetLayer
+					draftTarget={draftTargetPreview}
 					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
 				/>
 			</Canvas>
@@ -283,7 +321,7 @@ export function OverviewCanvas() {
 							Dec {cursorTooltipCoordinate.dec}°
 						</Text>
 						<Text fontSize="10px" color="whiteAlpha.600">
-							Right click to add target
+							Right click to fill target form
 						</Text>
 					</Box>
 				) : null
