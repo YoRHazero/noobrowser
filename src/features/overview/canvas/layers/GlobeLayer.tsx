@@ -1,22 +1,15 @@
-import { AtmosphereSphere } from "../objects/AtmosphereSphere";
 import { GlobeSphere } from "../objects/GlobeSphere";
+
+const GLOBE_COLOR = "#183245";
 
 export interface GlobeLayerProps {
 	radius: number;
-	showAtmosphere: boolean;
 }
 
-export function GlobeLayer({ radius, showAtmosphere }: GlobeLayerProps) {
+export function GlobeLayer({ radius }: GlobeLayerProps) {
 	return (
 		<>
-			<GlobeSphere radius={radius} color="#101820" />
-			{showAtmosphere ? (
-				<AtmosphereSphere
-					radius={radius * 1.035}
-					color="#56cfe1"
-					opacity={0.12}
-				/>
-			) : null}
+			<GlobeSphere radius={radius} color={GLOBE_COLOR} />
 		</>
 	);
 }

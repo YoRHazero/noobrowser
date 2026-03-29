@@ -1,9 +1,9 @@
 import { useGrismFootprints } from "@/hooks/query/overview";
 import type { GrismFootprintItem } from "@/hooks/query/overview";
 import type {
-	EquatorialCoordinate,
 	OverviewFootprintMeta,
 	OverviewFootprintRecord,
+	WorldCoordinate,
 } from "../utils/types";
 
 export interface UseOverviewFootprintsParams {
@@ -20,10 +20,10 @@ export interface UseOverviewFootprintsResult {
 function normalizeFootprint(
 	item: GrismFootprintItem,
 ): OverviewFootprintRecord {
-	const vertices: EquatorialCoordinate[] = item.footprint.vertices.map(
+	const vertices: WorldCoordinate[] = item.footprint.vertices.map(
 		([ra, dec]) => ({ ra, dec }),
 	);
-	const center: EquatorialCoordinate = {
+	const center: WorldCoordinate = {
 		ra: item.footprint.center[0],
 		dec: item.footprint.center[1],
 	};

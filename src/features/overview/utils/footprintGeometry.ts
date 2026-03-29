@@ -2,19 +2,19 @@ import { FOOTPRINT_LINE_RADIUS_OFFSET } from "./constant";
 import { raDecToCartesian } from "./celestial";
 import type {
 	CartesianCoordinate,
-	FootprintGeometryVertex,
 	ScreenPoint,
+	WorldCoordinate,
 } from "./types";
 
 export function toFootprintPolygonPoints(
-	vertices: FootprintGeometryVertex[],
+	vertices: WorldCoordinate[],
 	radius = FOOTPRINT_LINE_RADIUS_OFFSET,
 ): CartesianCoordinate[] {
 	return vertices.map((vertex) => raDecToCartesian(vertex, radius));
 }
 
 export function toFootprintLinePoints(
-	vertices: FootprintGeometryVertex[],
+	vertices: WorldCoordinate[],
 	radius = FOOTPRINT_LINE_RADIUS_OFFSET,
 ): CartesianCoordinate[] {
 	const points = toFootprintPolygonPoints(vertices, radius);

@@ -29,11 +29,19 @@ export function createGraticuleLines({
 	const lines: GraticuleLine[] = [];
 
 	for (let ra = 0; ra < 360; ra += meridianStepDeg) {
-		lines.push({ points: createMeridianPoints(ra, radius) });
+		lines.push({
+			kind: "ra",
+			valueDeg: ra,
+			points: createMeridianPoints(ra, radius),
+		});
 	}
 
 	for (let dec = -60; dec <= 60; dec += parallelStepDeg) {
-		lines.push({ points: createParallelPoints(dec, radius) });
+		lines.push({
+			kind: "dec",
+			valueDeg: dec,
+			points: createParallelPoints(dec, radius),
+		});
 	}
 
 	return lines;

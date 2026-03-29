@@ -1,8 +1,11 @@
 import { Box, Text } from "@chakra-ui/react";
 import { Canvas } from "@react-three/fiber";
-import { useRef } from "react";
+import { useMemo, useRef, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useOverviewStore } from "@/stores/overview";
+import { createGraticuleLines } from "../utils/graticule";
+import { GRATICULE_RADIUS_OFFSET } from "../utils/constant";
+import type { GraticuleLine, HoveredGraticule } from "../utils/types";
 import { useOverviewFootprints } from "../hooks/useOverviewFootprints";
 import { CameraRig } from "./core/CameraRig";
 import { OVERVIEW_CANVAS_CONSTANTS } from "./core/constants";
@@ -11,39 +14,86 @@ import { FootprintsLayer } from "./layers/FootprintsLayer";
 import { GlobeLayer } from "./layers/GlobeLayer";
 import { GraticuleLayer } from "./layers/GraticuleLayer";
 import { ManualTargetsLayer } from "./layers/ManualTargetsLayer";
-import { useFootprintEvents } from "./hooks/useFootprintEvents";
 import { useFootprintInteractionResolver } from "./hooks/useFootprintInteractionResolver";
+import { useGraticuleHoverResolver } from "./hooks/useGraticuleHoverResolver";
+import { useOverviewGraticuleDensity } from "./hooks/useOverviewGraticuleDensity";
 
 interface FootprintInteractionBridgeProps {
 	footprints: ReturnType<typeof useOverviewFootprints>["footprints"];
 	radius: number;
+	selectedFootprintId: string | null;
 	hoveredFootprintId: string | null;
-	events: ReturnType<typeof useFootprintEvents>;
+	setSelectedFootprintId: (id: string | null) => void;
+	setHoveredFootprint: (id: string | null, anchor?: { x: number; y: number } | null) => void;
+	clearHoveredFootprint: () => void;
 }
 
 function FootprintInteractionBridge({
 	footprints,
 	radius,
+	selectedFootprintId,
 	hoveredFootprintId,
-	events,
+	setSelectedFootprintId,
+	setHoveredFootprint,
+	clearHoveredFootprint,
 }: FootprintInteractionBridgeProps) {
 	useFootprintInteractionResolver({
 		footprints,
 		radius,
+		selectedFootprintId,
 		hoveredFootprintId,
-		events,
+		setSelectedFootprintId,
+		setHoveredFootprint,
+		clearHoveredFootprint,
 	});
 
 	return null;
 }
 
+interface GraticuleInteractionBridgeProps {
+	visible: boolean;
+	radius: number;
+	suppressHover: boolean;
+	onHoverChange: (hoveredGraticule: HoveredGraticule | null) => void;
+}
+
+function GraticuleInteractionBridge({
+	visible,
+	radius,
+	suppressHover,
+	onHoverChange,
+}: GraticuleInteractionBridgeProps) {
+	const { meridianStepDeg, parallelStepDeg } = useOverviewGraticuleDensity({
+		radius,
+	});
+	const lines = useMemo<GraticuleLine[]>(
+		() =>
+			createGraticuleLines({
+				radius: radius * GRATICULE_RADIUS_OFFSET,
+				meridianStepDeg,
+				parallelStepDeg,
+			}),
+		[radius, meridianStepDeg, parallelStepDeg],
+	);
+
+	useGraticuleHoverResolver({
+		lines,
+		visible,
+		suppressHover,
+		onHoverChange,
+	});
+
+	return <GraticuleLayer visible={visible} lines={lines} />;
+}
+
 export function OverviewCanvas() {
 	const containerRef = useRef<HTMLDivElement | null>(null);
+	const [hoveredGraticule, setHoveredGraticule] =
+		useState<HoveredGraticule | null>(null);
 	const { footprints } = useOverviewFootprints();
 	const {
 		manualTargets,
 		showGrid,
-		showAtmosphere,
 		pendingFlyToTargetId,
 		selectedFootprintId,
 		hoveredFootprintId,
@@ -55,7 +105,6 @@ export function OverviewCanvas() {
 		useShallow((state) => ({
 			manualTargets: state.manualTargets,
 			showGrid: state.showGrid,
-			showAtmosphere: state.showAtmosphere,
 			pendingFlyToTargetId: state.pendingFlyToTargetId,
 			selectedFootprintId: state.selectedFootprintId,
 			hoveredFootprintId: state.hoveredFootprintId,
@@ -66,14 +115,6 @@ export function OverviewCanvas() {
 		})),
 	);
 
-	const footprintEvents = useFootprintEvents({
-		selectedFootprintId,
-		hoveredFootprintId,
-		setSelectedFootprintId,
-		setHoveredFootprint,
-		clearHoveredFootprint,
-	});
-
 	const hoveredFootprint =
 		footprints.find((footprint) => footprint.id === hoveredFootprintId) ?? null;
 	const containerRect = containerRef.current?.getBoundingClientRect();
@@ -82,6 +123,13 @@ export function OverviewCanvas() {
 			? {
 					left: hoveredFootprintAnchor.x - containerRect.left + 12,
 					top: hoveredFootprintAnchor.y - containerRect.top + 12,
+				}
+			: null;
+	const graticuleTooltipPosition =
+		hoveredGraticule && containerRect
+			? {
+					left: hoveredGraticule.anchor.x - containerRect.left + 12,
+					top: hoveredGraticule.anchor.y - containerRect.top + 12,
 				}
 			: null;
 	const includedFiles = Array.isArray(hoveredFootprint?.meta.included_files)
@@ -113,23 +161,24 @@ export function OverviewCanvas() {
 			<Canvas
 				dpr={[1, 2]}
 				gl={{ antialias: true, alpha: false }}
-				camera={{ position: OVERVIEW_CANVAS_CONSTANTS.cameraPosition }}
 			>
 				<FootprintInteractionBridge
 					footprints={footprints}
 					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
+					selectedFootprintId={selectedFootprintId}
 					hoveredFootprintId={hoveredFootprintId}
-					events={footprintEvents}
+					setSelectedFootprintId={setSelectedFootprintId}
+					setHoveredFootprint={setHoveredFootprint}
+					clearHoveredFootprint={clearHoveredFootprint}
 				/>
 				<SceneEnvironment />
 				<CameraRig pendingFlyToTargetId={pendingFlyToTargetId} />
-				<GlobeLayer
-					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
-					showAtmosphere={showAtmosphere}
-				/>
-				<GraticuleLayer
+				<GlobeLayer radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius} />
+				<GraticuleInteractionBridge
 					visible={showGrid}
 					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
+					suppressHover={hoveredFootprintId !== null}
+					onHoverChange={setHoveredGraticule}
 				/>
 				<FootprintsLayer
 					footprints={footprints}
@@ -172,6 +221,29 @@ export function OverviewCanvas() {
 							{tooltipFileLine}
 						</Text>
 					) : null}
+					</Box>
+				) : null}
+			{!hoveredFootprint && hoveredGraticule && graticuleTooltipPosition ? (
+				<Box
+					position="absolute"
+					left={`${graticuleTooltipPosition.left}px`}
+					top={`${graticuleTooltipPosition.top}px`}
+					pointerEvents="none"
+					zIndex="1"
+					px="3"
+					py="2"
+					borderWidth="1px"
+					borderColor="whiteAlpha.300"
+					borderRadius="md"
+					bg="blackAlpha.800"
+					backdropFilter="blur(10px)"
+					color="white"
+					boxShadow="lg"
+				>
+					<Text fontSize="sm" fontWeight="semibold">
+						{hoveredGraticule.kind === "ra" ? "RA" : "DEC"}{" "}
+						{hoveredGraticule.valueDeg}°
+					</Text>
 				</Box>
 			) : null}
 		</Box>

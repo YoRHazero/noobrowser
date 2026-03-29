@@ -1,8 +1,17 @@
 import { useThree } from "@react-three/fiber";
+import { useRef } from "react";
 import { Vector3 } from "three";
-import type { CartesianCoordinate, ScreenPoint } from "@/features/overview/utils/types";
+import {
+	isProjectedPointVisible,
+	isWorldPointFacingCamera,
+	ndcToScreenPoint,
+} from "@/features/overview/utils/projection";
+import type {
+	ScreenPoint,
+	WorldPointInput,
+} from "@/features/overview/utils/types";
 
-type TooltipProjectionInput = CartesianCoordinate | [number, number, number] | null;
+type TooltipProjectionInput = WorldPointInput | null;
 
 export interface UseTooltipProjectionResult {
 	projectWorldPoint: (point: TooltipProjectionInput) => ScreenPoint | null;
@@ -10,21 +19,34 @@ export interface UseTooltipProjectionResult {
 
 export function useTooltipProjection(): UseTooltipProjectionResult {
 	const { camera, size } = useThree();
+	const cameraPositionRef = useRef(new Vector3());
+	const projectedPointRef = useRef(new Vector3());
 
 	return {
 		projectWorldPoint: (point: TooltipProjectionInput): ScreenPoint | null => {
 			if (!point) return null;
 
-			const vector = Array.isArray(point)
-				? new Vector3(point[0], point[1], point[2])
-				: new Vector3(point.x, point.y, point.z);
+			const cameraDirection = camera
+				.getWorldPosition(cameraPositionRef.current)
+				.normalize();
 
-			vector.project(camera);
+			if (!isWorldPointFacingCamera(point, cameraDirection)) {
+				return null;
+			}
 
-			return {
-				x: ((vector.x + 1) / 2) * size.width,
-				y: ((1 - vector.y) / 2) * size.height,
-			};
+			if (Array.isArray(point)) {
+				projectedPointRef.current.set(point[0], point[1], point[2]);
+			} else {
+				projectedPointRef.current.set(point.x, point.y, point.z);
+			}
+
+			projectedPointRef.current.project(camera);
+
+			if (!isProjectedPointVisible(projectedPointRef.current)) {
+				return null;
+			}
+
+			return ndcToScreenPoint(projectedPointRef.current, size);
 		},
 	};
 }

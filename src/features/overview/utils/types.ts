@@ -1,4 +1,4 @@
-export interface EquatorialCoordinate {
+export interface WorldCoordinate {
 	ra: number;
 	dec: number;
 }
@@ -14,7 +14,18 @@ export interface ScreenPoint {
 	y: number;
 }
 
+export type WorldPointInput = CartesianCoordinate | [number, number, number];
+
+export interface ViewportSize {
+	width: number;
+	height: number;
+}
+
+export type GraticuleKind = "ra" | "dec";
+
 export interface GraticuleLine {
+	kind: GraticuleKind;
+	valueDeg: number;
 	points: CartesianCoordinate[];
 }
 
@@ -24,7 +35,11 @@ export interface GraticuleConfig {
 	parallelStepDeg?: number;
 }
 
-export type FootprintGeometryVertex = EquatorialCoordinate;
+export interface HoveredGraticule {
+	kind: GraticuleKind;
+	valueDeg: number;
+	anchor: ScreenPoint;
+}
 
 export interface OverviewFootprintMeta {
 	included_files?: string[];
@@ -33,7 +48,7 @@ export interface OverviewFootprintMeta {
 
 export interface OverviewFootprintRecord {
 	id: string;
-	vertices: EquatorialCoordinate[];
-	center: EquatorialCoordinate;
+	vertices: WorldCoordinate[];
+	center: WorldCoordinate;
 	meta: OverviewFootprintMeta;
 }

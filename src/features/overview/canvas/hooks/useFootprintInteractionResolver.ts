@@ -1,27 +1,33 @@
 import { useFrame, useThree } from "@react-three/fiber";
-import { useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef } from "react";
 import { Vector3 } from "three";
 import { FOOTPRINT_LINE_RADIUS_OFFSET } from "@/features/overview/utils/constant";
 import {
 	isPointInPolygon,
 	toFootprintPolygonPoints,
 } from "@/features/overview/utils/footprintGeometry";
+import {
+	isProjectedPointVisible,
+	isWorldPointFacingCamera,
+	ndcToScreenPoint,
+} from "@/features/overview/utils/projection";
 import type {
 	OverviewFootprintRecord,
 	ScreenPoint,
 } from "@/features/overview/utils/types";
-import type { UseFootprintEventsResult } from "./useFootprintEvents";
+import {
+	type CanvasPointerState,
+	readCanvasPointerState,
+} from "./shared/canvasPointer";
 
 export interface UseFootprintInteractionResolverParams {
 	footprints: OverviewFootprintRecord[];
 	radius: number;
+	selectedFootprintId: string | null;
 	hoveredFootprintId: string | null;
-	events: UseFootprintEventsResult;
-}
-
-interface PointerState {
-	client: ScreenPoint;
-	local: ScreenPoint;
+	setSelectedFootprintId: (id: string | null) => void;
+	setHoveredFootprint: (id: string | null, anchor?: ScreenPoint | null) => void;
+	clearHoveredFootprint: () => void;
 }
 
 interface FootprintPolygon {
@@ -37,17 +43,23 @@ interface HoverResolutionState {
 export function useFootprintInteractionResolver({
 	footprints,
 	radius,
+	selectedFootprintId,
 	hoveredFootprintId,
-	events,
+	setSelectedFootprintId,
+	setHoveredFootprint,
+	clearHoveredFootprint,
 }: UseFootprintInteractionResolverParams) {
 	const { camera, gl, size } = useThree();
 	const polygonsRef = useRef<FootprintPolygon[]>([]);
-	const pointerRef = useRef<PointerState | null>(null);
+	const pointerRef = useRef<CanvasPointerState | null>(null);
 	const pointerDownHoverIdRef = useRef<string | null>(null);
 	const prevHitIdsRef = useRef<Set<string>>(new Set());
 	const enterOrderRef = useRef<Map<string, number>>(new Map());
 	const nextEnterOrderRef = useRef(1);
-	const eventsRef = useRef(events);
+	const setSelectedFootprintIdRef = useRef(setSelectedFootprintId);
+	const setHoveredFootprintRef = useRef(setHoveredFootprint);
+	const clearHoveredFootprintRef = useRef(clearHoveredFootprint);
+	const selectedFootprintIdRef = useRef<string | null>(selectedFootprintId);
 	const hoveredFootprintIdRef = useRef<string | null>(hoveredFootprintId);
 	const lastHoverRef = useRef<HoverResolutionState>({
 		id: null,
@@ -57,8 +69,20 @@ export function useFootprintInteractionResolver({
 	const projectedPointRef = useRef(new Vector3());
 
 	useEffect(() => {
-		eventsRef.current = events;
-	}, [events]);
+		setSelectedFootprintIdRef.current = setSelectedFootprintId;
+	}, [setSelectedFootprintId]);
+
+	useEffect(() => {
+		setHoveredFootprintRef.current = setHoveredFootprint;
+	}, [setHoveredFootprint]);
+
+	useEffect(() => {
+		clearHoveredFootprintRef.current = clearHoveredFootprint;
+	}, [clearHoveredFootprint]);
+
+	useEffect(() => {
+		selectedFootprintIdRef.current = selectedFootprintId;
+	}, [selectedFootprintId]);
 
 	useEffect(() => {
 		hoveredFootprintIdRef.current = hoveredFootprintId;
@@ -76,21 +100,24 @@ export function useFootprintInteractionResolver({
 		}));
 	}, [footprints, radius]);
 
-	const resetHoverState = () => {
+	const resetHoverState = useCallback(() => {
 		prevHitIdsRef.current = new Set();
 		enterOrderRef.current.clear();
 		nextEnterOrderRef.current = 1;
 
 		if (lastHoverRef.current.id !== null) {
-			eventsRef.current.onFootprintHoverClear();
+			clearHoveredFootprintRef.current();
 			lastHoverRef.current = {
 				id: null,
 				anchor: null,
 			};
 		}
-	};
+	}, []);
 
-	const syncHoverState = (footprintId: string | null, anchor: ScreenPoint | null) => {
+	const syncHoverState = (
+		footprintId: string | null,
+		anchor: ScreenPoint | null,
+	) => {
 		const lastHover = lastHoverRef.current;
 		const anchorUnchanged =
 			lastHover.anchor?.x === anchor?.x && lastHover.anchor?.y === anchor?.y;
@@ -100,7 +127,7 @@ export function useFootprintInteractionResolver({
 		}
 
 		if (!footprintId || !anchor) {
-			eventsRef.current.onFootprintHoverClear();
+			clearHoveredFootprintRef.current();
 			lastHoverRef.current = {
 				id: null,
 				anchor: null,
@@ -108,31 +135,37 @@ export function useFootprintInteractionResolver({
 			return;
 		}
 
-		eventsRef.current.onFootprintHover(footprintId, anchor);
+		setHoveredFootprintRef.current(footprintId, anchor);
 		lastHoverRef.current = {
 			id: footprintId,
 			anchor,
 		};
 	};
 
-	const getPointerState = (event: PointerEvent): PointerState => {
-		const rect = gl.domElement.getBoundingClientRect();
+	const projectPolygonPoint = (
+		worldPoint: FootprintPolygon["worldPoints"][number],
+		cameraDirection: Vector3,
+	): ScreenPoint | null => {
+		if (!isWorldPointFacingCamera(worldPoint, cameraDirection)) {
+			return null;
+		}
 
-		return {
-			client: {
-				x: event.clientX,
-				y: event.clientY,
-			},
-			local: {
-				x: event.clientX - rect.left,
-				y: event.clientY - rect.top,
-			},
-		};
+		projectedPointRef.current
+			.set(worldPoint[0], worldPoint[1], worldPoint[2])
+			.project(camera);
+
+		if (!isProjectedPointVisible(projectedPointRef.current)) {
+			return null;
+		}
+
+		return ndcToScreenPoint(projectedPointRef.current, size);
 	};
 
 	const resolveCurrentHits = (point: ScreenPoint): string[] => {
 		const hits: string[] = [];
-		const cameraDirection = camera.getWorldPosition(cameraPositionRef.current).normalize();
+		const cameraDirection = camera
+			.getWorldPosition(cameraPositionRef.current)
+			.normalize();
 
 		for (const polygon of polygonsRef.current) {
 			if (polygon.worldPoints.length < 3) continue;
@@ -141,35 +174,14 @@ export function useFootprintInteractionResolver({
 			let isVisible = true;
 
 			for (const worldPoint of polygon.worldPoints) {
-				const dot =
-					worldPoint[0] * cameraDirection.x +
-					worldPoint[1] * cameraDirection.y +
-					worldPoint[2] * cameraDirection.z;
+				const screenPoint = projectPolygonPoint(worldPoint, cameraDirection);
 
-				if (dot <= 0) {
+				if (!screenPoint) {
 					isVisible = false;
 					break;
 				}
 
-				projectedPointRef.current
-					.set(worldPoint[0], worldPoint[1], worldPoint[2])
-					.project(camera);
-
-				if (
-					!Number.isFinite(projectedPointRef.current.x) ||
-					!Number.isFinite(projectedPointRef.current.y) ||
-					!Number.isFinite(projectedPointRef.current.z) ||
-					projectedPointRef.current.z < -1 ||
-					projectedPointRef.current.z > 1
-				) {
-					isVisible = false;
-					break;
-				}
-
-				screenPoints.push({
-					x: ((projectedPointRef.current.x + 1) / 2) * size.width,
-					y: ((1 - projectedPointRef.current.y) / 2) * size.height,
-				});
+				screenPoints.push(screenPoint);
 			}
 
 			if (!isVisible || screenPoints.length < 3) continue;
@@ -215,11 +227,11 @@ export function useFootprintInteractionResolver({
 
 	useEffect(() => {
 		const handlePointerMove = (event: PointerEvent) => {
-			pointerRef.current = getPointerState(event);
+			pointerRef.current = readCanvasPointerState(event, gl.domElement);
 		};
 
 		const handlePointerDown = (event: PointerEvent) => {
-			pointerRef.current = getPointerState(event);
+			pointerRef.current = readCanvasPointerState(event, gl.domElement);
 			pointerDownHoverIdRef.current = hoveredFootprintIdRef.current;
 		};
 
@@ -230,7 +242,7 @@ export function useFootprintInteractionResolver({
 		};
 
 		const handlePointerUp = (event: PointerEvent) => {
-			pointerRef.current = getPointerState(event);
+			pointerRef.current = readCanvasPointerState(event, gl.domElement);
 			const pointerDownHoverId = pointerDownHoverIdRef.current;
 			const currentHoveredFootprintId = hoveredFootprintIdRef.current;
 			pointerDownHoverIdRef.current = null;
@@ -242,7 +254,11 @@ export function useFootprintInteractionResolver({
 				return;
 			}
 
-			eventsRef.current.onFootprintClick();
+			setSelectedFootprintIdRef.current(
+				currentHoveredFootprintId === selectedFootprintIdRef.current
+					? null
+					: currentHoveredFootprintId,
+			);
 		};
 
 		gl.domElement.addEventListener("pointermove", handlePointerMove);
@@ -258,7 +274,7 @@ export function useFootprintInteractionResolver({
 			gl.domElement.removeEventListener("pointerleave", handlePointerLeave);
 			gl.domElement.removeEventListener("pointercancel", handlePointerLeave);
 		};
-	}, [gl]);
+	}, [gl, resetHoverState]);
 
 	useFrame(() => {
 		if (!pointerRef.current) return;

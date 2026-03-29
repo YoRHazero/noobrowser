@@ -1,4 +1,4 @@
-import { OVERVIEW_CANVAS_CONSTANTS } from "./constants";
+const BACKGROUND_COLOR = "#03060a";
 
 export function SceneEnvironment() {
 	return (
@@ -6,11 +6,8 @@ export function SceneEnvironment() {
 			<ambientLight intensity={0.7} />
 			<hemisphereLight intensity={0.45} />
 			<directionalLight position={[4, 5, 6]} intensity={1.2} />
-			<color attach="background" args={[OVERVIEW_CANVAS_CONSTANTS.backgroundColor]} />
-			<fog
-				attach="fog"
-				args={[OVERVIEW_CANVAS_CONSTANTS.backgroundColor, 4, 14]}
-			/>
+			<color attach="background" args={[BACKGROUND_COLOR]} />
+			<fog attach="fog" args={[BACKGROUND_COLOR, 4, 14]} />
 		</>
 	);
 }

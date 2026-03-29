@@ -1,15 +1,26 @@
 import { OrbitControls, PerspectiveCamera } from "@react-three/drei";
-import { useEffect } from "react";
+import { useEffect, useRef } from "react";
+import type { OrbitControls as OrbitControlsType } from "three-stdlib";
 import { OVERVIEW_CANVAS_CONSTANTS } from "./constants";
 import { useCameraFlight } from "../hooks/useCameraFlight";
+import { useOverviewLinearZoom } from "../hooks/useOverviewLinearZoom";
+import { useOverviewRotateSpeed } from "../hooks/useOverviewRotateSpeed";
 
 export interface CameraRigProps {
 	pendingFlyToTargetId: string | null;
 }
 
 export function CameraRig({ pendingFlyToTargetId }: CameraRigProps) {
+	const controlRef = useRef<OrbitControlsType | null>(null);
 	const { hasPendingFlyToTarget } = useCameraFlight({
 		pendingFlyToTargetId,
+	});
+
+	useOverviewLinearZoom({
+		controlRef,
+	});
+	useOverviewRotateSpeed({
+		controlRef,
 	});
 
 	useEffect(() => {
@@ -27,8 +38,10 @@ export function CameraRig({ pendingFlyToTargetId }: CameraRigProps) {
 				far={OVERVIEW_CANVAS_CONSTANTS.cameraFar}
 			/>
 			<OrbitControls
+				ref={controlRef}
 				makeDefault
 				enablePan={false}
+				enableZoom={false}
 				enableDamping={true}
 				minDistance={OVERVIEW_CANVAS_CONSTANTS.minCameraDistance}
 				maxDistance={OVERVIEW_CANVAS_CONSTANTS.maxCameraDistance}

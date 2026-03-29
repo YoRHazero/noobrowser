@@ -106,7 +106,6 @@ src/features/overview/canvas/
     FootprintMesh.tsx
 
   hooks/
-    useFootprintEvents.ts
     useFootprintInteractionResolver.ts
     useTooltipProjection.ts
 
@@ -133,7 +132,6 @@ src/features/overview/canvas/
 
   objects/
     GlobeSphere.tsx
-    AtmosphereSphere.tsx
     GraticuleLines.tsx
     ManualTargetMarker.tsx
 
@@ -194,13 +192,6 @@ These baseline files may be adjusted only when required to support Phase 4 hover
 - prefer the later-entered footprint when multiple projected polygons overlap
 - clear hover state when the pointer leaves the canvas or no polygon remains under the pointer
 - keep hit resolution out of `FootprintMesh.tsx`
-
-### `src/features/overview/canvas/hooks/useFootprintEvents.ts`
-
-- become the store bridge used by the canvas-level interaction resolver
-- write `selectedFootprintId`, `hoveredFootprintId`, and `hoveredFootprintAnchor` through provided store actions
-- support click selection and hover state updates without object-level pointer handlers
-- clearing hover must not clear selection state
 
 ### `src/features/overview/canvas/hooks/useTooltipProjection.ts`
 
