@@ -40,7 +40,6 @@ Phase 4 is a hover-first canvas interaction phase.
 - tooltip anchor continues to use `OverviewHoverAnchor = { x, y }`
 - tooltip anchor comes from the canvas-level pointer path
 - tooltip does not use world-point projection as the primary Phase 4 strategy
-- `useTooltipProjection.ts` may remain in the codebase, but it is not a primary Phase 4 delivery target
 - footprint hover and click are resolved from the projected polygon area rather than the rendered outline line
 - overlapping footprints must prefer the later-entered footprint as the active hover target
 
@@ -107,7 +106,6 @@ src/features/overview/canvas/
 
   hooks/
     useFootprintInteractionResolver.ts
-    useTooltipProjection.ts
 
 src/stores/overview/
   footprintSlice.ts
@@ -192,11 +190,6 @@ These baseline files may be adjusted only when required to support Phase 4 hover
 - prefer the later-entered footprint when multiple projected polygons overlap
 - clear hover state when the pointer leaves the canvas or no polygon remains under the pointer
 - keep hit resolution out of `FootprintMesh.tsx`
-
-### `src/features/overview/canvas/hooks/useTooltipProjection.ts`
-
-- may remain available, but is not the primary tooltip strategy in this phase
-- must not become the required path for Phase 4 tooltip positioning
 
 ### `src/stores/overview/footprintSlice.ts`
 

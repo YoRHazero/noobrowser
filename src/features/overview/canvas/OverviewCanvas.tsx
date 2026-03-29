@@ -15,6 +15,7 @@ import { GlobeLayer } from "./layers/GlobeLayer";
 import { GraticuleLayer } from "./layers/GraticuleLayer";
 import { ManualTargetsLayer } from "./layers/ManualTargetsLayer";
 import { useFootprintInteractionResolver } from "./hooks/useFootprintInteractionResolver";
+import { useCursorWorldCoordinateResolver } from "./hooks/useCursorWorldCoordinateResolver";
 import { useGraticuleHoverResolver } from "./hooks/useGraticuleHoverResolver";
 import { useOverviewGraticuleDensity } from "./hooks/useOverviewGraticuleDensity";
 
@@ -57,6 +58,17 @@ interface GraticuleInteractionBridgeProps {
 	onHoverChange: (hoveredGraticule: HoveredGraticule | null) => void;
 }
 
+interface CursorWorldCoordinateBridgeProps {
+	enabled: boolean;
+	radius: number;
+	setCursorWorldCoordinate: (coordinate: {
+		ra: number;
+		dec: number;
+		anchor: { x: number; y: number };
+	} | null) => void;
+	clearCursorWorldCoordinate: () => void;
+}
+
 function GraticuleInteractionBridge({
 	visible,
 	radius,
@@ -86,6 +98,22 @@ function GraticuleInteractionBridge({
 	return <GraticuleLayer visible={visible} lines={lines} />;
 }
 
+function CursorWorldCoordinateBridge({
+	enabled,
+	radius,
+	setCursorWorldCoordinate,
+	clearCursorWorldCoordinate,
+}: CursorWorldCoordinateBridgeProps) {
+	useCursorWorldCoordinateResolver({
+		enabled,
+		radius,
+		setCursorWorldCoordinate,
+		clearCursorWorldCoordinate,
+	});
+
+	return null;
+}
+
 export function OverviewCanvas() {
 	const containerRef = useRef<HTMLDivElement | null>(null);
 	const [hoveredGraticule, setHoveredGraticule] =
@@ -95,28 +123,50 @@ export function OverviewCanvas() {
 		manualTargets,
 		showGrid,
 		pendingFlyToTargetId,
+		tooltipMode,
+		targetCoordinatePrecision,
+		cursorWorldCoordinate,
 		selectedFootprintId,
 		hoveredFootprintId,
 		hoveredFootprintAnchor,
 		setSelectedFootprintId,
 		setHoveredFootprint,
 		clearHoveredFootprint,
+		setCursorWorldCoordinate,
+		clearCursorWorldCoordinate,
 	} = useOverviewStore(
 		useShallow((state) => ({
 			manualTargets: state.manualTargets,
 			showGrid: state.showGrid,
 			pendingFlyToTargetId: state.pendingFlyToTargetId,
+			tooltipMode: state.tooltipMode,
+			targetCoordinatePrecision: state.targetCoordinatePrecision,
+			cursorWorldCoordinate: state.cursorWorldCoordinate,
 			selectedFootprintId: state.selectedFootprintId,
 			hoveredFootprintId: state.hoveredFootprintId,
 			hoveredFootprintAnchor: state.hoveredFootprintAnchor,
 			setSelectedFootprintId: state.setSelectedFootprintId,
 			setHoveredFootprint: state.setHoveredFootprint,
 			clearHoveredFootprint: state.clearHoveredFootprint,
+			setCursorWorldCoordinate: state.setCursorWorldCoordinate,
+			clearCursorWorldCoordinate: state.clearCursorWorldCoordinate,
 		})),
 	);
 
 	const hoveredFootprint =
 		footprints.find((footprint) => footprint.id === hoveredFootprintId) ?? null;
+	const cursorTooltipCoordinate = cursorWorldCoordinate
+		? {
+				ra: cursorWorldCoordinate.ra.toFixed(targetCoordinatePrecision),
+				dec: cursorWorldCoordinate.dec.toFixed(targetCoordinatePrecision),
+			}
+		: null;
+	const hoveredFootprintCenter = hoveredFootprint
+		? {
+				ra: hoveredFootprint.center.ra.toFixed(targetCoordinatePrecision),
+				dec: hoveredFootprint.center.dec.toFixed(targetCoordinatePrecision),
+			}
+		: null;
 	const containerRect = containerRef.current?.getBoundingClientRect();
 	const tooltipPosition =
 		hoveredFootprintAnchor && containerRect
@@ -148,6 +198,13 @@ export function OverviewCanvas() {
 					.filter(Boolean)
 					.join(" ")
 			: null;
+	const targetTooltipPosition =
+		cursorWorldCoordinate && containerRect
+			? {
+					left: cursorWorldCoordinate.anchor.x - containerRect.left + 12,
+					top: cursorWorldCoordinate.anchor.y - containerRect.top + 12,
+				}
+			: null;
 
 	return (
 		<Box
@@ -171,13 +228,19 @@ export function OverviewCanvas() {
 					setHoveredFootprint={setHoveredFootprint}
 					clearHoveredFootprint={clearHoveredFootprint}
 				/>
+				<CursorWorldCoordinateBridge
+					enabled={tooltipMode === "target"}
+					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
+					setCursorWorldCoordinate={setCursorWorldCoordinate}
+					clearCursorWorldCoordinate={clearCursorWorldCoordinate}
+				/>
 				<SceneEnvironment />
 				<CameraRig pendingFlyToTargetId={pendingFlyToTargetId} />
 				<GlobeLayer radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius} />
 				<GraticuleInteractionBridge
 					visible={showGrid}
 					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
-					suppressHover={hoveredFootprintId !== null}
+					suppressHover={hoveredFootprintId !== null || tooltipMode === "target"}
 					onHoverChange={setHoveredGraticule}
 				/>
 				<FootprintsLayer
@@ -191,7 +254,40 @@ export function OverviewCanvas() {
 					radius={OVERVIEW_CANVAS_CONSTANTS.globeRadius}
 				/>
 			</Canvas>
-			{hoveredFootprint && tooltipPosition ? (
+			{tooltipMode === "target" ? (
+				cursorWorldCoordinate && cursorTooltipCoordinate && targetTooltipPosition ? (
+					<Box
+						position="absolute"
+						left={`${targetTooltipPosition.left}px`}
+						top={`${targetTooltipPosition.top}px`}
+						transform="translate(0, 0)"
+						pointerEvents="none"
+						zIndex="1"
+						px="3"
+						py="2"
+						borderWidth="1px"
+						borderColor="whiteAlpha.300"
+						borderRadius="md"
+						bg="blackAlpha.800"
+						backdropFilter="blur(10px)"
+						color="white"
+						boxShadow="lg"
+					>
+						<Text fontSize="sm" fontWeight="semibold">
+							Cursor Coordinate
+						</Text>
+						<Text fontSize="xs" color="whiteAlpha.800">
+							RA {cursorTooltipCoordinate.ra}°
+						</Text>
+						<Text fontSize="xs" color="whiteAlpha.800">
+							Dec {cursorTooltipCoordinate.dec}°
+						</Text>
+						<Text fontSize="10px" color="whiteAlpha.600">
+							Right click to add target
+						</Text>
+					</Box>
+				) : null
+			) : hoveredFootprint && tooltipPosition ? (
 				<Box
 					position="absolute"
 					left={`${tooltipPosition.left}px`}
@@ -213,6 +309,11 @@ export function OverviewCanvas() {
 					<Text fontSize="sm" fontWeight="semibold">
 						Footprint {hoveredFootprint.id}
 					</Text>
+					{hoveredFootprintCenter ? (
+						<Text fontSize="xs" color="whiteAlpha.800">
+							Center: ({hoveredFootprintCenter.ra}°, {hoveredFootprintCenter.dec}°)
+						</Text>
+					) : null}
 					<Text fontSize="xs" color="whiteAlpha.800">
 						{includedFiles.length} files
 					</Text>
@@ -221,9 +322,12 @@ export function OverviewCanvas() {
 							{tooltipFileLine}
 						</Text>
 					) : null}
-					</Box>
-				) : null}
-			{!hoveredFootprint && hoveredGraticule && graticuleTooltipPosition ? (
+				</Box>
+			) : null}
+			{tooltipMode === "footprint" &&
+			!hoveredFootprint &&
+			hoveredGraticule &&
+			graticuleTooltipPosition ? (
 				<Box
 					position="absolute"
 					left={`${graticuleTooltipPosition.left}px`}

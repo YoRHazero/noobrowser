@@ -5,7 +5,7 @@
 - `core/`: scene infrastructure only. Keep camera, controls, environment, and canvas constants here. Do not put footprint business rules or remote data fetching here.
 - `layers/`: scene-level composition. A layer may read `src/features/overview/hooks/` and `@/stores/overview`, then pass plain props down to `objects/`.
 - `objects/`: reusable single-purpose render objects. They must receive all state through props. They must not access Zustand stores directly and must not run queries.
-- `hooks/`: canvas-only behavior hooks. Use them for camera flight, canvas-level polygon hit resolution, and tooltip projection. They may use Three or React Three Fiber APIs and may bridge selection or hover state into the overview store, but they do not own remote data fetching or DOM tooltip rendering.
+- `hooks/`: canvas-only behavior hooks. Use them for camera flight, canvas-level polygon hit resolution, pointer handling, and other scene-side interaction helpers. They may use Three or React Three Fiber APIs and may bridge selection or hover state into the overview store, but they do not own remote data fetching or DOM tooltip rendering.
 
 ## Dependency Rules
 

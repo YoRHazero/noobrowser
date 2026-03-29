@@ -3,6 +3,14 @@ export interface OverviewHoverAnchor {
 	y: number;
 }
 
+export type OverviewTooltipMode = "footprint" | "target";
+
+export interface OverviewCursorWorldCoordinate {
+	ra: number;
+	dec: number;
+	anchor: OverviewHoverAnchor;
+}
+
 export interface OverviewManualTarget {
 	id: string;
 	ra: number;
