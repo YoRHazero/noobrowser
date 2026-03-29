@@ -1,23 +1,23 @@
-# SPEC: Overview Three Phase 4 Hover-First Interaction
+# SPEC: Overview Three Phase 5 Sidebar Footprint Cards
 
 ## Goal
 
-Move the `overview` module from a renderable Phase 3 scene into the first usable interactive canvas.
+Move the `overview` module from an interactive canvas-first implementation into the first sidebar-backed feature shell.
 
 This phase must deliver:
 
-1. formal footprint hover interaction
-2. a lightweight DOM tooltip for hovered footprints
-3. continued click selection alongside hover
-4. stable coexistence of hover state and selected state
+1. a feature-level sidebar beside the existing overview canvas
+2. a footprint card list sourced from normalized overview footprint data
+3. shared selection between canvas and sidebar through the existing overview store
+4. a target section placeholder only, with no target workflow implementation
 
-This phase is still not a sidebar phase, not a legacy migration phase, and not a camera UX phase.
+This phase is still not a target workflow phase, not a legacy migration phase, and not a camera UX phase.
 
 ## Scope
 
 ### Baseline
 
-- Assume the Phase 3 renderable scene is already the baseline.
+- Assume the current interactive `overview` canvas is already the baseline.
 - Assume `src/features/overview/canvas/README.md` remains the source of truth for folder boundaries and dependency rules.
 - Keep the current public names unchanged:
   - `useGrismFootprints`
@@ -26,241 +26,200 @@ This phase is still not a sidebar phase, not a legacy migration phase, and not a
   - `useOverviewStore`
 - `useQueryAxiosGet` remains a low-level query primitive and must only be used under `src/hooks/query/**`.
 - `OverviewCanvas.tsx` must continue to read Zustand state directly with `useOverviewStore(useShallow(...))`.
-- Do not introduce `useOverviewSelection.ts` or any equivalent Zustand pass-through wrapper hook.
+- Do not introduce `useOverviewSelection.ts`, `useOverviewSidebarState.ts`, or any equivalent Zustand pass-through wrapper hook.
 
-### Interaction Scope
+### Sidebar Scope
 
-Phase 4 is a hover-first canvas interaction phase.
+Phase 5 is a sidebar shell phase.
 
-- hover applies only to **footprints**
-- click selection remains active and must coexist with hover
-- manual targets remain render-only in this phase
-- tooltip is a lightweight DOM overlay rendered by `OverviewCanvas.tsx`
-- tooltip uses a **screen-space anchor**
-- tooltip anchor continues to use `OverviewHoverAnchor = { x, y }`
-- tooltip anchor comes from the canvas-level pointer path
-- tooltip does not use world-point projection as the primary Phase 4 strategy
-- footprint hover and click are resolved from the projected polygon area rather than the rendered outline line
-- overlapping footprints must prefer the later-entered footprint as the active hover target
+- the sidebar lives outside `src/features/overview/canvas/`
+- the sidebar is composed at the feature level by `src/features/overview/index.tsx`
+- the sidebar contains exactly 2 top-level sections in this phase:
+  - `Footprints`
+  - `Targets`
+- the `Footprints` section renders one card per normalized footprint
+- card highlighting is driven only by `selectedFootprintId`
+- hover remains a canvas concern and does not drive sidebar highlight state in this phase
+- clicking an unselected card selects that footprint
+- clicking the selected card clears selection
+- clicking a different card switches selection to that footprint
+- canvas selection and sidebar selection must stay synchronized because they share the same store state
+- the `Targets` section is a placeholder shell only in this phase
 
-### Tooltip Content
+### Footprint Card Content
 
-Tooltip content is fixed in this phase and must not be redesigned per implementation:
+Footprint card content is intentionally lightweight in this phase:
 
 - line 1: `Footprint {id}`
-- line 2: `{included_files.length} files`
-- line 3:
-  - show the first 2 filenames from `included_files`
-  - if more than 2 exist, end with `+N more`
-- if `included_files` is missing or empty, omit line 3
-- do not add a richer metadata panel in this phase
+- line 2: `Center: ({ra}°, {dec}°)`
+- line 3: `{included_files.length} files`
+- optional supporting line:
+  - show up to the first 2 filenames from `included_files`
+  - if no filenames exist, omit that line
+- do not add per-card action menus, filter controls, badges, or dense metadata panels in this phase
+
+### Target Section Scope
+
+The target section is present only as a future-facing entry point.
+
+- render the section shell and title
+- render placeholder copy indicating that target list and target actions are not implemented yet
+- do not render target cards or target rows
+- do not wire target add, edit, remove, select, hover, or fly-to behavior
 
 ### Store And Query Boundary
 
 `src/stores/overview/` and `src/hooks/query/overview/` remain baseline dependencies, not the primary delivery surface.
 
 - `src/stores/overview/footprintSlice.ts`
-  - remains the shared source of selected and hovered footprint state
-  - `hoveredFootprintAnchor` becomes a formal Phase 4 data path rather than future-only plumbing
+  - remains the shared source of `selectedFootprintId`
+  - continues to own hover state, but hover is not a sidebar concern in this phase
+- `src/stores/overview/targetsSlice.ts`
+  - remains baseline-only plumbing
+  - its mutation actions must not be surfaced in the sidebar UI in this phase
 - `src/features/overview/hooks/useOverviewFootprints.ts`
   - continues to normalize query data only
   - must not move remote footprint payload into Zustand
 - `src/hooks/query/overview/`
   - remains the only place where overview-specific query hooks directly use `useQueryAxiosGet`
-  - `useClearImageFilters` remains prepared-only and unused by feature or UI flow in this phase
+  - `useClearImageFilters` remains prepared-only and unused by the sidebar flow in this phase
+- sidebar components may read `useOverviewStore(useShallow(...))` and `useOverviewFootprints` directly at the call site
+- do not add feature hooks whose only purpose is forwarding Zustand selectors or actions
 
 ## Non-goals
 
 This phase must explicitly avoid the following:
 
-- sidebar or any sidebar shell
-- legacy `src/features/footprint/` migration or replacement
-- modification of `src/stores/footprints.ts`
-- clear image filters UI integration
+- target list implementation
 - manual target CRUD UI
-- manual target hover interaction
-- manual target tooltip UI
-- high-precision picking
-- world-projected tooltip following
-- camera fly-to
-- polished camera choreography
-- filled footprint mesh rendering
-- triangulation or production footprint geometry pipelines
-- introducing `useOverviewSelection.ts`
-- direct `useQueryAxiosGet` usage from `src/features/overview/hooks/`
-- changing the public names `useGrismFootprints`, `useClearImageFilters`, `useOverviewFootprints`, or `useOverviewStore`
+- target hover interaction
+- target tooltip UI
+- target selection state
+- target fly-to
+- camera fly-to choreography
+- camera control redesign
+- graticule UX redesign
+- viewer HUD migration or redesign
+- clear image filters UI integration
+- overview search, filter, sort, or pagination controls
+- virtualized list behavior
+- moving remote footprint payload into Zustand
+- introducing `useOverviewSelection.ts` or equivalent pass-through hooks
+- direct `useQueryAxiosGet` usage from `src/features/overview/**`
+- editing legacy code under `src/features/footprint/`
+- replacing `/wfss` or any legacy route wiring in this phase
 
 ## Target Files
 
-### Primary Phase 4 Implementation Surface
+### Primary Phase 5 Implementation Surface
 
 ```text
-src/features/overview/canvas/
-  OverviewCanvas.tsx
+src/features/overview/
+  index.tsx
 
-  layers/
-    FootprintsLayer.tsx
-
-  objects/
-    FootprintMesh.tsx
-
-  hooks/
-    useFootprintInteractionResolver.ts
-
-src/stores/overview/
-  footprintSlice.ts
+  sidebar/
+    OverviewSidebar.tsx
+    FootprintsSection.tsx
+    OverviewFootprintCard.tsx
+    TargetsSection.tsx
 ```
 
 ### Baseline Dependency Surface
 
 ```text
+src/features/overview/canvas/
+  OverviewCanvas.tsx
+  README.md
+
 src/features/overview/hooks/
   useOverviewFootprints.ts
-
-src/features/overview/canvas/
-  core/
-    CameraRig.tsx
-    SceneEnvironment.tsx
-    constants.ts
-
-  layers/
-    GlobeLayer.tsx
-    GraticuleLayer.tsx
-    ManualTargetsLayer.tsx
-
-  objects/
-    GlobeSphere.tsx
-    GraticuleLines.tsx
-    ManualTargetMarker.tsx
-
-src/features/overview/utils/
-  types.ts
-  constant.ts
-  celestial.ts
-  graticule.ts
-  footprintGeometry.ts
 
 src/hooks/query/overview/
   useGrismFootprints.ts
   useClearImageFilters.ts
 
 src/stores/overview/
+  footprintSlice.ts
   targetsSlice.ts
   viewerSlice.ts
   index.ts
   types.ts
+
+src/features/overview/controls/
+  OverviewViewerHud.tsx
 ```
 
-These baseline files may be adjusted only when required to support Phase 4 hover, tooltip, and selection flow.
+These baseline files may be adjusted only when required to support the new feature-level layout and shared selection flow.
 
 ## Responsibilities
 
+### `src/features/overview/index.tsx`
+
+- becomes the feature-level layout root
+- compose the overview canvas area and the new sidebar area
+- keep sidebar UI out of `canvas/`
+- preserve the existing overview feature shell behavior outside this new layout responsibility
+
+### `src/features/overview/sidebar/OverviewSidebar.tsx`
+
+- remain the sidebar composition root
+- structure the `Footprints` and `Targets` sections
+- read only the state and data needed for sidebar rendering
+- keep the sidebar focused on page-level UI rather than scene logic
+
+### `src/features/overview/sidebar/FootprintsSection.tsx`
+
+- read normalized footprint data from `useOverviewFootprints`
+- read `selectedFootprintId` and `setSelectedFootprintId` from the overview store
+- render loading, empty, and populated states safely
+- map footprint records into `OverviewFootprintCard` props
+- own the simple card click-to-toggle selection behavior
+- do not fetch data with low-level query primitives
+
+### `src/features/overview/sidebar/OverviewFootprintCard.tsx`
+
+- remain props-only
+- remain visual-only
+- render the lightweight card content defined above
+- reflect selected versus unselected styling
+- do not access Zustand or query hooks directly
+
+### `src/features/overview/sidebar/TargetsSection.tsx`
+
+- render a stable section shell and placeholder copy only
+- do not render target list rows
+- do not own target mutations or target workflow behavior
+
 ### `src/features/overview/canvas/OverviewCanvas.tsx`
 
-- remain the scene shell and composition root
-- read store state locally with `useOverviewStore(useShallow(...))`
-- read normalized footprint data from `useOverviewFootprints`
-- derive the hovered footprint record from normalized footprints plus `hoveredFootprintId`
-- render the tooltip as a DOM sibling outside the `Canvas`
-- keep the shell safe under loading, empty, and partial-data conditions
-- do not fetch data directly with low-level query primitives
-- do not host sidebar logic
-
-### `src/features/overview/canvas/layers/FootprintsLayer.tsx`
-
-- receive normalized footprints plus selected or hovered identifiers
-- map those values into `FootprintMesh` props
-- preserve the layer-level bridge from feature data to render objects
-- do not own tooltip DOM rendering
-- do not own polygon hit testing
-
-### `src/features/overview/canvas/objects/FootprintMesh.tsx`
-
-- remain outline-only
-- receive all render state through props
-- remain props-only
-- do not access Zustand or query hooks directly
-- do not own hover or click hit testing
-
-### `src/features/overview/canvas/hooks/useFootprintInteractionResolver.ts`
-
-- resolve footprint hover and click from projected screen-space polygons
-- own canvas-level pointer tracking and polygon hit testing
-- update hover state using `hoveredFootprintId` and `hoveredFootprintAnchor`
-- prefer the later-entered footprint when multiple projected polygons overlap
-- clear hover state when the pointer leaves the canvas or no polygon remains under the pointer
-- keep hit resolution out of `FootprintMesh.tsx`
-
-### `src/stores/overview/footprintSlice.ts`
-
-- continue to own:
-  - `selectedFootprintId`
-  - `hoveredFootprintId`
-  - `hoveredFootprintAnchor`
-- no new slice should be introduced for tooltip state
-- keep the store shape minimal and interaction-focused
+- remain the scene shell and composition root for canvas behavior
+- continue to use the shared store so canvas-side selection stays synchronized with sidebar-side selection
+- do not absorb sidebar responsibilities
 
 ### `src/features/overview/hooks/useOverviewFootprints.ts`
 
 - continue as the feature-level normalization hook
-- keep `included_files` available in normalized metadata so tooltip rendering does not need to look at raw query payload
+- keep card-friendly metadata available from normalized records
 - do not change the query/store layering
 
 ## Step-by-step Plan
 
-1. Formalize hover data flow.
-   - Treat `hoveredFootprintId` and `hoveredFootprintAnchor` as first-class Phase 4 state.
-   - Ensure the canvas-level interaction bridge writes both values through the existing footprint slice.
+1. Add the feature-level sidebar shell.
+   - Update `src/features/overview/index.tsx` so overview is no longer only `canvas + HUD`.
+   - Keep the sidebar outside `canvas/`.
 
-2. Upgrade footprint event handling.
-   - Resolve hover and click from projected polygon hit areas instead of the rendered outline line.
-   - Keep selection and hover independent enough that hover exit does not clear selection.
-   - Prefer the later-entered footprint when projected polygons overlap.
+2. Add the footprint cards section.
+   - Read normalized footprint data from `useOverviewFootprints`.
+   - Render one lightweight card per footprint.
 
-3. Finalize hover-aware footprint rendering.
-   - Pass hover and selected state through `FootprintsLayer.tsx` into `FootprintMesh.tsx`.
-   - Preserve outline-only rendering while allowing hover-specific styling differences.
-   - Keep `FootprintMesh.tsx` visual-only.
+3. Wire shared selection.
+   - Use the existing `selectedFootprintId` store path.
+   - Toggle selection on card click without introducing new selection state.
 
-4. Add DOM tooltip rendering.
-   - In `OverviewCanvas.tsx`, derive the currently hovered footprint record from normalized data.
-   - Render a lightweight DOM tooltip as a sibling to the `Canvas`.
-   - Position it from `hoveredFootprintAnchor`.
+4. Add the targets placeholder section.
+   - Render section framing and placeholder copy only.
+   - Do not wire target mutations or target workflow actions.
 
-5. Lock tooltip content.
-   - Render `Footprint {id}`.
-   - Render the file count from `included_files`.
-   - Render up to 2 filenames and `+N more` when applicable.
-   - Omit the filename line when no filenames are available.
-
-6. Preserve existing scene behavior.
-   - Keep globe, graticule, footprint outline, and manual target marker rendering intact.
-   - Keep manual targets out of hover and tooltip behavior in this phase.
-
-7. Verify boundaries and build health.
-   - Run `npm run build`.
-   - Confirm no changes to legacy `src/features/footprint/` or `src/stores/footprints.ts`.
-   - Confirm `useClearImageFilters` remains prepared-only.
-   - Use the current `/test` route as the default manual validation sandbox, but do not make that route itself a Phase 4 target.
-
-## Acceptance Criteria
-
-- Hovering a footprint shows a tooltip.
-- The tooltip is positioned from a screen-space anchor near the pointer.
-- Tooltip line 1 is `Footprint {id}`.
-- Tooltip line 2 shows the number of files.
-- Tooltip line 3 shows at most 2 filenames and `+N more` when applicable.
-- If no filenames are available, the tooltip omits the filename line.
-- Moving the pointer out of all projected footprint polygons hides the tooltip and clears hover state.
-- Clicking a footprint updates selection state and selection highlighting remains intact.
-- Footprint hover and click do not depend on the rendered line object receiving pointer events.
-- In overlapping regions, the later-entered footprint becomes the active hover target.
-- Hover exit does not clear the selected footprint.
-- Globe, graticule, footprint outline, and manual target marker rendering remain functional.
-- Manual targets do not gain hover or tooltip behavior in this phase.
-- `useClearImageFilters` remains available in `src/hooks/query/overview/` but is not integrated into feature or UI flow.
-- `useOverviewSelection.ts` is not introduced.
-- `useQueryAxiosGet` is not called from `src/features/overview/hooks/`.
-- `src/features/footprint/` remains untouched.
-- `src/stores/footprints.ts` remains untouched.
-- `npm run build` passes.
+5. Verify shared behavior and build health.
+   - Confirm canvas and sidebar stay synchronized through the shared store.
+   - Confirm the phase does not break existing overview canvas behavior.

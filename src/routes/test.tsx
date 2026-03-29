@@ -8,7 +8,7 @@ export const Route = createFileRoute("/test")({
 
 function TestRoute() {
 	return (
-		<Box w="100%" h="calc(100dvh - 49px)">
+		<Box w="100%" h="100vh">
 			<OverviewFeature />
 		</Box>
 	);
