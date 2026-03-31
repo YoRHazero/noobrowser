@@ -1,10 +1,10 @@
 import { useEffect } from "react";
 import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
-import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
+import { useOverviewStore } from "@/stores/overview";
 
 export function useIdSyncCounterpartPosition() {
-	const selectedFootprintId = useGlobeStore(
+	const selectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
 	const setCounterpartPosition = useCounterpartStore(

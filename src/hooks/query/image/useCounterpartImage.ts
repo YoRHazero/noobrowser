@@ -1,5 +1,5 @@
-import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
+import { useOverviewStore } from "@/stores/overview";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 
 export function useCounterpartImage({
@@ -17,7 +17,7 @@ export function useCounterpartImage({
 	normParams?: Record<string, number> | undefined;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore(
+	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
 	const ZustandFilterRGB = useCounterpartStore((state) => state.filterRGB);
@@ -25,7 +25,7 @@ export function useCounterpartImage({
 		(state) => state.counterpartNorm,
 	);
 	const queryNormParams = normParams ?? ZustandCounterpartNorm;
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
 	const filterRGB = {
 		r: r ?? ZustandFilterRGB.r,
 		g: g ?? ZustandFilterRGB.g,

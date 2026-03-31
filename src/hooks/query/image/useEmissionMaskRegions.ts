@@ -1,5 +1,5 @@
 import { useConnectionStore } from "@/stores/connection";
-import { useGlobeStore } from "@/stores/footprints";
+import { useOverviewStore } from "@/stores/overview";
 import { useQuery } from "@tanstack/react-query";
 import axios from "axios";
 import type { EmissionMaskRegionsResponse } from "./schemas";
@@ -9,7 +9,7 @@ export function useEmissionMaskRegions({
 }: {
 	enabled?: boolean;
 } = {}) {
-	const groupId = useGlobeStore((state) => state.selectedFootprintId);
+	const groupId = useOverviewStore((state) => state.selectedFootprintId);
 	const backendUrl = useConnectionStore((state) => state.backendUrl);
 
 	return useQuery({

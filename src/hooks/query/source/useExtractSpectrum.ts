@@ -1,5 +1,5 @@
 import type { QueryKey } from "@tanstack/react-query";
-import { useGlobeStore } from "@/stores/footprints";
+import { useOverviewStore } from "@/stores/overview";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 import type { ExtractedSpectrum } from "./schemas";
 
@@ -36,10 +36,10 @@ export function useExtractSpectrum({
 	if (x === undefined && ra === undefined) {
 		posReady = false;
 	}
-	const ZustandFootprintId = useGlobeStore(
+	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
 	const finalQueryKey = queryKey ?? [
 		"extract_spectrum",
 		waveMin,

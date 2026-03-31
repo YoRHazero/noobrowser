@@ -1,6 +1,7 @@
 import { Float16Array } from "@petamoriken/float16";
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
+import { useSelectedOverviewFootprint } from "@/features/inspector/hooks/useSelectedOverviewFootprint";
 import { useGrismData } from "@/hooks/query/image/useGrismData";
 import { useGrismErr } from "@/hooks/query/image/useGrismErr";
 import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
@@ -15,9 +16,14 @@ export function useRoiSpectrum1D(basename: string | undefined) {
 			roiState: state.roiState,
 		})),
 	);
-	const grismDataQuery = useGrismData({});
-	const grismErrQuery = useGrismErr({});
-	const grismOffsetsQuery = useGrismOffsets({});
+	const { selectedFootprintId } = useSelectedOverviewFootprint();
+	const basenameList = basename ? [basename] : [];
+	const grismDataQuery = useGrismData({ basenameList });
+	const grismErrQuery = useGrismErr({ basenameList });
+	const grismOffsetsQuery = useGrismOffsets({
+		groupId: selectedFootprintId,
+		basenameList,
+	});
 
 	const spectrum1D = useMemo<Spectrum1D[]>(() => {
 		if (!basename) return [];

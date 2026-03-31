@@ -1,4 +1,4 @@
-import { useGlobeStore } from "@/stores/footprints";
+import { useOverviewStore } from "@/stores/overview";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 import type { DispersionTrace } from "./schemas";
 
@@ -19,10 +19,10 @@ export function useDispersionTrace({
 	waveMax?: number | undefined;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore(
+	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
 	const queryParams: Record<string, string | number> = {
 		...(group_id !== null ? { group_id } : {}),
 		...(basename !== undefined ? { basename } : {}),

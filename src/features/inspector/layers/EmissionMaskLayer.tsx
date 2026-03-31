@@ -12,7 +12,7 @@ import {
 	UnsignedByteType,
 } from "three";
 
-import { useGlobeStore } from "@/stores/footprints";
+import { useSelectedOverviewFrameIndex } from "@/features/inspector/hooks/useSelectedOverviewFrameIndex";
 import { useEmissionMaskLayer } from "./hooks/useEmissionMaskLayer";
 
 export const EMISSION_MASK_COLORS = [
@@ -59,24 +59,7 @@ export default function EmissionMaskLayer({
 		threshold,
 		mode,
 	} = useEmissionMaskLayer();
-
-
-
-	// Determine current frame index using footprint metadata
-	const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
-	const footprints = useGlobeStore((state) => state.footprints);
-	
-	const currentFrameIndex = useMemo(() => {
-		if (!currentBasename || !selectedFootprintId) return -1;
-		
-		const footprint = footprints.find(f => f.id === selectedFootprintId);
-		if (!footprint?.meta?.included_files) return -1;
-		
-		// "basename list order in a group matches backend group_box order"
-		// The `included_files` list should match the backend order if source of truth.
-		// Verifying: included_files usually comes from backend list.
-		return footprint.meta.included_files.indexOf(currentBasename);
-	}, [currentBasename, selectedFootprintId, footprints]);
+	const currentFrameIndex = useSelectedOverviewFrameIndex(currentBasename);
 
 	// Create shared palette texture
 	const paletteTexture = useMemo(() => {

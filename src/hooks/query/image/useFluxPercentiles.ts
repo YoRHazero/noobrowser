@@ -1,5 +1,5 @@
-import { useGlobeStore } from "@/stores/footprints";
 import type { RoiState } from "@/stores/inspector/types";
+import { useOverviewStore } from "@/stores/overview";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 import type { PercentileData } from "./schemas";
 
@@ -14,10 +14,10 @@ export function useFluxPercentiles({
 	roi?: RoiState | null;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore(
+	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
 	const queryParams: Record<string, number | number[]> = {};
 	if (q.length > 0) {
 		queryParams.percentage = q;

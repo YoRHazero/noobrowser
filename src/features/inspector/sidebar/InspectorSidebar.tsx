@@ -8,6 +8,7 @@ import {
 	RoiCameraRig,
 } from "@/components/three/RoiComponent";
 import Inspector1DChart from "@/features/inspector/components/Inspector1DChart";
+import { useSelectedOverviewFootprint } from "@/features/inspector/hooks/useSelectedOverviewFootprint";
 import EmissionMaskLayer from "@/features/inspector/layers/EmissionMaskLayer";
 import { TraceLinesLayer } from "@/features/inspector/layers/TraceSourceLayer";
 import { useGrismData } from "@/hooks/query/image/useGrismData";
@@ -60,11 +61,16 @@ function RoiZoomView({
 			backwardNormIndependent: state.backwardNormIndependent,
 		})),
 	);
+	const { selectedFootprintId } = useSelectedOverviewFootprint();
+	const basenameList = currentBasename ? [currentBasename] : [];
 	/* -------------------------------------------------------------------------- */
 	/*                                 Data Access                                */
 	/* -------------------------------------------------------------------------- */
-	const grismDataResults = useGrismData({}); // refetch will be triggered by other components, here just read from cache
-	const grismOffsetsResults = useGrismOffsets({});
+	const grismDataResults = useGrismData({ basenameList });
+	const grismOffsetsResults = useGrismOffsets({
+		groupId: selectedFootprintId,
+		basenameList,
+	});
 
 	const currentGrismData = currentBasename
 		? grismDataResults?.[currentBasename]?.data

@@ -1,20 +1,22 @@
 import { Box, Button } from "@chakra-ui/react";
 import { useEffect, useId, useState } from "react";
 import { Tooltip } from "@/components/ui/tooltip";
+import { useSelectedOverviewFootprint } from "@/features/inspector/hooks/useSelectedOverviewFootprint";
 import { useGrismData } from "@/hooks/query/image/useGrismData";
 import { useGrismErr } from "@/hooks/query/image/useGrismErr";
 import { useGrismOffsets } from "@/hooks/query/image/useGrismOffsets";
-import { useGlobeStore } from "@/stores/footprints";
 
 export default function GrismBackwardFetchControl() {
 	const id = useId();
-	const selectedFootprintId = useGlobeStore(
-		(state) => state.selectedFootprintId,
-	);
+	const { selectedFootprintId, basenameList } = useSelectedOverviewFootprint();
 	const [enable, setEnable] = useState(false);
-	const dataQueries = useGrismData({ enabled: enable });
-	const errQueries = useGrismErr({ enabled: enable });
-	const offsetQueries = useGrismOffsets({ enabled: enable });
+	const dataQueries = useGrismData({ basenameList, enabled: enable });
+	const errQueries = useGrismErr({ basenameList, enabled: enable });
+	const offsetQueries = useGrismOffsets({
+		groupId: selectedFootprintId,
+		basenameList,
+		enabled: enable,
+	});
 	useEffect(() => {
 		if (!selectedFootprintId) {
 			setEnable(false);

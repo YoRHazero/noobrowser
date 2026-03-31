@@ -4,11 +4,11 @@ import { FiDownload } from "react-icons/fi";
 import { toaster } from "@/components/ui/toaster";
 import { useCounterpartFootprint } from "@/hooks/query/image/useCounterpartFootprint";
 import { useCounterpartImage } from "@/hooks/query/image/useCounterpartImage";
-import { useGlobeStore } from "@/stores/footprints";
 import { useCounterpartStore } from "@/stores/image";
+import { useOverviewStore } from "@/stores/overview";
 
 export default function CounterpartRetrieveButton() {
-	const selectedFootprintId = useGlobeStore(
+	const selectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
 	const filterRGB = useCounterpartStore((state) => state.filterRGB);

@@ -1,4 +1,4 @@
-import { useGlobeStore } from "@/stores/footprints";
+import { useOverviewStore } from "@/stores/overview";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 import type { CounterpartFootprint } from "./schemas";
 
@@ -9,10 +9,10 @@ export function useCounterpartFootprint({
 	selectedFootprintId?: string | null;
 	enabled?: boolean;
 }) {
-	const ZustandFootprintId = useGlobeStore(
+	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
 	const query = useQueryAxiosGet<CounterpartFootprint>({
 		queryKey: ["counterpart_footprint", group_id],
 		path: `/image/counterpart_footprint/${group_id}`,

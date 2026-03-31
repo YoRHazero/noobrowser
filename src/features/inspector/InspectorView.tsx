@@ -1,33 +1,15 @@
 import { Grid, GridItem } from "@chakra-ui/react";
-import { useMemo } from "react";
-import { useShallow } from "zustand/react/shallow";
 import InspectorSidebar from "@/features/inspector/sidebar/InspectorSidebar";
 import InspectorCanvas from "@/features/inspector/canvas/InspectorCanvas";
 import { useGrismNavigation } from "@/features/inspector/components/hooks/useGrismNavigation";
+import { useSelectedOverviewFootprint } from "@/features/inspector/hooks/useSelectedOverviewFootprint";
 import { useScrollFocus } from "@/hooks/ui/useScrollFocus";
-import { useGlobeStore } from "@/stores/footprints";
 
 export default function InspectorView() {
 	const containerRef = useScrollFocus<HTMLDivElement>("shift+3", {
 		offset: 0,
 	});
-	/* -------------------------------------------------------------------------- */
-	/*                               Initialization                               */
-	/* -------------------------------------------------------------------------- */
-	const { footprints, selectedFootprintId } = useGlobeStore(
-		useShallow((state) => ({
-			footprints: state.footprints,
-			selectedFootprintId: state.selectedFootprintId,
-		})),
-	);
-
-	const basenameList = useMemo(() => {
-		if (!selectedFootprintId) return [];
-		const selectedFootprint = footprints.find(
-			(fp) => fp.id === selectedFootprintId,
-		);
-		return selectedFootprint?.meta?.included_files ?? [];
-	}, [footprints, selectedFootprintId]);
+	const { basenameList } = useSelectedOverviewFootprint();
 
 	const { currentImageIndex } = useGrismNavigation(basenameList.length);
 	const currentBasename = basenameList[currentImageIndex];

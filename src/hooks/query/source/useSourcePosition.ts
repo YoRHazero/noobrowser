@@ -1,5 +1,5 @@
 import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
-import { useGlobeStore } from "@/stores/footprints";
+import { useOverviewStore } from "@/stores/overview";
 import type { SourcePosition } from "./schemas";
 
 export function useSourcePosition({
@@ -20,10 +20,10 @@ export function useSourcePosition({
 	enabled?: boolean;
 }) {
 
-	const ZustandFootprintId = useGlobeStore(
+	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const group_id = selectedFootprintId ?? ZustandFootprintId;
+	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
 	const queryKey = [
 		"source-position",
 		x?.toFixed(1),

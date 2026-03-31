@@ -2,15 +2,17 @@ import { Box, Grid, GridItem } from "@chakra-ui/react";
 import { useState } from "react";
 import { OverviewCanvas } from "./canvas";
 import { OverviewViewerHud } from "./controls/OverviewViewerHud";
+import { useOverviewSelectionValidity } from "./hooks/useOverviewSelectionValidity";
 import { OverviewSidebar } from "./sidebar/OverviewSidebar";
 
 export default function OverviewFeature() {
 	const [isViewerHudOpen, setIsViewerHudOpen] = useState(false);
+	useOverviewSelectionValidity();
 
 	return (
 		<Grid
 			w="100%"
-			h="100%"
+			h="100vh"
 			minH="0"
 			templateColumns="minmax(0, 1fr) 400px"
 			overflow="hidden"

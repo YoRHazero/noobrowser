@@ -1,9 +1,9 @@
 import { VStack } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import Title from "@/components/layout/Title";
-import Footprint from "@/features/Footprint";
 import Analyzer from "@/features/analyzer/AnalyzerView";
 import Inspector from "@/features/inspector/InspectorView";
+import OverviewFeature from "@/features/overview";
 
 export const Route = createFileRoute("/wfss")({
 	component: RouteComponent,
@@ -11,12 +11,18 @@ export const Route = createFileRoute("/wfss")({
 
 function RouteComponent() {
 	return (
-		<VStack align="start" p={4} gap={4} gapY={20} height="100%" overflow="auto">
+		<VStack
+			align="stretch"
+			p={4}
+			gap={4}
+			height="100%"
+			overflowY="auto"
+		>
 			<Title />
-			<Footprint />
+			<OverviewFeature />
 			{/*			<Counterpart /> */}
 			<Analyzer />
 			<Inspector />
 		</VStack>
-	)
+	);
 }

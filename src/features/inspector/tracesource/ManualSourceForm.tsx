@@ -14,7 +14,7 @@ import { toaster } from "@/components/ui/toaster";
 import { useSourcePosition } from "@/hooks/query/source/useSourcePosition";
 import { useCounterpartStore } from "@/stores/image";
 import { useInspectorStore } from "@/stores/inspector";
-import { useGlobeStore } from "@/stores/footprints";
+import { useOverviewStore } from "@/stores/overview";
 import { useSourcesStore } from "@/stores/sources";
 
 
@@ -30,7 +30,9 @@ export default function ManualSourceForm() {
 	/* -------------------------------------------------------------------------- */
 	/*                                Access Store                                */
 	/* -------------------------------------------------------------------------- */
-    const selectedFootprintId = useGlobeStore((state) => state.selectedFootprintId);
+	const selectedFootprintId = useOverviewStore(
+		(state) => state.selectedFootprintId,
+	);
 	const addTraceSource = useSourcesStore((state) => state.addTraceSource);
 	const roiState = useInspectorStore((state) => state.roiState);
 	const collapseWindow = useInspectorStore((state) => state.roiCollapseWindow);

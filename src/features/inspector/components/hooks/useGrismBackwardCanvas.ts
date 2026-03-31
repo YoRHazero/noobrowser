@@ -1,6 +1,7 @@
 import { useGrismData, useGrismOffsets } from "@/hooks/query/image";
 import { useInspectorStore } from "@/stores/inspector";
 import { useShallow } from "zustand/react/shallow";
+import { useSelectedOverviewFootprint } from "@/features/inspector/hooks/useSelectedOverviewFootprint";
 
 export function useGrismBackwardCanvas({
 	currentBasename,
@@ -11,13 +12,18 @@ export function useGrismBackwardCanvas({
 			backwardGlobalNorm: state.backwardGlobalNorm,
 		})),
 	);
+	const { selectedFootprintId } = useSelectedOverviewFootprint();
+	const basenameList = currentBasename ? [currentBasename] : [];
 
 	/* -------------------------------------------------------------------------- */
 	/*                                 Data Access                                */
 	/* -------------------------------------------------------------------------- */
 	// refetch will be triggered by other components, here just read from cache
-	const grismDataResults = useGrismData({});
-	const grismOffsetsResults = useGrismOffsets({});
+	const grismDataResults = useGrismData({ basenameList });
+	const grismOffsetsResults = useGrismOffsets({
+		groupId: selectedFootprintId,
+		basenameList,
+	});
 
 	const currentGrismData = currentBasename
 		? grismDataResults?.[currentBasename]?.data
@@ -33,4 +39,3 @@ export function useGrismBackwardCanvas({
 		currentGrismOffsets,
 	};
 }
-
