@@ -1,8 +1,12 @@
 "use client";
 
-export type TargetHubMode = "icon" | "dock";
+import type { SourceImageRef, SourceVisibility } from "@/stores/source";
+
+export type TargetHubMode = "icon" | "dock" | "sheet";
 
 export type BeaconRevealState = "hidden" | "peek" | "reveal";
+
+export type TargetHubEditorMode = "detail" | "create";
 
 export type BeaconEffectKind =
 	| "active-switch"
@@ -20,6 +24,24 @@ export interface TargetHubMockSession {
 	label: string;
 	status: string;
 	color: string;
+}
+
+export interface TargetHubCreateDraft {
+	label: string;
+	position: {
+		ra: string;
+		dec: string;
+		x: number | null;
+		y: number | null;
+	};
+	imageRef: SourceImageRef;
+	visibility: SourceVisibility;
+}
+
+export interface TargetHubExtractionDraft {
+	apertureSize: number;
+	waveMinUm: number;
+	waveMaxUm: number;
 }
 
 export interface TargetHubDebugAPI {

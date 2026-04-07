@@ -1,6 +1,6 @@
 export const TARGET_HUB_STORAGE_KEY = "noobrowser-target-hub-ui";
 
-export const TARGET_HUB_Z_INDEX = 60;
+export const TARGET_HUB_Z_INDEX = 1250;
 
 export const BEACON_DEFAULT_Y_RATIO = 0.5;
 export const BEACON_WIDTH = 40;
@@ -24,3 +24,10 @@ export const DOCK_HEIGHT = 224;
 export const DOCK_LEFT_OFFSET = 18;
 export const DOCK_ANCHOR_OFFSET_Y = -44;
 export const DOCK_EXIT_DURATION_MS = 180;
+
+export const SHEET_LEFT_OFFSET = 16;
+export const SHEET_TOP_OFFSET = 16;
+export const SHEET_BOTTOM_OFFSET = 16;
+export const SHEET_WIDTH = 420;
+export const SHEET_DRAWER_GAP = 12;
+export const SHEET_JOBS_DRAWER_WIDTH = 320;

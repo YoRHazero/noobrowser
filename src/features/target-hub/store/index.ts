@@ -14,11 +14,16 @@ import {
 	type TargetHubFeedbackSlice,
 } from "./feedbackSlice";
 import { createUiSlice, type TargetHubUiSlice } from "./uiSlice";
+import {
+	createSheetLocalSlice,
+	type TargetHubSheetLocalSlice,
+} from "../sheet/store/sheetSlice";
 
 export type TargetHubStore = TargetHubUiSlice &
 	TargetHubFeedbackSlice &
 	TargetHubBeaconSlice &
-	TargetHubDockSlice;
+	TargetHubDockSlice &
+	TargetHubSheetLocalSlice;
 
 export const useTargetHubStore = create<TargetHubStore>()(
 	persist(
@@ -27,6 +32,7 @@ export const useTargetHubStore = create<TargetHubStore>()(
 			...createFeedbackSlice(...a),
 			...createBeaconSlice(...a),
 			...createDockSlice(...a),
+			...createSheetLocalSlice(...a),
 		}),
 		{
 			name: TARGET_HUB_STORAGE_KEY,

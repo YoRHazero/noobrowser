@@ -6,6 +6,8 @@ export interface TargetHubUiSlice {
 	mode: TargetHubMode;
 	setMode: (mode: TargetHubMode) => void;
 	openDock: () => void;
+	openSheet: () => void;
+	returnToDock: () => void;
 	collapseToIcon: () => void;
 }
 
@@ -19,17 +21,27 @@ export const createUiSlice: StateCreator<
 	setMode: (mode) =>
 		set({
 			mode,
-			dockVisible: mode === "dock",
+			jobsDrawerOpen: false,
 		}),
 	openDock: () =>
 		set({
 			mode: "dock",
-			dockVisible: true,
+			jobsDrawerOpen: false,
+		}),
+	openSheet: () =>
+		set({
+			mode: "sheet",
+			jobsDrawerOpen: false,
+		}),
+	returnToDock: () =>
+		set({
+			mode: "dock",
+			jobsDrawerOpen: false,
 		}),
 	collapseToIcon: () =>
 		set({
 			mode: "icon",
-			dockVisible: false,
 			reveal: "reveal",
+			jobsDrawerOpen: false,
 		}),
 });

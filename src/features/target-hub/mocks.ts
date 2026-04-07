@@ -5,9 +5,3 @@ export const targetHubMockSession: TargetHubMockSession = {
 	status: "READY",
 	color: "#22d3ee",
 };
-
-export const targetHubMockQuickNav = [
-	"Overview",
-	"Analyzer",
-	"Inspector",
-] as const;

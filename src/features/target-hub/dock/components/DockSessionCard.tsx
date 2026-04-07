@@ -1,79 +1,70 @@
-import type { SystemStyleObject } from "@chakra-ui/react";
-import { Box, HStack, Stack, Text } from "@chakra-ui/react";
-import type { BeaconEffect } from "../../shared/types";
-import { getDockFeedbackStyles } from "../animations/dockFeedback.animations";
-import { DockDotFeedback } from "./DockDotFeedback";
-import { DockFeedbackLayer } from "./DockFeedbackLayer";
-import { DockStatusNotice } from "./DockStatusNotice";
+import { Box, HStack, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
+import { dockSessionCardRecipe } from "../recipes/dockSessionCard.recipe";
 
 interface DockSessionCardProps {
-	label: string;
-	status: string;
+	title: string;
+	raText: string;
+	decText: string;
+	refText: string;
 	color: string;
-	effect: BeaconEffect | null;
-	cardCss: SystemStyleObject;
-	dotCss: SystemStyleObject;
-	statusCss: SystemStyleObject;
-	feedbackCss: SystemStyleObject;
-	noticeCss: SystemStyleObject;
+	isEmpty: boolean;
 }
 
 export function DockSessionCard({
-	label,
-	status,
+	title,
+	raText,
+	decText,
+	refText,
 	color,
-	effect,
-	cardCss,
-	dotCss,
-	statusCss,
-	feedbackCss,
-	noticeCss,
+	isEmpty,
 }: DockSessionCardProps) {
-	const feedback = getDockFeedbackStyles(effect);
+	const recipe = useSlotRecipe({ recipe: dockSessionCardRecipe });
+	const styles = recipe();
 
 	return (
-		<Stack css={cardCss} gap={1.5}>
-			<DockFeedbackLayer effect={effect} css={feedbackCss} />
-			<HStack gap={2} align="center">
-				<HStack gap={2} minW={0}>
+		<Stack css={styles.card} gap={2}>
+			<HStack gap={2} align="center" minW={0}>
+				<Box
+					position="relative"
+					w="10px"
+					h="10px"
+					flexShrink={0}
+					overflow="visible"
+				>
 					<Box
-						position="relative"
+						css={styles.dot}
 						w="10px"
 						h="10px"
-						flexShrink={0}
-						overflow="visible"
-					>
-						<Box
-							css={dotCss}
-							w="10px"
-							h="10px"
-							style={{ backgroundColor: color, boxShadow: `0 0 10px ${color}` }}
-						/>
-						<DockDotFeedback effect={effect} />
-					</Box>
-					<Text
-						key={`dock-session-label-${effect?.token ?? "base"}`}
-						fontSize="sm"
-						fontWeight="bold"
-						fontFamily="mono"
-						color="fg"
-						css={feedback.label}
-					>
-						{label}
-					</Text>
-				</HStack>
+						style={{
+							backgroundColor: color,
+							boxShadow: `0 0 10px ${color}`,
+							opacity: isEmpty ? 0.7 : 1,
+						}}
+					/>
+				</Box>
 				<Text
-					key={`dock-session-status-${effect?.token ?? "base"}`}
-					marginInlineStart="auto"
-					css={{ ...statusCss, ...feedback.status }}
+					fontSize="sm"
+					fontWeight="bold"
+					color="fg"
+					css={{
+						overflow: "hidden",
+						textOverflow: "ellipsis",
+						whiteSpace: "nowrap",
+					}}
 				>
-					{status}
+					{title}
 				</Text>
 			</HStack>
-			<Text fontSize="xs" color="fg.muted">
-				Prototype session anchor
+
+			<Text fontSize="xs" color="fg.muted" fontVariantNumeric="tabular-nums">
+				RA: {raText}
 			</Text>
-			<DockStatusNotice effect={effect} css={noticeCss} />
+			<Text fontSize="xs" color="fg.muted" fontVariantNumeric="tabular-nums">
+				Dec: {decText}
+			</Text>
+			<Text fontSize="xs" color="fg.muted" maxW="full" truncate>
+				Ref: {refText}
+			</Text>
 		</Stack>
 	);
 }

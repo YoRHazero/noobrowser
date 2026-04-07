@@ -2,17 +2,17 @@
 
 import { Portal } from "@chakra-ui/react";
 import { useEffect } from "react";
-import TargetHubBeacon from "./beacon";
-import TargetHubDock from "./dock";
+import { DarkMode } from "@/components/ui/color-mode";
 import { useTargetHubFeedbackLifecycle } from "./hooks/useTargetHubFeedbackLifecycle";
 import { targetHubMockSession } from "./mocks";
 import type { BeaconEffectKind } from "./shared/types";
 import { useTargetHubStore } from "./store";
+import { TargetHubModeHost } from "./TargetHubModeHost";
+import { TargetHubSpectrumManager } from "./TargetHubSpectrumManager";
 
 export default function TargetHubRoot() {
 	useTargetHubFeedbackLifecycle();
 
-	const mode = useTargetHubStore((state) => state.mode);
 	const setMode = useTargetHubStore((state) => state.setMode);
 	const emitEffect = useTargetHubStore((state) => state.emitEffect);
 
@@ -39,6 +39,11 @@ export default function TargetHubRoot() {
 	}, [emitEffect, setMode]);
 
 	return (
-		<Portal>{mode === "icon" ? <TargetHubBeacon /> : <TargetHubDock />}</Portal>
+		<Portal>
+			<DarkMode>
+				<TargetHubSpectrumManager />
+				<TargetHubModeHost />
+			</DarkMode>
+		</Portal>
 	);
 }

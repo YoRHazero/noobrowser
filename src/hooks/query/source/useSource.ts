@@ -1,8 +1,16 @@
 import { useShallow } from "zustand/react/shallow";
 import { useAnalyzerStore } from "@/stores/analyzer";
-import type { Source } from "@/stores/source/types";
 import { useExtractSpectrum } from "./useExtractSpectrum";
 import { useSourcePosition } from "./useSourcePosition";
+
+type SourceQueryInput = {
+	id: string;
+	groupId?: string | null;
+	x: number;
+	y: number;
+	ra?: number | null;
+	dec?: number | null;
+};
 
 /**
  * Hook to get source position and spectrum data
@@ -22,7 +30,7 @@ export function useSource({
 	posEnabled = false,
 	specEnabled = false,
 }: {
-	source: Source;
+	source: SourceQueryInput;
 	apertureSize?: number;
 	waveMin?: number;
 	waveMax?: number;
