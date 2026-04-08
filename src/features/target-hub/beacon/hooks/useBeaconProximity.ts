@@ -4,13 +4,14 @@ import {
 	BEACON_PEEK_DISTANCE,
 	BEACON_REVEAL_DISTANCE,
 } from "../../shared/constants";
-import { useTargetHubStore } from "../../store";
+import { useShellStore } from "../../store/useShellStore";
+import { useBeaconStore } from "../store/useBeaconStore";
 
 export function useBeaconProximity() {
-	const mode = useTargetHubStore((state) => state.mode);
-	const isDragging = useTargetHubStore((state) => state.isDragging);
-	const reveal = useTargetHubStore((state) => state.reveal);
-	const setReveal = useTargetHubStore((state) => state.setReveal);
+	const mode = useShellStore((state) => state.mode);
+	const isDragging = useBeaconStore((state) => state.isDragging);
+	const reveal = useBeaconStore((state) => state.reveal);
+	const setReveal = useBeaconStore((state) => state.setReveal);
 	const hideTimerRef = useRef<number | null>(null);
 
 	useEffect(() => {

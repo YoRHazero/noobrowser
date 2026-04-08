@@ -1,1 +1,1 @@
-export { default } from "./TargetHubRoot";
+export { default } from "./Root";

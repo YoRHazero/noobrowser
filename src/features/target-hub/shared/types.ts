@@ -20,12 +20,6 @@ export interface BeaconEffect {
 	color: string;
 }
 
-export interface TargetHubMockSession {
-	label: string;
-	status: string;
-	color: string;
-}
-
 export interface TargetHubCreateDraft {
 	label: string;
 	position: {
@@ -42,20 +36,4 @@ export interface TargetHubExtractionDraft {
 	apertureSize: number;
 	waveMinUm: number;
 	waveMaxUm: number;
-}
-
-export interface TargetHubDebugAPI {
-	setMode: (mode: TargetHubMode) => void;
-	emitEffect: (kind: BeaconEffectKind) => void;
-	getState: () => {
-		mode: TargetHubMode;
-		reveal: BeaconRevealState;
-		beaconYRatio: number;
-	};
-}
-
-declare global {
-	interface Window {
-		__targetHubDebug?: TargetHubDebugAPI;
-	}
 }

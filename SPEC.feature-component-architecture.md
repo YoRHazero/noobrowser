@@ -42,6 +42,7 @@ src/features/<feature>/
   components/
   hooks/
   recipes/
+  shared/
   store/
   utils.ts （或者 utils/）
   index.ts
@@ -63,6 +64,7 @@ src/features/<feature>/
   editor/
   list/
   detail/
+  shared/
   store/
   components/
   ...
@@ -91,6 +93,40 @@ src/features/<feature>/
 - 处理跨组件状态同步
 - 承担上层容器的组装逻辑
 
+如果一个“被多个地方复用”的组件开始读写 store、调用 query、组合 action、或者封装明确业务规则，它就不再属于 `components/`。
+
+此时应把它提升为独立业务目录，例如：
+
+```text
+projection/
+  index.tsx
+  ProjectionControls.tsx
+  useProjectionControls.ts
+  components/
+```
+
+“会被多个地方使用”不等于“应该放进 `components/`”。判断标准是它是否只承担复用 UI。
+
+### `shared/`
+
+`shared/` 是可选目录，只放低耦合、无明确业务 owner 的基础定义。
+
+优先放这里的内容：
+
+- `types.ts`
+- `constants.ts`
+- 极少量跨子域复用、且不属于任何业务 owner 的纯函数工具
+
+不应放这里的内容：
+
+- 业务组件
+- 业务 hooks
+- store slices
+- query hooks
+- 会读写 store 或 query 的复用模块
+
+如果某个 `type / constant / utils` 明显只属于一个子域，应 colocate 在该子域目录，而不是硬塞进 `shared/`。
+
 ### `hooks/`
 
 `hooks/` 是 feature 的业务逻辑层。
@@ -104,6 +140,8 @@ src/features/<feature>/
 - 管理 feature 内业务交互
 
 如果某个组件文件需要明显的业务逻辑，它应拥有对应的 `useXxx.ts`，而不是把逻辑直接塞进展示组件。
+
+如果这份业务逻辑已经形成一个稳定的复用能力，并被多个子模块消费，优先给它一个明确的业务目录，而不是继续把它伪装成 `shared hook`。
 
 ### `recipes/`
 
@@ -230,6 +268,52 @@ feature 内部的 store 应继续分层：
 - 容器内允许存在带 props 的局部子组件
 - 这些局部子组件可以继续使用 `components/` 中的 dumb components
 
+如果某个容器内部的局部能力开始被多个业务区块共同使用，不要急着把它移进 `shared/`。先判断它是：
+
+- 复用 UI：进入 `components/`
+- 基础定义：进入 `shared/`
+- 业务能力：提升成独立业务目录
+
+### 子域目录模板
+
+当一个子域已经拥有独立目录时，默认应使用下面的模板：
+
+```text
+<domain>/
+  index.tsx
+  use<Domain>.ts
+  <Domain>View.tsx
+  components/
+  hooks/
+```
+
+约束如下：
+
+- `index.tsx` 是该目录的主容器入口
+- `index.tsx` 默认直接完成 `use<Domain>() + <Domain>View />` 的组装
+- `components/` 只放这个子域内部的 dumb components
+- `hooks/` 只在该子域逻辑继续拆分时再建立
+
+如果子域足够简单，也可以省略单独的 `<Domain>View.tsx` 或 `use<Domain>.ts`，把少量逻辑直接放进 `index.tsx`。但即使如此，也不应保留纯转发包装层。
+
+默认不要写成：
+
+```text
+<domain>/
+  index.tsx
+  <Domain>.tsx
+  use<Domain>.ts
+  <Domain>View.tsx
+```
+
+如果 `index.tsx` 只是单纯转发到同层的 `<Domain>.tsx`，那么这层 `<Domain>.tsx` 通常没有存在价值，应折叠回 `index.tsx`。
+
+只有在下面情况成立时，才允许保留额外包装层：
+
+- `index.tsx` 作为公共导出入口，而真正的容器属于另一个明确子域
+- 包装层本身承担了额外职责，而不只是转发
+- 该目录同时暴露多个不同容器，而 `index.tsx` 需要显式编排它们
+
 ## Props 设计规则
 
 组件 props 应尽量只表达：
@@ -322,6 +406,8 @@ feature 内部的 store 应继续分层：
 - 数据源切换
 - 业务流程判断
 
+一旦出现上述逻辑，这个文件就不应再被视为 `components/` 中的 dumb component，即使它被多个地方复用也是如此。
+
 ## 命名规则
 
 - feature 根层组件可以保留 feature 前缀
@@ -337,11 +423,18 @@ feature 内部的 store 应继续分层：
 
 - 先按主业务区块拆成子目录
 - 每个子目录内部继续遵守本规范
-- 仅把真正共享的 `components / store / utils` 留在 feature 根层
+- 仅把真正共享的 `components / shared / store / utils` 留在 feature 根层
 
 不要先按“表单 / 列表 / 卡片 / hooks / styles”硬切一层大平铺，再把所有业务揉在一起。
 
 优先按业务区块建骨架，再在区块内部按技术职责分层。
+
+进一步的目录判断规则：
+
+- 复用 UI 放 `components/`
+- 基础定义放 `shared/`
+- 业务复用模块不要放进 `shared/`，而是直接升格成独立子目录
+- `shared/` 不应成为“暂时不好归类的业务代码收容所”
 
 ## 评审检查清单
 

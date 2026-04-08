@@ -1,10 +1,15 @@
 import { useEffect, useRef } from "react";
 import { BEACON_EFFECT_ATTENTION_MS } from "../../shared/constants";
-import { useTargetHubStore } from "../../store";
+import {
+	getFeedbackState,
+	useFeedbackStore,
+} from "../../store/useFeedbackStore";
+import { getShellState } from "../../store/useShellStore";
+import { getBeaconState, useBeaconStore } from "../store/useBeaconStore";
 
 export function useBeaconAttentionFromEffect() {
-	const effectToken = useTargetHubStore((state) => state.effect?.token);
-	const setReveal = useTargetHubStore((state) => state.setReveal);
+	const effectToken = useFeedbackStore((state) => state.effect?.token);
+	const setReveal = useBeaconStore((state) => state.setReveal);
 	const attentionTimerRef = useRef<number | null>(null);
 
 	useEffect(() => {
@@ -15,9 +20,12 @@ export function useBeaconAttentionFromEffect() {
 			attentionTimerRef.current = null;
 		}
 
-		const state = useTargetHubStore.getState();
+		const shellState = getShellState();
+		const beaconState = getBeaconState();
 		const shouldPeek =
-			state.mode === "icon" && state.reveal === "hidden" && !state.isDragging;
+			shellState.mode === "icon" &&
+			beaconState.reveal === "hidden" &&
+			!beaconState.isDragging;
 
 		if (!shouldPeek) {
 			return;
@@ -26,15 +34,18 @@ export function useBeaconAttentionFromEffect() {
 		setReveal("peek");
 
 		attentionTimerRef.current = window.setTimeout(() => {
-			const current = useTargetHubStore.getState();
+			const currentShell = getShellState();
+			const currentBeacon = getBeaconState();
+			const currentFeedback = getFeedbackState();
 			const noNewerEffect =
-				current.effect == null || current.effect.token === effectToken;
+				currentFeedback.effect == null ||
+				currentFeedback.effect.token === effectToken;
 
 			if (
 				noNewerEffect &&
-				current.mode === "icon" &&
-				current.reveal === "peek" &&
-				!current.isDragging
+				currentShell.mode === "icon" &&
+				currentBeacon.reveal === "peek" &&
+				!currentBeacon.isDragging
 			) {
 				setReveal("hidden");
 			}

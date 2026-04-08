@@ -5,7 +5,8 @@ import {
 	BEACON_EDGE_INSET,
 	BEACON_HEIGHT,
 } from "../../shared/constants";
-import { useTargetHubStore } from "../../store";
+import { useShellStore } from "../../store/useShellStore";
+import { useBeaconStore } from "../store/useBeaconStore";
 
 const clampTop = (top: number, viewportHeight: number) =>
 	Math.min(
@@ -20,15 +21,15 @@ const getRatioFromTop = (top: number, viewportHeight: number) =>
 	Math.min(1, Math.max(0, top / Math.max(viewportHeight, 1)));
 
 export function useBeaconDrag() {
-	const beaconYRatio = useTargetHubStore((state) => state.beaconYRatio);
-	const startDrag = useTargetHubStore((state) => state.startDrag);
-	const markDragStarted = useTargetHubStore((state) => state.markDragStarted);
-	const updateBeaconYRatio = useTargetHubStore(
+	const beaconYRatio = useBeaconStore((state) => state.beaconYRatio);
+	const startDrag = useBeaconStore((state) => state.startDrag);
+	const markDragStarted = useBeaconStore((state) => state.markDragStarted);
+	const updateBeaconYRatio = useBeaconStore(
 		(state) => state.updateBeaconYRatio,
 	);
-	const endDrag = useTargetHubStore((state) => state.endDrag);
-	const setReveal = useTargetHubStore((state) => state.setReveal);
-	const openDock = useTargetHubStore((state) => state.openDock);
+	const endDrag = useBeaconStore((state) => state.endDrag);
+	const setReveal = useBeaconStore((state) => state.setReveal);
+	const openDock = useShellStore((state) => state.openDock);
 
 	const dragMetaRef = useRef<{
 		startClientY: number;

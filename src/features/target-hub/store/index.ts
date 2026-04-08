@@ -5,34 +5,34 @@ import {
 	type TargetHubBeaconSlice,
 } from "../beacon/store/beaconSlice";
 import {
-	createDockSlice,
-	type TargetHubDockSlice,
-} from "../dock/store/dockSlice";
+	createFitJobSlice,
+	type TargetHubFitJobSlice,
+} from "../fitJob/store/fitJobSlice";
 import { TARGET_HUB_STORAGE_KEY } from "../shared/constants";
+import {
+	createSheetEditorSlice,
+	type TargetHubSheetEditorSlice,
+} from "../sheet/store/editorSlice";
 import {
 	createFeedbackSlice,
 	type TargetHubFeedbackSlice,
 } from "./feedbackSlice";
-import { createUiSlice, type TargetHubUiSlice } from "./uiSlice";
-import {
-	createSheetLocalSlice,
-	type TargetHubSheetLocalSlice,
-} from "../sheet/store/sheetSlice";
+import { createShellSlice, type TargetHubShellSlice } from "./shellSlice";
 
-export type TargetHubStore = TargetHubUiSlice &
+export type TargetHubStore = TargetHubShellSlice &
 	TargetHubFeedbackSlice &
 	TargetHubBeaconSlice &
-	TargetHubDockSlice &
-	TargetHubSheetLocalSlice;
+	TargetHubSheetEditorSlice &
+	TargetHubFitJobSlice;
 
 export const useTargetHubStore = create<TargetHubStore>()(
 	persist(
 		(...a) => ({
-			...createUiSlice(...a),
+			...createShellSlice(...a),
 			...createFeedbackSlice(...a),
 			...createBeaconSlice(...a),
-			...createDockSlice(...a),
-			...createSheetLocalSlice(...a),
+			...createSheetEditorSlice(...a),
+			...createFitJobSlice(...a),
 		}),
 		{
 			name: TARGET_HUB_STORAGE_KEY,

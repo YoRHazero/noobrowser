@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
+import { useBeaconStore } from "../../beacon/store/useBeaconStore";
 import { BEACON_EDGE_INSET, DOCK_HEIGHT } from "../../shared/constants";
-import { useTargetHubStore } from "../../store";
+import { useShellStore } from "../../store/useShellStore";
 
 const clampTop = (top: number, viewportHeight: number) =>
 	Math.min(
@@ -9,10 +10,8 @@ const clampTop = (top: number, viewportHeight: number) =>
 	);
 
 export function useDockAnchor() {
-	const beaconYRatio = useTargetHubStore((state) => state.beaconYRatio);
-	const dockAnchorOffsetY = useTargetHubStore(
-		(state) => state.dockAnchorOffsetY,
-	);
+	const beaconYRatio = useBeaconStore((state) => state.beaconYRatio);
+	const dockAnchorOffsetY = useShellStore((state) => state.dockAnchorOffsetY);
 	const [viewportHeight, setViewportHeight] = useState(() =>
 		typeof window === "undefined" ? 900 : window.innerHeight,
 	);
