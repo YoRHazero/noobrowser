@@ -2,6 +2,7 @@
 
 import type { MouseEventHandler, PointerEventHandler } from "react";
 import type { BeaconEffect, BeaconRevealState } from "../shared/types";
+import { useAnchorStore } from "../store/useAnchorStore";
 import { useFeedbackStore } from "../store/useFeedbackStore";
 import { useBeaconAttentionFromEffect } from "./hooks/useBeaconAttentionFromEffect";
 import { useBeaconDrag } from "./hooks/useBeaconDrag";
@@ -10,7 +11,7 @@ import { useBeaconStore } from "./store/useBeaconStore";
 
 export interface BeaconViewModel {
 	reveal: BeaconRevealState;
-	isDragging: boolean;
+	isAnchorDragging: boolean;
 	effect: BeaconEffect | null;
 	top: number;
 	onPointerDown: PointerEventHandler<HTMLDivElement>;
@@ -22,13 +23,13 @@ export function useBeacon(): BeaconViewModel {
 	useBeaconProximity();
 
 	const reveal = useBeaconStore((state) => state.reveal);
-	const isDragging = useBeaconStore((state) => state.isDragging);
+	const isAnchorDragging = useAnchorStore((state) => state.isAnchorDragging);
 	const effect = useFeedbackStore((state) => state.effect);
 	const { top, handlePointerDown, handleClick } = useBeaconDrag();
 
 	return {
 		reveal,
-		isDragging,
+		isAnchorDragging,
 		effect,
 		top,
 		onPointerDown: handlePointerDown,

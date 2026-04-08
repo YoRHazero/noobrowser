@@ -6,6 +6,7 @@ import { useSourceStore } from "@/stores/source";
 import { DOCK_EXIT_DURATION_MS } from "../shared/constants";
 import { useShellStore } from "../store/useShellStore";
 import { useDockAnchor } from "./hooks/useDockAnchor";
+import { useDockDrag } from "./hooks/useDockDrag";
 import { getDockSourceCardViewModel } from "./utils";
 
 export function useDock() {
@@ -21,7 +22,8 @@ export function useDock() {
 			activeSourceId: state.activeSourceId,
 		})),
 	);
-	const top = useDockAnchor();
+	const anchorTop = useDockAnchor();
+	const { top, isAnchorDragging, onHandlePointerDown } = useDockDrag(anchorTop);
 	const [isClosing, setIsClosing] = useState(false);
 
 	useEffect(() => {
@@ -34,8 +36,10 @@ export function useDock() {
 
 	return {
 		top,
+		isAnchorDragging,
 		isClosing,
 		sourceCard,
+		onHandlePointerDown,
 		onOpenSheet: openSheet,
 		onCollapse: () => {
 			setIsClosing(true);

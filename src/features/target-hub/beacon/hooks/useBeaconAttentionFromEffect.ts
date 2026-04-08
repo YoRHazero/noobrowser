@@ -1,5 +1,6 @@
 import { useEffect, useRef } from "react";
 import { BEACON_EFFECT_ATTENTION_MS } from "../../shared/constants";
+import { getAnchorState } from "../../store/useAnchorStore";
 import {
 	getFeedbackState,
 	useFeedbackStore,
@@ -22,10 +23,11 @@ export function useBeaconAttentionFromEffect() {
 
 		const shellState = getShellState();
 		const beaconState = getBeaconState();
+		const anchorState = getAnchorState();
 		const shouldPeek =
 			shellState.mode === "icon" &&
 			beaconState.reveal === "hidden" &&
-			!beaconState.isDragging;
+			!anchorState.isAnchorDragging;
 
 		if (!shouldPeek) {
 			return;
@@ -36,6 +38,7 @@ export function useBeaconAttentionFromEffect() {
 		attentionTimerRef.current = window.setTimeout(() => {
 			const currentShell = getShellState();
 			const currentBeacon = getBeaconState();
+			const currentAnchor = getAnchorState();
 			const currentFeedback = getFeedbackState();
 			const noNewerEffect =
 				currentFeedback.effect == null ||
@@ -45,7 +48,7 @@ export function useBeaconAttentionFromEffect() {
 				noNewerEffect &&
 				currentShell.mode === "icon" &&
 				currentBeacon.reveal === "peek" &&
-				!currentBeacon.isDragging
+				!currentAnchor.isAnchorDragging
 			) {
 				setReveal("hidden");
 			}

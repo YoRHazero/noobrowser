@@ -13,6 +13,7 @@ import {
 	createSheetEditorSlice,
 	type TargetHubSheetEditorSlice,
 } from "../sheet/store/editorSlice";
+import { createAnchorSlice, type TargetHubAnchorSlice } from "./anchorSlice";
 import {
 	createFeedbackSlice,
 	type TargetHubFeedbackSlice,
@@ -20,6 +21,7 @@ import {
 import { createShellSlice, type TargetHubShellSlice } from "./shellSlice";
 
 export type TargetHubStore = TargetHubShellSlice &
+	TargetHubAnchorSlice &
 	TargetHubFeedbackSlice &
 	TargetHubBeaconSlice &
 	TargetHubSheetEditorSlice &
@@ -29,6 +31,7 @@ export const useTargetHubStore = create<TargetHubStore>()(
 	persist(
 		(...a) => ({
 			...createShellSlice(...a),
+			...createAnchorSlice(...a),
 			...createFeedbackSlice(...a),
 			...createBeaconSlice(...a),
 			...createSheetEditorSlice(...a),
@@ -36,9 +39,32 @@ export const useTargetHubStore = create<TargetHubStore>()(
 		}),
 		{
 			name: TARGET_HUB_STORAGE_KEY,
+			version: 1,
+			migrate: (persistedState) => {
+				if (!persistedState || typeof persistedState !== "object") {
+					return persistedState as TargetHubStore;
+				}
+
+				const state = persistedState as {
+					anchorYRatio?: number;
+					beaconYRatio?: number;
+				};
+
+				if (
+					typeof state.anchorYRatio !== "number" &&
+					typeof state.beaconYRatio === "number"
+				) {
+					return {
+						...state,
+						anchorYRatio: state.beaconYRatio,
+					} as TargetHubStore;
+				}
+
+				return state as TargetHubStore;
+			},
 			partialize: (state) => ({
 				mode: state.mode,
-				beaconYRatio: state.beaconYRatio,
+				anchorYRatio: state.anchorYRatio,
 			}),
 		},
 	),

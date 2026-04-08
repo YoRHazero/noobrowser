@@ -16,7 +16,7 @@ type BeaconViewProps = BeaconViewModel;
 
 export function BeaconView({
 	reveal,
-	isDragging,
+	isAnchorDragging,
 	effect,
 	top,
 	onPointerDown,
@@ -47,7 +47,7 @@ export function BeaconView({
 				aria-label="Open Target Hub"
 				css={{
 					...styles.shell,
-					cursor: isDragging ? "grabbing" : styles.shell.cursor,
+					cursor: isAnchorDragging ? "grabbing" : styles.shell.cursor,
 				}}
 				onPointerDown={onPointerDown}
 				onClick={onClick}

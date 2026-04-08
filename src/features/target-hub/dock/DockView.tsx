@@ -10,6 +10,7 @@ import { DockShell } from "./components/DockShell";
 
 interface DockViewProps {
 	top: number;
+	isAnchorDragging: boolean;
 	isClosing: boolean;
 	sourceCard: {
 		title: string;
@@ -19,19 +20,27 @@ interface DockViewProps {
 		color: string;
 		isEmpty: boolean;
 	};
+	onHandlePointerDown: React.PointerEventHandler<HTMLDivElement>;
 	onOpenSheet: () => void;
 	onCollapse: () => void;
 }
 
 export function DockView({
 	top,
+	isAnchorDragging,
 	isClosing,
 	sourceCard,
+	onHandlePointerDown,
 	onOpenSheet,
 	onCollapse,
 }: DockViewProps) {
 	return (
-		<DockShell top={top} isClosing={isClosing}>
+		<DockShell
+			top={top}
+			isAnchorDragging={isAnchorDragging}
+			isClosing={isClosing}
+			onHandlePointerDown={onHandlePointerDown}
+		>
 			<DockSessionCard {...sourceCard} />
 			<Stack gap={1.5} mt={3}>
 				<DockActionButton

@@ -1,28 +1,33 @@
-import type { MouseEvent, PointerEvent as ReactPointerEvent } from "react";
+import type { PointerEvent as ReactPointerEvent } from "react";
 import { useEffect, useRef, useState } from "react";
 import {
 	BEACON_DRAG_THRESHOLD,
 	BEACON_EDGE_INSET,
-	BEACON_HEIGHT,
+	DOCK_HEIGHT,
 } from "../../shared/constants";
 import { useAnchorStore } from "../../store/useAnchorStore";
-import { useShellStore } from "../../store/useShellStore";
-import { useBeaconStore } from "../store/useBeaconStore";
 
 const clampTop = (top: number, viewportHeight: number) =>
 	Math.min(
-		viewportHeight - BEACON_EDGE_INSET - BEACON_HEIGHT,
+		viewportHeight - DOCK_HEIGHT - BEACON_EDGE_INSET,
 		Math.max(BEACON_EDGE_INSET, top),
 	);
 
-const getTopFromRatio = (ratio: number, viewportHeight: number) =>
-	clampTop(ratio * viewportHeight, viewportHeight);
+const getAnchorRatioFromDockTop = (
+	top: number,
+	dockOffsetYFromAnchor: number,
+	viewportHeight: number,
+) =>
+	Math.min(
+		1,
+		Math.max(0, (top - dockOffsetYFromAnchor) / Math.max(viewportHeight, 1)),
+	);
 
-const getRatioFromTop = (top: number, viewportHeight: number) =>
-	Math.min(1, Math.max(0, top / Math.max(viewportHeight, 1)));
-
-export function useBeaconDrag() {
-	const anchorYRatio = useAnchorStore((state) => state.anchorYRatio);
+export function useDockDrag(anchorTop: number) {
+	const dockOffsetYFromAnchor = useAnchorStore(
+		(state) => state.dockOffsetYFromAnchor,
+	);
+	const isAnchorDragging = useAnchorStore((state) => state.isAnchorDragging);
 	const startAnchorDrag = useAnchorStore((state) => state.startAnchorDrag);
 	const markAnchorDragStarted = useAnchorStore(
 		(state) => state.markAnchorDragStarted,
@@ -31,8 +36,6 @@ export function useBeaconDrag() {
 		(state) => state.updateAnchorYRatio,
 	);
 	const endAnchorDrag = useAnchorStore((state) => state.endAnchorDrag);
-	const setReveal = useBeaconStore((state) => state.setReveal);
-	const openDock = useShellStore((state) => state.openDock);
 
 	const dragMetaRef = useRef<{
 		startClientY: number;
@@ -41,10 +44,6 @@ export function useBeaconDrag() {
 	const dragStartedRef = useRef(false);
 	const liveTopRef = useRef<number | null>(null);
 	const cleanupRef = useRef<(() => void) | null>(null);
-	const skipClickRef = useRef(false);
-	const [viewportHeight, setViewportHeight] = useState(() =>
-		typeof window === "undefined" ? 900 : window.innerHeight,
-	);
 	const [dragTop, setDragTop] = useState<number | null>(null);
 
 	useEffect(() => {
@@ -53,17 +52,11 @@ export function useBeaconDrag() {
 		};
 	}, []);
 
-	useEffect(() => {
-		const handleResize = () => {
-			setViewportHeight(window.innerHeight);
-		};
-		window.addEventListener("resize", handleResize);
-		return () => window.removeEventListener("resize", handleResize);
-	}, []);
-
-	const handlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
+	const onHandlePointerDown = (event: ReactPointerEvent<HTMLDivElement>) => {
 		event.preventDefault();
-		const startTop = dragTop ?? getTopFromRatio(anchorYRatio, viewportHeight);
+		event.stopPropagation();
+
+		const startTop = dragTop ?? anchorTop;
 		dragMetaRef.current = {
 			startClientY: event.clientY,
 			startTop,
@@ -71,21 +64,22 @@ export function useBeaconDrag() {
 		dragStartedRef.current = false;
 		liveTopRef.current = startTop;
 		cleanupRef.current?.();
-		setReveal("reveal");
 		startAnchorDrag();
 
 		const handlePointerMove = (moveEvent: PointerEvent) => {
 			if (!dragMetaRef.current) return;
+
 			const deltaY = moveEvent.clientY - dragMetaRef.current.startClientY;
 			const nextTop = clampTop(
 				dragMetaRef.current.startTop + deltaY,
 				window.innerHeight,
 			);
+
 			if (Math.abs(deltaY) > BEACON_DRAG_THRESHOLD && !dragStartedRef.current) {
 				dragStartedRef.current = true;
 				markAnchorDragStarted();
-				skipClickRef.current = true;
 			}
+
 			liveTopRef.current = nextTop;
 			setDragTop(nextTop);
 		};
@@ -93,9 +87,14 @@ export function useBeaconDrag() {
 		const finishDrag = () => {
 			if (dragStartedRef.current && liveTopRef.current !== null) {
 				updateAnchorYRatio(
-					getRatioFromTop(liveTopRef.current, window.innerHeight),
+					getAnchorRatioFromDockTop(
+						liveTopRef.current,
+						dockOffsetYFromAnchor,
+						window.innerHeight,
+					),
 				);
 			}
+
 			dragMetaRef.current = null;
 			dragStartedRef.current = false;
 			liveTopRef.current = null;
@@ -117,19 +116,9 @@ export function useBeaconDrag() {
 		};
 	};
 
-	const handleClick = (event: MouseEvent<HTMLDivElement>) => {
-		if (skipClickRef.current) {
-			skipClickRef.current = false;
-			event.preventDefault();
-			event.stopPropagation();
-			return;
-		}
-		openDock();
-	};
-
 	return {
-		top: dragTop ?? getTopFromRatio(anchorYRatio, viewportHeight),
-		handlePointerDown,
-		handleClick,
+		top: dragTop ?? anchorTop,
+		isAnchorDragging,
+		onHandlePointerDown,
 	};
 }

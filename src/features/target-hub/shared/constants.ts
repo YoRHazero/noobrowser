@@ -2,7 +2,7 @@ export const TARGET_HUB_STORAGE_KEY = "noobrowser-target-hub-ui";
 
 export const TARGET_HUB_Z_INDEX = 1250;
 
-export const BEACON_DEFAULT_Y_RATIO = 0.5;
+export const ANCHOR_DEFAULT_Y_RATIO = 0.5;
 export const BEACON_WIDTH = 40;
 export const BEACON_HEIGHT = 48;
 export const BEACON_PEEK_DISTANCE = 84;
@@ -22,7 +22,7 @@ export const BEACON_TRANSLATE_X = {
 export const DOCK_WIDTH = 196;
 export const DOCK_HEIGHT = 224;
 export const DOCK_LEFT_OFFSET = 18;
-export const DOCK_ANCHOR_OFFSET_Y = -44;
+export const DOCK_OFFSET_Y_FROM_ANCHOR = -44;
 export const DOCK_EXIT_DURATION_MS = 180;
 
 export const SHEET_LEFT_OFFSET = 16;
