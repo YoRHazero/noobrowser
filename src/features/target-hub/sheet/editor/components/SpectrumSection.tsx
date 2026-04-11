@@ -13,6 +13,7 @@ import { ChartSpline, Plus, Settings2 } from "lucide-react";
 import { DarkMode } from "@/components/ui/color-mode";
 import { Tooltip } from "@/components/ui/tooltip";
 import { ProjectionControls } from "../../components/ProjectionControls";
+import Ned from "../../ned";
 import { sheetRecipe } from "../../recipes/sheet.recipe";
 import type { EditorHeaderModel } from "../hooks/useEditorHeaderModel";
 import type {
@@ -58,6 +59,8 @@ export function SpectrumSection({
 					/>
 
 					<HStack css={styles.chipGroup}>
+						<Ned />
+
 						<Popover.Root
 							open={extraction.isSettingsOpen}
 							onOpenChange={(details) => extraction.onOpenChange(details.open)}

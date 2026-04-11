@@ -10,6 +10,10 @@ import {
 } from "../fitJob/store/fitJobSlice";
 import { TARGET_HUB_STORAGE_KEY } from "../shared/constants";
 import {
+	createNedSlice,
+	type TargetHubNedSlice,
+} from "../sheet/ned/store/nedSlice";
+import {
 	createSheetEditorSlice,
 	type TargetHubSheetEditorSlice,
 } from "../sheet/store/editorSlice";
@@ -24,6 +28,7 @@ export type TargetHubStore = TargetHubShellSlice &
 	TargetHubAnchorSlice &
 	TargetHubFeedbackSlice &
 	TargetHubBeaconSlice &
+	TargetHubNedSlice &
 	TargetHubSheetEditorSlice &
 	TargetHubFitJobSlice;
 
@@ -34,6 +39,7 @@ export const useTargetHubStore = create<TargetHubStore>()(
 			...createAnchorSlice(...a),
 			...createFeedbackSlice(...a),
 			...createBeaconSlice(...a),
+			...createNedSlice(...a),
 			...createSheetEditorSlice(...a),
 			...createFitJobSlice(...a),
 		}),
@@ -65,6 +71,7 @@ export const useTargetHubStore = create<TargetHubStore>()(
 			partialize: (state) => ({
 				mode: state.mode,
 				anchorYRatio: state.anchorYRatio,
+				nedRadiusArcsec: state.nedRadiusArcsec,
 			}),
 		},
 	),
