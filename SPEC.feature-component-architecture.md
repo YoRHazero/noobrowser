@@ -2,460 +2,444 @@
 
 ## 目的
 
-这份文档定义 `src/features/*` 下功能模块的通用代码组织规则。
+这份文档定义 `src/features/*` 下 feature 与 subfeature 的通用组织规则。
 
-目标不是约束某一个具体 feature 的业务细节，而是定义一套稳定的分层方式，让 feature 在继续增长时仍然具备：
+目标是让业务代码在持续增长时仍然保持：
 
-- 清晰的职责边界
-- 可维护的目录结构
-- 可控的 props 接口
-- 可复用的展示组件
-- 可收敛的业务逻辑
+- 清晰的业务边界
+- 可递归复用的目录结构
+- 可控的组件依赖方向
+- 明确的 UI / view fragment / business unit 分层
+- 单一 store root 下可聚合的 slice 组织方式
 
-这是一份独立设计文档，不依赖仓库中的现有文档。
+## 核心模型
 
-## 适用范围
-
-本规范适用于：
-
-- `src/features/<feature>`
-- `src/features/<feature>/<subfeature>`
-
-也就是说，这份规范既适用于一个完整 feature，也适用于 feature 内部的子模块。
-
-## 核心原则
-
-- feature 是按业务语义组织的，不是按技术类型平铺的。
-- 展示组件、业务逻辑、样式、状态应分层。
-- 根层文件只负责组装，不负责承载业务逻辑。
-- 只有真正需要共享的状态，才应提升到 feature 级 store。
-- 样式必须内聚在组件内部，不应跨层通过 props 传递。
-- 当一个组件开始承担过多职责时，应提升为容器文件夹，而不是继续堆 props。
-
-## feature 推荐目录
-
-一个 feature 的目标结构如下：
+所有业务目录统一抽象为 `Unit`：
 
 ```text
-src/features/<feature>/
-  animations/
-  components/
-  hooks/
-  recipes/
-  shared/
-  store/
-  utils.ts （或者 utils/）
-  index.ts
-  <FeatureRoot>.tsx
-  <ContainerA>/
-    index.tsx
-    use<ContainerA>.ts
-  <ContainerB>/
-    index.tsx
-    use<ContainerB>.ts
+FeatureUnit = src/features/<feature>
+SubfeatureUnit = <parent>/subfeatures/<subfeature>
 ```
 
-允许存在零个或多个容器文件夹。
+`FeatureUnit` 和 `SubfeatureUnit` 递归遵守同一套结构，但有两个硬性差异：
 
-如果 feature 规模较大，也允许在内部再划分子目录，例如：
+- 只有顶层 `FeatureUnit` 可以拥有 `runtimes/`。
+- 只有顶层 `FeatureUnit/store/index.ts` 可以创建真实 Zustand store；嵌套 `SubfeatureUnit/store/index.ts` 只能聚合和导出 slice / selector。
 
-```text
-src/features/<feature>/
-  editor/
-  list/
-  detail/
-  shared/
-  store/
-  components/
-  ...
-```
-
-但不论是否拆子目录，都应遵守同样的职责边界。
-
-## 分层职责
-
-### `components/`
-
-`components/` 只放 dumb components。
-
-它们的职责是：
-
-- 接收数据
-- 接收语义化 props
-- 渲染 UI
-- 在组件内部消费自己的 recipe
-
-它们不负责：
-
-- 读写 store
-- 调用 query hook
-- 组织业务流程
-- 处理跨组件状态同步
-- 承担上层容器的组装逻辑
-
-如果一个“被多个地方复用”的组件开始读写 store、调用 query、组合 action、或者封装明确业务规则，它就不再属于 `components/`。
-
-此时应把它提升为独立业务目录，例如：
+## 标准结构
 
 ```text
-projection/
+<Unit>/
   index.tsx
-  ProjectionControls.tsx
-  useProjectionControls.ts
-  components/
+  <Unit>.tsx
+  use<Unit>.ts
+  <unit>.recipe.ts              optional
+
+  components/                   optional
+  parts/                        optional
+  hooks/                        optional
+  shared/                       optional
+  store/                        optional
+  utils/                        optional
+  animations/                   optional
+  subfeatures/                  optional
 ```
 
-“会被多个地方使用”不等于“应该放进 `components/`”。判断标准是它是否只承担复用 UI。
+只有顶层 feature 额外允许：
 
-### `shared/`
+```text
+src/features/<feature>/
+  runtimes/                     optional
+```
 
-`shared/` 是可选目录，只放低耦合、无明确业务 owner 的基础定义。
+禁止出现：
 
-优先放这里的内容：
+```text
+<parent>/subfeatures/<subfeature>/runtimes/
+```
 
-- `types.ts`
-- `constants.ts`
-- 极少量跨子域复用、且不属于任何业务 owner 的纯函数工具
+## `index.tsx`
 
-不应放这里的内容：
+`index.tsx` 是 Unit 的唯一公开入口。
 
-- 业务组件
-- 业务 hooks
-- store slices
-- query hooks
-- 会读写 store 或 query 的复用模块
+父级只能 import 子 Unit 的公开入口：
 
-如果某个 `type / constant / utils` 明显只属于一个子域，应 colocate 在该子域目录，而不是硬塞进 `shared/`。
+```ts
+import Ned from "./subfeatures/ned";
+```
 
-### `hooks/`
+禁止父级 import 子 Unit 的内部文件：
 
-`hooks/` 是 feature 的业务逻辑层。
+```ts
+import { NedView } from "./subfeatures/ned/NedView";
+```
 
-这里负责：
+如果顶层 feature 有 runtime，runtime 只能由顶层 feature 的 `index.tsx` 挂载：
 
-- 读取和写入 store
-- 调用 query hooks
-- 组装 view model
-- 封装事件处理函数
-- 管理 feature 内业务交互
+```tsx
+// src/features/<feature>/index.tsx
+export default function FeatureEntry() {
+  return (
+    <>
+      <FeatureRuntimes />
+      <Feature />
+    </>
+  );
+}
+```
 
-如果某个组件文件需要明显的业务逻辑，它应拥有对应的 `useXxx.ts`，而不是把逻辑直接塞进展示组件。
+`<Feature>.tsx`、subfeature、part、component 都不能直接挂载 runtime。
 
-如果这份业务逻辑已经形成一个稳定的复用能力，并被多个子模块消费，优先给它一个明确的业务目录，而不是继续把它伪装成 `shared hook`。
+## 简单 Unit
 
-### `recipes/`
+当 Unit 没有 `subfeatures/` 时，`<Unit>.tsx` 和 `use<Unit>.ts` 可以是该 Unit 的主要业务入口，但 `use<Unit>.ts` 仍然只做组合；具体副作用和生命周期逻辑放进 `hooks/useXxx.ts`：
 
-`recipes/` 只放样式定义。
+```text
+ned/
+  index.tsx
+  Ned.tsx
+  useNed.ts
+  ned.recipe.ts
+  parts/
+  store/
+```
 
-规则如下：
+## 复杂 Unit
 
-- 样式只由对应组件内部消费
-- 不通过 props 传递 `css`
-- 不通过 props 传递 `style`
-- 不通过 props 传递 recipe 结果
+当 Unit 出现 `subfeatures/` 后，`<Unit>.tsx` 和 `use<Unit>.ts` 只能作为 orchestration layer：
 
-组件若需要视觉变化，只能暴露语义化视觉变体，例如：
+```text
+sheet/
+  index.tsx
+  Sheet.tsx
+  useSheet.ts
+  parts/
+    SheetShell.tsx
+  subfeatures/
+    editor/
+    sources/
+    ned/
+```
 
-- `variant`
-- `size`
-- `state`
-- `dense`
+允许：
 
-### `store/`
+- 装配子 subfeatures。
+- 处理当前 Unit 自己的布局和外壳。
+- 使用当前 Unit 的 `parts/` 做布局拆分。
+- 读取父级 store / hooks 做跨 subfeature 编排。
 
-`store/` 只放这个 feature 自己的状态。
+禁止：
 
-feature 内部的 store 应继续分层：
+- 实现子 subfeature 的内部业务。
+- 调用本应属于子 subfeature 的 query / mutation。
+- 持有子 subfeature 私有状态。
+- 构造横跨多个 subfeature 的大 view model。
+- import sibling subfeature 的内部文件。
 
-- feature 全局状态
-- subfeature 局部状态
+## `components/`
 
-判断标准如下：
-
-- 若一个状态只在某个子模块中成立，应放在对应子模块的 `store/`
-- 若一个状态属于整个 feature 的统一语义，应放在 feature 根层 `store/`
-
-不要因为“未来可能会复用”就提前把状态提升到全局。
-
-### `animations/`
-
-`animations/` 只放动效相关内容。
-
-例如：
-
-- motion variants
-- transition constants
-- feature 级动画工具
-
-不放：
-
-- 业务逻辑
-- store 交互
-- query 交互
-
-### `utils.ts`
-
-只放纯函数工具。
-
-例如：
-
-- 格式化
-- 排序
-- 映射
-- 轻量派生计算
-
-不放：
-
-- hook
-- store
-- query
-- 组件树组装
-
-## 根层文件规则
-
-### `index.ts`
-
-作为 feature 的导出入口。
-
-职责只包括：
-
-- export feature 的公开组件
-- export 必要类型
-- export 无副作用工具
-
-不承载业务逻辑。
-
-### `<FeatureRoot>.tsx`
-
-这是 feature 的最终组装文件。
-
-它只负责：
-
-- 组装没有 props 的容器组件
-- 描述 feature 的总体结构
-
-它不负责：
-
-- 直接读写 query/store
-- 定义复杂事件逻辑
-- 把样式对象逐层往下传
-
-换句话说，根层组装文件应尽量接近“声明式骨架”。
-
-## 容器组件规则
-
-当某个组件满足下面任一条件时，应提升为容器文件夹：
-
-- props 数量超过 7 个
-- 同时承担状态读取、业务交互、多个区块拼装
-- 文件已经明显混合了展示逻辑和业务逻辑
-- 未来大概率继续扩张
+`components/` 只放可复用 UI primitives。它是视觉组件层，不是业务拆分层。
 
 推荐结构：
 
 ```text
-<ContainerName>/
-  index.tsx
-  use<ContainerName>.ts
-  <SubViewA>.tsx
-  <SubViewB>.tsx
+components/
+  IconChip/
+    IconChip.tsx
+    IconChip.recipe.ts
+    index.ts
 ```
 
-规则如下：
+硬性规则：
 
-- `index.tsx` 组装出没有 props 的容器组件
-- `use<ContainerName>.ts` 管理该容器的业务逻辑
-- 容器内允许存在带 props 的局部子组件
-- 这些局部子组件可以继续使用 `components/` 中的 dumb components
+- 一个 component 对应自己的 recipe。
+- component recipe 放在该 component 文件夹内。
+- component 可以接收 props 和 callbacks。
+- component props 留在组件文件或组件目录内，不放 `shared/types.ts`。
+- component 不能读 feature store。
+- component 不能调用 feature hooks、query hooks、mutation hooks、runtime hooks。
+- component 不能 import sibling subfeature。
+- component 不能 import 当前 Unit 的 `parts/`、`store/`、`hooks/`、`utils/`。
+- component 只能依赖 `src/components`、当前 Unit 的 `shared/`，以及父 Unit 的 `components/`。
 
-如果某个容器内部的局部能力开始被多个业务区块共同使用，不要急着把它移进 `shared/`。先判断它是：
+判断规则：
 
-- 复用 UI：进入 `components/`
-- 基础定义：进入 `shared/`
-- 业务能力：提升成独立业务目录
+- 名字里出现业务词，默认不放 `components/`。
+- 例如 `NedSettingsPanel`、`ExtractionSettingsPanel`、`SourceSpectrumPanel` 不属于 `components/`。
+- 例如 `IconChip`、`MetricRow`、`InlineField` 可以属于 `components/`。
 
-### 子域目录模板
+## `parts/`
 
-当一个子域已经拥有独立目录时，默认应使用下面的模板：
+`parts/` 是当前 Unit 私有的 feature-specific view fragments。它不是业务边界，只是把 view 拆小。
+
+规则：
+
+- 只服务最近的 owning Unit。
+- 可以包含业务文案、业务字段名、业务 view model。
+- 通常接收父级整理好的 props / model。
+- 不直接读 store。
+- 不调用 query / mutation。
+- 不拥有业务流程状态。
+- 不 import sibling subfeature。
+- 如果一个 part 只服务某个 child subfeature，必须放到那个 child subfeature 的 `parts/`。
+
+例子：
 
 ```text
-<domain>/
-  index.tsx
-  use<Domain>.ts
-  <Domain>View.tsx
-  components/
-  hooks/
+sheet/subfeatures/ned/
+  Ned.tsx
+  useNed.ts
+  NedView.tsx
+  parts/
+    SettingsPanel.tsx
+    ResultsPanel.tsx
 ```
 
-约束如下：
+`Ned` 是 subfeature，`SettingsPanel` 和 `ResultsPanel` 是 NED 内部 parts。
 
-- `index.tsx` 是该目录的主容器入口
-- `index.tsx` 默认直接完成 `use<Domain>() + <Domain>View />` 的组装
-- `components/` 只放这个子域内部的 dumb components
-- `hooks/` 只在该子域逻辑继续拆分时再建立
+## `subfeatures/`
 
-如果子域足够简单，也可以省略单独的 `<Domain>View.tsx` 或 `use<Domain>.ts`，把少量逻辑直接放进 `index.tsx`。但即使如此，也不应保留纯转发包装层。
+`subfeatures/` 放独立可见业务能力。
 
-默认不要写成：
+规则：
+
+- 每个 subfeature 是一个完整 Unit。
+- 可以拥有自己的 `use<Subfeature>.ts`、`parts/`、`components/`、`hooks/`、`shared/`、`store/`、`utils/`、`animations/`。
+- 禁止拥有 `runtimes/`。
+- sibling subfeatures 禁止互相 import。
+- sibling subfeatures 只能通过父级 store / hooks 或更高层共享状态协作。
+- 父 Unit 只装配 subfeature，不理解其内部状态。
+
+props 规则：
+
+- subfeature entry 倾向于不接收业务数据 props。
+- 允许 identity / config props，例如 `sourceId`、`placement`、`mode`。
+- 如果需要传完整 data object 和大量 callbacks，它通常是 `part`，不是 subfeature。
+
+`SourceCard` 的判断：
+
+```tsx
+<SourceCard source={source} isActive={isActive} onSelect={onSelect} />
+```
+
+这更像 `parts/SourceCard.tsx` 或 presentational component。
+
+```tsx
+<SourceCard sourceId={source.id} />
+```
+
+这可以是 `subfeatures/sourceCard`，内部用 `useSourceCard(sourceId)` 读取父级 store。
+
+## `store/`
+
+所有有 store 的 Unit 都必须有 `store/index.ts`。
+
+禁止预先创建空的 `store/`。
+
+一个 Unit 只有在实际拥有本地状态 slice / selector 时，才应拥有 `store/`。
+
+顶层 feature：
 
 ```text
-<domain>/
-  index.tsx
-  <Domain>.tsx
-  use<Domain>.ts
-  <Domain>View.tsx
+src/features/<feature>/store/index.ts
 ```
 
-如果 `index.tsx` 只是单纯转发到同层的 `<Domain>.tsx`，那么这层 `<Domain>.tsx` 通常没有存在价值，应折叠回 `index.tsx`。
+允许创建真实 Zustand store。
 
-只有在下面情况成立时，才允许保留额外包装层：
+嵌套 Unit：
 
-- `index.tsx` 作为公共导出入口，而真正的容器属于另一个明确子域
-- 包装层本身承担了额外职责，而不只是转发
-- 该目录同时暴露多个不同容器，而 `index.tsx` 需要显式编排它们
+```text
+<Unit>/store/index.ts
+```
 
-## Props 设计规则
+禁止创建 store，只能：
 
-组件 props 应尽量只表达：
+- export 自己的 slice。
+- export 自己的 `use<SliceName>Store` selector hook。
+- re-export 子 subfeature 的 store 聚合。
+- 给父级提供统一 import 面。
 
-- 数据
-- 行为
-- 语义化视觉变体
+`store/index.ts` 是公开聚合边界，不是 leaf 文件的替代品。
 
-不应表达：
+应保留真实使用中的 leaf 文件，例如 `<name>Slice.ts`、`use<Name>Store.ts`。只有当 leaf 文件在迁移后确实不再被使用时，才可以删除。
 
-- 跨层样式对象
-- 无边界的布局覆写
-- 原本应由 hook 派生的业务状态
+父级从 child Unit 的 `store/` 入口 import；同一个 `store/` 内部可以继续 import 本地 leaf 文件。
 
-默认约束：
+父级只能从子 Unit 的 `store/` 公开入口 import：
 
-- 一个组件的 props 不应超过 7 个
-- 当 props 开始包含数据、事件、布局、样式、状态五类混杂内容时，应拆容器
+```ts
+import { createNedSlice } from "../subfeatures/ned/store";
+```
 
-这个规则的目标不是追求数字本身，而是防止接口失控。
+禁止：
 
-## 样式规则
+```ts
+import { createNedSlice } from "../subfeatures/ned/store/nedSlice";
+```
 
-所有 feature 都遵守同一条样式原则：
+## `shared/`
 
-- `components/` 组件自己使用 recipe
-- 上层不传 `css`
-- 上层不传 `style`
-- 上层不传 recipe 结果
+`shared/` 只放当前 Unit 通用、低耦合定义。
 
-如果某个组件需要多种视觉形式，应把差异收敛成语义 props，而不是开放裸样式入口。
+允许：
 
-## 状态提升规则
+- `types.ts`
+- `constants.ts`
 
-状态放在哪里，按“作用域”判断，不按“实现方便”判断。
+禁止：
 
-### 放在 subfeature local store 的情况
+- hook 输入输出类型。
+- component props。
+- query result 的包装类型。
+- 只服务一个 part / subfeature 的局部类型。
 
-- 只在当前子模块内成立
-- 只影响当前子模块的 UI
-- 不会被 feature 内其它模块复用
+## `utils/`
 
-### 放在 feature global store 的情况
+`utils/` 只放纯函数。
 
-- 属于整个 feature 的统一语义
-- 会被多个子模块共同消费
-- 它的变化会影响 feature 的多个区域
+规则：
 
-### 不应过早提升的情况
+- 一个函数一个文件。
+- `index.ts` 统一导出。
+- 不允许在 utils 内新定义业务 types / constants。
+- 只能使用原生 types，或当前 / 父级 `shared/types.ts`、`shared/constants.ts`。
 
-- 只是一个容器内部的暂时草稿
-- 只是一个编辑面板的开关
-- 只是当前一步交互的中间值
+## `hooks/`
+
+`hooks/` 是当前 Unit 的业务 hook layer，用来承载当前 Unit 的具名行为拆分。
+
+它不只服务“跨多个子组件复用”。如果某个子 hook 只被 `use<Unit>.ts` 使用，但它承载了清晰的业务行为或生命周期逻辑，也应该放在当前 Unit 的 `hooks/` 中。
+
+允许：
+
+- 放 `use<Unit>.ts` 拆出来的子 hook，例如 `useBeaconDrag.ts`、`useBeaconProximity.ts`。
+- 放当前 Unit 内多个 parts / subfeatures 复用的 hook。
+- 放生命周期与当前可见 Unit 一致的 effect / event / timer / observer 逻辑。
+- 放当前 Unit 明确提供给 child subfeature 使用的公开 hook。
+- 子 subfeature 私有 hook 放子 Unit 自己的 `hooks/`。
+
+禁止：
+
+- 放 runtime hook。
+- 让 `components/` import 当前 Unit 的 `hooks/`。
+- 让 sibling subfeature 互相 import 对方的 `hooks/`。
+- 让父级 import child Unit 的私有 hook 文件。
+
+导出规则：
+
+- `hooks/` 中未从 `hooks/index.ts` 导出的 hook 视为当前 Unit 私有实现。
+- 只有当当前 Unit 明确向 child subfeature 提供 hook 时，才从 `hooks/index.ts` 导出。
+- child subfeature 的 `use<Child>.ts` 只能通过父 Unit 的 `hooks/index.ts` 调用父级公开 hook，不能 import 父级 `hooks/useXxx.ts` 私有文件。
+- 如果需要使用祖先 Unit 的 hook，优先由最近的父 Unit 通过自己的 `hooks/index.ts` 明确转发或包装，避免 child subfeature 越级依赖祖先内部结构。
+
+## `use<Unit>.ts`
+
+`use<Unit>.ts` 是当前 Unit 的 composition hook，只负责组装当前 Unit 的 view model。
+
+允许：
+
+- 调用当前 Unit `hooks/` 中的子 hook。
+- 调用父 Unit 通过 `hooks/index.ts` 公开导出的 hook。
+- 读取当前 Unit / 父 Unit 的公开 store selector。
+- 组合 query hook 的返回数据和状态。
+- 拼装传给 `<Unit>.tsx` / parts / subfeatures 的 view model。
+- 定义很薄的事件 handler，例如只调用 store action 或子 hook 返回的方法。
+
+禁止：
+
+- 直接使用 `useEffect`、`useLayoutEffect`、`useInsertionEffect`。
+- 直接注册 `window` / `document` 事件。
+- 直接管理 timer / observer / worker / polling。
+- 承载异步生命周期流程。
+- 演变成横跨多个 subfeature 的大 view model。
+- import 父 Unit 的私有 hook 文件，例如 `../hooks/useParentPrivateHook`。
+
+如果逻辑生命周期与当前可见 Unit 一致，放到当前 Unit 的 `hooks/useXxx.ts`。
+
+如果逻辑生命周期长于可见 Unit，提升到顶层 feature 的 `runtimes/`。
+
+如果逻辑是可复用纯函数，放到当前 Unit 或父 Unit 的 `utils/`。
+
+## `runtimes/`
+
+`runtimes/` 只允许出现在顶层 feature：
+
+```text
+src/features/<feature>/runtimes/
+```
+
+用途：
+
+- 后端轮询。
+- 生命周期同步。
+- worker bridge。
+- 任务分发。
+- 需要在 UI 隐藏 / 切换时仍然保持运行的无 UI 业务进程。
+
+规则：
+
+- runtime 不渲染业务 UI。
+- runtime 只能由顶层 feature 的 `index.tsx` 挂载。
+- subfeature 禁止拥有 runtime。
+- `runtimes/index.tsx` 是 runtime 的公开聚合入口。
+- runtime 默认自包含，不再拆 `use<Runtime>.ts` hook。
+- 不应创建只被单个 runtime 使用的 `useFeedbackRuntime.ts`、`useSpectrumRuntime.ts` 这类 runtime hook。
+- 如果 runtime 变复杂，优先拆同目录私有 runtime task 文件，例如 `SpectrumRuntimeTask.tsx`，而不是拆 `useRuntime` hook。
+- 不在 `runtimes/` 内创建 `hooks/` 或 `utils/`。
+- 只有当逻辑会被多个 runtime 复用，或确实是可独立测试的纯逻辑时，才允许提升到当前 FeatureUnit 同级的 `hooks/` 或 `utils/`。
+- 如果逻辑生命周期和可见 subfeature 一致，放进 subfeature 的 `hooks/useXxx.ts` 或局部 component effect，而不是 runtime。
+- 如果逻辑生命周期长于可见 subfeature，提升到顶层 feature `runtimes/`。
+
+## `animations/`
+
+`animations/` 存放动画定义。统一使用复数目录名。
+
+可以被当前 Unit 的 view / parts / components 使用，但不能反向依赖业务 hook / store。
 
 ## Query 与 store 的边界
 
-通用原则：
-
-- 远程数据本体优先留在 TanStack Query
-- zustand store 用于本地 UI 状态、草稿态、选择态、模式态
-- 不要为了“好拿到”就把 query 结果复制进 store
+- 远程数据本体优先留在 TanStack Query。
+- Zustand store 用于本地 UI 状态、草稿态、选择态、模式态。
+- 不要为了“好拿到”就把 query 结果复制进 store。
+- query result、query status、error state 默认不进 store。
 
 适合放 query 的内容：
 
-- 接口返回的数据
-- 请求状态
-- 缓存身份
+- 接口返回的数据。
+- 请求状态。
+- 缓存身份。
 
 适合放 store 的内容：
 
-- 当前选中项
-- 当前模式
-- 输入草稿
-- 本地开关
+- 当前选中项。
+- 当前模式。
+- 输入草稿。
+- 本地开关。
 
-## 组件纯度规则
+## 判断口诀
 
-可以保留在 dumb components 内的逻辑：
-
-- hover
-- focus
-- 本地展开/收起表现
-- 不影响业务语义的临时视觉状态
-
-不应留在 dumb components 内的逻辑：
-
-- store 交互
-- query 交互
-- 跨组件通信
-- 数据源切换
-- 业务流程判断
-
-一旦出现上述逻辑，这个文件就不应再被视为 `components/` 中的 dumb component，即使它被多个地方复用也是如此。
-
-## 命名规则
-
-- feature 根层组件可以保留 feature 前缀
-- 进入某个子目录后，应省略重复前缀
-- hook 名称应直接表达容器或行为职责
-- pure component 名称应表达 UI 角色，而不是数据来源
-
-## 大型 feature 的拆分规则
-
-一个 feature 继续增长时，不应继续把所有内容堆在同一层目录。
-
-推荐拆分方式：
-
-- 先按主业务区块拆成子目录
-- 每个子目录内部继续遵守本规范
-- 仅把真正共享的 `components / shared / store / utils` 留在 feature 根层
-
-不要先按“表单 / 列表 / 卡片 / hooks / styles”硬切一层大平铺，再把所有业务揉在一起。
-
-优先按业务区块建骨架，再在区块内部按技术职责分层。
-
-进一步的目录判断规则：
-
-- 复用 UI 放 `components/`
-- 基础定义放 `shared/`
-- 业务复用模块不要放进 `shared/`，而是直接升格成独立子目录
-- `shared/` 不应成为“暂时不好归类的业务代码收容所”
+- 可见独立业务能力：放 `subfeatures/`。
+- 当前 Unit 的业务视图片段：放 `parts/`。
+- 可复用无业务 UI：放 `components/`。
+- 当前 Unit 的生命周期 / 行为拆分：放 `hooks/useXxx.ts`。
+- 跨 subfeature 生命周期的无 UI 进程：放顶层 `runtimes/`。
+- runtime 默认自包含；不要为单个 runtime 拆 `useRuntime` hook。
+- `use<Unit>.ts` 只做 composition，不直接写 effect / timer / listener。
+- 顶层 store 创建 store；子级 store 只聚合 slice。
+- 出现 `subfeatures/` 后，根 `<Unit>` 只做编排，不做大杂烩。
 
 ## 评审检查清单
 
-在新增或重构 feature 代码时，应逐项检查：
-
-- 这个组件是不是 dumb component
-- 这个文件是不是同时在做 UI、store、query、样式分发
-- 这个状态到底是局部的，还是 feature 级共享的
-- 有没有把 query 数据复制进 store
-- 有没有把样式对象当 props 继续下传
-- props 是否已经说明这个组件职责过载
-- 是否应该提升成容器文件夹并抽出 `useXxx.ts`
-
-## 非目标
-
-这份规范不直接定义：
-
-- 具体 UI 视觉设计
-- 具体动画方案
-- 具体数据模型
-- feature 之间的依赖关系
-- 某一个现有 feature 的迁移计划
-
-它只定义 `src/features/*` 下功能模块的通用代码组织规则和实现约束。
+- 是否把 feature-specific panel 放进了 `components/`？
+- `components/` 是否 import 了当前 Unit 的 `parts/`、`store/`、`hooks/`、`utils/`？
+- sibling subfeatures 是否互相 import？
+- subfeature 是否错误拥有了 `runtimes/`？
+- runtime 是否拆出了只被自己使用的 `useRuntime` hook？
+- `use<Unit>.ts` 是否直接写了 `useEffect` / timer / listener / observer？
+- 是否预先创建了没有实际 slice / selector 的空 `store/`？
+- 有 `store/` 的 Unit 是否都有 `store/index.ts`？
+- 嵌套 Unit 的 `store/index.ts` 是否错误创建了新 store？
+- 是否把 `store/index.ts` 误认为 leaf slice / selector 文件的替代品，并错误删除仍在使用的 leaf 文件？
+- 出现 `subfeatures/` 后，根 `<Unit>.tsx` / `use<Unit>.ts` 是否仍在承载大杂烩业务逻辑？
+- 是否把 query data / query status 复制进了 Zustand store？
+- 某个 child subfeature 专属 part 是否错误放在父级 `parts/`？

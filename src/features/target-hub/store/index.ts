@@ -1,22 +1,20 @@
 import { create } from "zustand";
 import { persist } from "zustand/middleware";
+import { TARGET_HUB_STORAGE_KEY } from "../shared/constants";
 import {
 	createBeaconSlice,
 	type TargetHubBeaconSlice,
-} from "../beacon/store/beaconSlice";
+} from "../subfeatures/beacon/store";
 import {
 	createFitJobSlice,
 	type TargetHubFitJobSlice,
-} from "../fitJob/store/fitJobSlice";
-import { TARGET_HUB_STORAGE_KEY } from "../shared/constants";
+} from "../subfeatures/fitJob/store";
 import {
 	createNedSlice,
-	type TargetHubNedSlice,
-} from "../sheet/ned/store/nedSlice";
-import {
 	createSheetEditorSlice,
+	type TargetHubNedSlice,
 	type TargetHubSheetEditorSlice,
-} from "../sheet/store/editorSlice";
+} from "../subfeatures/sheet/store";
 import { createAnchorSlice, type TargetHubAnchorSlice } from "./anchorSlice";
 import {
 	createFeedbackSlice,
