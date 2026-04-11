@@ -33,7 +33,6 @@ SubfeatureUnit = <parent>/subfeatures/<subfeature>
   index.tsx
   <Unit>.tsx
   use<Unit>.ts
-  <unit>.recipe.ts              optional
 
   components/                   optional
   parts/                        optional
@@ -61,6 +60,15 @@ This is forbidden:
 ## `index.tsx`
 
 `index.tsx` is the only public entry for a Unit.
+
+`index.tsx` only defines the public entry. It does not participate in the Unit's internal composition.
+
+Rules:
+
+- `index.tsx` should directly export or render `<Unit />`.
+- `index.tsx` must not call `use<Unit>()`.
+- `index.tsx` must not inject Unit view-model props into `<Unit />`.
+- `<Unit>.tsx` calls `use<Unit>()` and assembles its own parts / subfeatures.
 
 Parents may only import a child Unit through its public entry:
 
@@ -99,7 +107,6 @@ ned/
   index.tsx
   Ned.tsx
   useNed.ts
-  ned.recipe.ts
   parts/
   store/
 ```
@@ -168,6 +175,61 @@ Heuristics:
 - `NedSettingsPanel`, `ExtractionSettingsPanel`, and `SourceSpectrumPanel` do not belong in `components/`.
 - `IconChip`, `MetricRow`, and `InlineField` may belong in `components/`.
 
+## recipe
+
+A recipe owner must be a concrete UI owner, not a technical-type directory.
+
+Forbidden:
+
+- creating a `recipes/` directory
+- creating a root `<unit>.recipe.ts` that contains recipes for multiple parts / components
+- importing one part / component recipe from another part / component
+- building large static `css` objects in TSX
+- building style objects in TSX from static visual states such as `tone`, `variant`, `isActive`, or `isDisabled`
+- defining hover / focus / disabled visual rules in TSX
+
+Allowed:
+
+- `<Unit>.tsx` may use a sibling `<Unit>.recipe.ts` only when `<Unit>.tsx` directly owns styles.
+- `parts/<Part>/<Part>.tsx` may use a colocated `<Part>.recipe.ts` only when that part directly owns styles.
+- `components/<Component>/<Component>.tsx` may use a colocated `<Component>.recipe.ts` only when that component directly owns styles.
+- TSX may pass semantic state to a recipe, such as `recipe({ tone, size, active })`.
+- TSX may pass a small number of runtime dynamic values, such as `style={{ top: `${top}px` }}`.
+- TSX may pass runtime dynamic color / size through CSS variables, such as `style={{ "--source-color": color } as CSSProperties }`.
+
+Recommended structure:
+
+```text
+parts/
+  Shell/
+    Shell.tsx
+    Shell.recipe.ts
+    index.ts
+
+components/
+  IconChip/
+    IconChip.tsx
+    IconChip.recipe.ts
+    index.ts
+```
+
+Recipes own:
+
+- layout / spacing / size / radius / border
+- color tokens / semantic colors
+- hover / active / disabled / focus styles
+- slot styles
+- variant styles
+- animation names / transitions and other static visual rules
+
+TSX owns:
+
+- DOM structure
+- props-to-recipe-variant mapping
+- event handlers
+- aria / semantic attributes
+- a small number of runtime dynamic styles / CSS variables
+
 ## `parts/`
 
 `parts/` is for feature-specific view fragments owned by the current Unit. It is not a business boundary; it only decomposes a view.
@@ -181,6 +243,7 @@ Rules:
 - A part does not call queries / mutations.
 - A part does not own business workflow state.
 - A part does not import sibling subfeatures.
+- If a part needs a recipe, it must be promoted to its own folder and own a colocated `<Part>.recipe.ts`.
 - If a part only serves a child subfeature, it must move into that child subfeature's `parts/`.
 
 Example:
@@ -336,6 +399,10 @@ Export rules:
 
 `use<Unit>.ts` is the current Unit's composition hook. It only assembles the current Unit's view model.
 
+`use<Unit>.ts` should only be called by the current Unit's `<Unit>.tsx`. It must not be called directly by `index.tsx` or parent Units.
+
+`<Unit>.tsx` must not receive whole Unit model props produced by `use<Unit>.ts`; it should call `use<Unit>()` inside the file. If data needs to be passed to `parts/`, `<Unit>.tsx` decomposes the model and passes the relevant pieces to each part.
+
 Allowed:
 
 - call child hooks from the current Unit's `hooks/`
@@ -352,6 +419,7 @@ Forbidden:
 - direct timer / observer / worker / polling management
 - async lifecycle workflows
 - growing into a large view model spanning multiple subfeatures
+- being called directly by `index.tsx` or parent Units
 - importing parent private hook files, such as `../hooks/useParentPrivateHook`
 
 If the logic lifecycle matches the current visible Unit, move it to `hooks/useXxx.ts` in the current Unit.
@@ -421,10 +489,12 @@ Good store-owned data:
 - Visible independent business capability: `subfeatures/`.
 - Current Unit's business view fragment: `parts/`.
 - Reusable non-business UI: `components/`.
+- Recipes follow concrete UI owners; do not create `recipes/` directories.
 - Current Unit lifecycle / behavior split: `hooks/useXxx.ts`.
 - Non-UI process with a lifecycle across subfeatures: top-level `runtimes/`.
 - Runtimes are self-contained by default; do not split `useRuntime` hooks for a single runtime.
 - `use<Unit>.ts` only composes; it must not directly own effects / timers / listeners.
+- `index.tsx` is only a public entry; `<Unit>.tsx` calls `use<Unit>()` internally.
 - Top-level store creates the store; nested stores only aggregate slices.
 - Once `subfeatures/` exists, the root `<Unit>` only orchestrates. It must not become a grab bag.
 
@@ -432,10 +502,14 @@ Good store-owned data:
 
 - Was a feature-specific panel placed in `components/`?
 - Did a component import the current Unit's `parts/`, `store/`, `hooks/`, or `utils/`?
+- Was a `recipes/` directory created, or were multiple UI owners' recipes placed in one Unit recipe file?
+- Does TSX build static style objects instead of expressing them through recipe variants?
 - Do sibling subfeatures import each other?
 - Does a subfeature incorrectly own `runtimes/`?
 - Did a runtime split out a `useRuntime` hook that is only used by itself?
 - Does `use<Unit>.ts` directly own `useEffect` / timers / listeners / observers?
+- Does `index.tsx` call `use<Unit>()` or inject Unit model props into `<Unit />`?
+- Does `<Unit>.tsx` receive a whole model produced by `use<Unit>.ts` instead of calling `use<Unit>()` itself?
 - Was an empty `store/` created preemptively without actual slices / selectors?
 - Does every Unit with `store/` have `store/index.ts`?
 - Did a nested Unit `store/index.ts` incorrectly create a new store?

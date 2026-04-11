@@ -3,30 +3,18 @@
 import { Box, useSlotRecipe } from "@chakra-ui/react";
 import type { CSSProperties } from "react";
 import { TARGET_HUB_Z_INDEX } from "../../shared/constants";
-import {
-	getBeaconEffectStyles,
-	getBeaconGlowStyle,
-} from "./animations/beacon.animations";
+import { hexToRgb } from "./animations/effects";
 import { beaconRecipe } from "./beacon.recipe";
-import type { BeaconViewModel } from "./useBeacon";
+import { useBeacon } from "./useBeacon";
 
 const BEACON_ACCENT_COLOR = "#22d3ee";
 
-type BeaconProps = BeaconViewModel;
-
-export function Beacon({
-	reveal,
-	isAnchorDragging,
-	effect,
-	top,
-	onPointerDown,
-	onClick,
-}: BeaconProps) {
+export default function Beacon() {
+	const { reveal, isAnchorDragging, effect, top, onPointerDown, onClick } =
+		useBeacon();
 	const recipe = useSlotRecipe({ recipe: beaconRecipe });
-	const styles = recipe({ reveal });
-	const effectStyles = effect
-		? getBeaconEffectStyles(effect.kind, effect.color)
-		: null;
+	const effectKind = effect?.kind ?? "none";
+	const styles = recipe({ reveal, isAnchorDragging, effectKind });
 
 	return (
 		<Box
@@ -36,73 +24,47 @@ export function Beacon({
 					top: `${top}px`,
 					"--target-hub-z-index": TARGET_HUB_Z_INDEX,
 					"--target-hub-color": BEACON_ACCENT_COLOR,
+					"--target-hub-color-rgb": hexToRgb(BEACON_ACCENT_COLOR),
+					...(effect
+						? {
+								"--target-hub-effect-color": effect.color,
+								"--target-hub-effect-rgb": hexToRgb(effect.color),
+							}
+						: {}),
 				} as CSSProperties
 			}
 		>
-			<Box
-				css={{ ...styles.glow, ...getBeaconGlowStyle(BEACON_ACCENT_COLOR) }}
-			/>
+			<Box css={styles.glow} />
 			<Box
 				as="button"
 				aria-label="Open Target Hub"
-				css={{
-					...styles.shell,
-					cursor: isAnchorDragging ? "grabbing" : styles.shell.cursor,
-				}}
+				css={styles.shell}
 				onPointerDown={onPointerDown}
 				onClick={onClick}
 			>
-				<Box
-					css={styles.core}
-					style={{
-						backgroundColor: BEACON_ACCENT_COLOR,
-						boxShadow: `0 0 18px ${BEACON_ACCENT_COLOR}`,
-					}}
-				/>
+				<Box css={styles.core} />
 			</Box>
-			{effect && effectStyles ? (
+			{effect ? (
 				<Box css={styles.effectLayer}>
-					{effectStyles.streak ? (
-						<Box
-							key={`streak-${effect.token}`}
-							position="absolute"
-							left="-18px"
-							top="50%"
-							w="30px"
-							h="2px"
-							transform="translateY(-50%)"
-							borderRadius="full"
-							css={effectStyles.streak}
-						/>
+					{effect.kind === "source-ready" ? (
+						<Box key={`streak-${effect.token}`} css={styles.streak} />
 					) : null}
-					{effectStyles.primaryRing ? (
+					{effect.kind === "active-switch" ||
+					effect.kind === "source-ready" ||
+					effect.kind === "fit-ready" ? (
 						<Box
 							key={`ring-primary-${effect.token}`}
-							position="absolute"
-							inset="8px"
-							borderWidth="2px"
-							borderRadius="full"
-							css={effectStyles.primaryRing}
+							css={styles.primaryRing}
 						/>
 					) : null}
-					{effectStyles.secondaryRing ? (
+					{effect.kind === "fit-ready" ? (
 						<Box
 							key={`ring-secondary-${effect.token}`}
-							position="absolute"
-							inset="8px"
-							borderWidth="2px"
-							borderRadius="full"
-							css={effectStyles.secondaryRing}
+							css={styles.secondaryRing}
 						/>
 					) : null}
-					{effectStyles.rim ? (
-						<Box
-							key={`rim-${effect.token}`}
-							position="absolute"
-							inset="0"
-							borderRadius="inherit"
-							css={effectStyles.rim}
-						/>
+					{effect.kind === "source-error" ? (
+						<Box key={`rim-${effect.token}`} css={styles.rim} />
 					) : null}
 				</Box>
 			) : null}

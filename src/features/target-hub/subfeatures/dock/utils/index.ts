@@ -1,0 +1,1 @@
+export { formatDockCoordinate } from "./formatDockCoordinate";

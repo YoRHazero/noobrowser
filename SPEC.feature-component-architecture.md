@@ -33,7 +33,6 @@ SubfeatureUnit = <parent>/subfeatures/<subfeature>
   index.tsx
   <Unit>.tsx
   use<Unit>.ts
-  <unit>.recipe.ts              optional
 
   components/                   optional
   parts/                        optional
@@ -61,6 +60,15 @@ src/features/<feature>/
 ## `index.tsx`
 
 `index.tsx` 是 Unit 的唯一公开入口。
+
+`index.tsx` 只负责公开入口，不参与 Unit 内部组装。
+
+规则：
+
+- `index.tsx` 应直接导出或渲染 `<Unit />`。
+- `index.tsx` 不调用 `use<Unit>()`。
+- `index.tsx` 不向 `<Unit />` 注入 Unit view model props。
+- `<Unit>.tsx` 负责调用 `use<Unit>()` 并装配自己的 parts / subfeatures。
 
 父级只能 import 子 Unit 的公开入口：
 
@@ -99,7 +107,6 @@ ned/
   index.tsx
   Ned.tsx
   useNed.ts
-  ned.recipe.ts
   parts/
   store/
 ```
@@ -168,6 +175,61 @@ components/
 - 例如 `NedSettingsPanel`、`ExtractionSettingsPanel`、`SourceSpectrumPanel` 不属于 `components/`。
 - 例如 `IconChip`、`MetricRow`、`InlineField` 可以属于 `components/`。
 
+## recipe
+
+recipe 的 owner 必须是具体 UI owner，而不是技术类型目录。
+
+禁止：
+
+- 创建 `recipes/` 目录。
+- 创建一个 Unit 根部 `<unit>.recipe.ts` 来承载多个 parts / components 的 recipe。
+- 让一个 part / component import 另一个 part / component 的 recipe。
+- 在 TSX 里拼接大段静态 `css` 对象。
+- 在 TSX 里根据 `tone`、`variant`、`isActive`、`isDisabled` 这类静态视觉状态拼样式对象。
+- 在 TSX 里写 hover / focus / disabled 视觉规则。
+
+允许：
+
+- `<Unit>.tsx` 自己直接拥有样式时，使用同级 `<Unit>.recipe.ts`。
+- `parts/<Part>/<Part>.tsx` 自己直接拥有样式时，使用同目录 `<Part>.recipe.ts`。
+- `components/<Component>/<Component>.tsx` 自己直接拥有样式时，使用同目录 `<Component>.recipe.ts`。
+- TSX 将语义状态传给 recipe，例如 `recipe({ tone, size, active })`。
+- TSX 传少量运行时动态值，例如 `style={{ top: `${top}px` }}`。
+- TSX 通过 CSS variable 传运行时动态颜色 / 尺寸，例如 `style={{ "--source-color": color } as CSSProperties }`。
+
+推荐结构：
+
+```text
+parts/
+  Shell/
+    Shell.tsx
+    Shell.recipe.ts
+    index.ts
+
+components/
+  IconChip/
+    IconChip.tsx
+    IconChip.recipe.ts
+    index.ts
+```
+
+recipe 负责：
+
+- layout / spacing / size / radius / border。
+- color token / semantic color。
+- hover / active / disabled / focus 样式。
+- slot 样式。
+- variant 样式。
+- animation name / transition 等静态视觉规则。
+
+TSX 负责：
+
+- DOM 结构。
+- props 到 recipe variant 的映射。
+- event handler。
+- aria / semantic attributes。
+- 少量运行时动态 style / CSS variable。
+
 ## `parts/`
 
 `parts/` 是当前 Unit 私有的 feature-specific view fragments。它不是业务边界，只是把 view 拆小。
@@ -181,6 +243,7 @@ components/
 - 不调用 query / mutation。
 - 不拥有业务流程状态。
 - 不 import sibling subfeature。
+- 如果 part 需要 recipe，必须升级为自己的文件夹，并持有同目录 `<Part>.recipe.ts`。
 - 如果一个 part 只服务某个 child subfeature，必须放到那个 child subfeature 的 `parts/`。
 
 例子：
@@ -336,6 +399,10 @@ import { createNedSlice } from "../subfeatures/ned/store/nedSlice";
 
 `use<Unit>.ts` 是当前 Unit 的 composition hook，只负责组装当前 Unit 的 view model。
 
+`use<Unit>.ts` 只应由当前 Unit 的 `<Unit>.tsx` 调用，不应由 `index.tsx` 或父级 Unit 直接调用。
+
+`<Unit>.tsx` 不接收由 `use<Unit>.ts` 生成的 Unit model props；它应在文件内部调用 `use<Unit>()`。如果需要把数据继续传给 `parts/`，由 `<Unit>.tsx` 将 model 拆分后传入各个 part。
+
 允许：
 
 - 调用当前 Unit `hooks/` 中的子 hook。
@@ -352,6 +419,7 @@ import { createNedSlice } from "../subfeatures/ned/store/nedSlice";
 - 直接管理 timer / observer / worker / polling。
 - 承载异步生命周期流程。
 - 演变成横跨多个 subfeature 的大 view model。
+- 被 `index.tsx` 或父级 Unit 直接调用。
 - import 父 Unit 的私有 hook 文件，例如 `../hooks/useParentPrivateHook`。
 
 如果逻辑生命周期与当前可见 Unit 一致，放到当前 Unit 的 `hooks/useXxx.ts`。
@@ -421,10 +489,12 @@ src/features/<feature>/runtimes/
 - 可见独立业务能力：放 `subfeatures/`。
 - 当前 Unit 的业务视图片段：放 `parts/`。
 - 可复用无业务 UI：放 `components/`。
+- recipe 跟随具体 UI owner；不要建 `recipes/` 目录。
 - 当前 Unit 的生命周期 / 行为拆分：放 `hooks/useXxx.ts`。
 - 跨 subfeature 生命周期的无 UI 进程：放顶层 `runtimes/`。
 - runtime 默认自包含；不要为单个 runtime 拆 `useRuntime` hook。
 - `use<Unit>.ts` 只做 composition，不直接写 effect / timer / listener。
+- `index.tsx` 只做 public entry；`<Unit>.tsx` 内部调用 `use<Unit>()`。
 - 顶层 store 创建 store；子级 store 只聚合 slice。
 - 出现 `subfeatures/` 后，根 `<Unit>` 只做编排，不做大杂烩。
 
@@ -432,10 +502,14 @@ src/features/<feature>/runtimes/
 
 - 是否把 feature-specific panel 放进了 `components/`？
 - `components/` 是否 import 了当前 Unit 的 `parts/`、`store/`、`hooks/`、`utils/`？
+- 是否创建了 `recipes/` 目录或把多个 UI owner 的 recipe 堆进一个 Unit recipe 文件？
+- TSX 是否在拼接静态样式对象，而不是通过 recipe variant 表达？
 - sibling subfeatures 是否互相 import？
 - subfeature 是否错误拥有了 `runtimes/`？
 - runtime 是否拆出了只被自己使用的 `useRuntime` hook？
 - `use<Unit>.ts` 是否直接写了 `useEffect` / timer / listener / observer？
+- `index.tsx` 是否调用了 `use<Unit>()` 或向 `<Unit />` 注入了 Unit model props？
+- `<Unit>.tsx` 是否接收了由 `use<Unit>.ts` 生成的整体 model props，而不是自己调用 `use<Unit>()`？
 - 是否预先创建了没有实际 slice / selector 的空 `store/`？
 - 有 `store/` 的 Unit 是否都有 `store/index.ts`？
 - 嵌套 Unit 的 `store/index.ts` 是否错误创建了新 store？
