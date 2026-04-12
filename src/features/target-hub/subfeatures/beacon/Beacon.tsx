@@ -63,7 +63,7 @@ export default function Beacon() {
 							css={styles.secondaryRing}
 						/>
 					) : null}
-					{effect.kind === "source-error" ? (
+					{effect.kind === "source-error" || effect.kind === "fit-error" ? (
 						<Box key={`rim-${effect.token}`} css={styles.rim} />
 					) : null}
 				</Box>

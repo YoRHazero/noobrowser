@@ -12,6 +12,7 @@ export type BeaconEffectKind =
 	| "active-switch"
 	| "source-ready"
 	| "fit-ready"
+	| "fit-error"
 	| "source-error";
 
 export interface BeaconEffect {

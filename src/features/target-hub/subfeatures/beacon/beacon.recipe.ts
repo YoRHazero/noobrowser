@@ -171,6 +171,13 @@ export const beaconRecipe = defineSlotRecipe({
 					animation: `${rimFlash} 320ms ease-out forwards`,
 				},
 			},
+			"fit-error": {
+				rim: {
+					boxShadow:
+						"0 0 0 2px rgba(249, 115, 22, 0.95), 0 0 24px rgba(249, 115, 22, 0.55)",
+					animation: `${rimFlash} 320ms ease-out forwards`,
+				},
+			},
 		},
 	},
 });

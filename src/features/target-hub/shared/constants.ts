@@ -31,3 +31,9 @@ export const SHEET_BOTTOM_OFFSET = 16;
 export const SHEET_WIDTH = 420;
 export const SHEET_DRAWER_GAP = 12;
 export const SHEET_JOBS_DRAWER_WIDTH = 320;
+
+export const FIT_JOB_DRAWER_WIDTH = 1040;
+export const FIT_JOB_LIST_LIMIT = 50;
+export const FIT_JOB_ACTIVE_REFETCH_INTERVAL_MS = 2000;
+export const FIT_JOB_EFFECT_COLOR = "#34d399";
+export const FIT_JOB_ERROR_COLOR = "#fb923c";
