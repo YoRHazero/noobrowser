@@ -69,6 +69,8 @@ Rules:
 - `index.tsx` must not call `use<Unit>()`.
 - `index.tsx` must not inject Unit view-model props into `<Unit />`.
 - `<Unit>.tsx` calls `use<Unit>()` and assembles its own parts / subfeatures.
+- `<Unit>.tsx` must not directly import the current Unit's `hooks/`, parent Unit hooks, or child subfeature hooks. Current Unit hook composition belongs in `use<Unit>.ts`.
+- `<Unit>.tsx` may import parts / subfeatures / components / recipes, and it may pass the relevant pieces of the view model returned by `use<Unit>()` into them.
 
 Parents may only import a child Unit through its public entry:
 
@@ -421,6 +423,8 @@ Export rules:
 
 `<Unit>.tsx` must not receive whole Unit model props produced by `use<Unit>.ts`; it should call `use<Unit>()` inside the file. If data needs to be passed to `parts/`, `<Unit>.tsx` decomposes the model and passes the relevant pieces to each part.
 
+`<Unit>.tsx` must not bypass `use<Unit>.ts` by directly importing hooks from `hooks/`. Even if the hook belongs to the same Unit, it must be called through `use<Unit>.ts` so the composition boundary stays explicit.
+
 Allowed:
 
 - call child hooks from the current Unit's `hooks/`
@@ -514,6 +518,7 @@ Good store-owned data:
 - Runtimes are self-contained by default; do not split `useRuntime` hooks for a single runtime.
 - `use<Unit>.ts` only composes; it must not directly own effects / timers / listeners.
 - `index.tsx` is only a public entry; `<Unit>.tsx` calls `use<Unit>()` internally.
+- `<Unit>.tsx` does not import `hooks/` directly; current Unit hook composition goes through `use<Unit>.ts`.
 - Top-level store creates the store; nested stores only aggregate slices.
 - Once `subfeatures/` exists, the root `<Unit>` only orchestrates. It must not become a grab bag.
 
@@ -528,6 +533,7 @@ Good store-owned data:
 - Did a runtime split out a `useRuntime` hook that is only used by itself?
 - Does `use<Unit>.ts` directly own `useEffect` / timers / listeners / observers?
 - Does `index.tsx` call `use<Unit>()` or inject Unit model props into `<Unit />`?
+- Does `<Unit>.tsx` directly import `hooks/` instead of going through `use<Unit>.ts`?
 - Does `<Unit>.tsx` receive a whole model produced by `use<Unit>.ts` instead of calling `use<Unit>()` itself?
 - Was an empty `store/` created preemptively without actual slices / selectors?
 - Does every Unit with `store/` have `store/index.ts`?

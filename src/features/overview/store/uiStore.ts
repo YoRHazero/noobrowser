@@ -4,28 +4,24 @@ import {
 	createOverviewUiFootprintInteractionSlice,
 	type OverviewUiFootprintInteractionSlice,
 } from "./footprintInteractionSlice";
-import type {
-	OverviewCursorWorldCoordinate as OverviewUiCursorWorldCoordinate,
-	OverviewHoverAnchor as OverviewUiHoverAnchor,
-	OverviewSidebarTab as OverviewUiSidebarTab,
-	OverviewTooltipMode as OverviewUiTooltipMode,
-} from "./types";
 import {
 	createOverviewUiViewerSlice,
 	type OverviewUiViewerSlice,
 } from "./viewerSlice";
 
+export type {
+	OverviewCursorWorldCoordinate as OverviewUiCursorWorldCoordinate,
+	OverviewHoverAnchor as OverviewUiHoverAnchor,
+} from "./types";
+
 export type OverviewUiStoreState = OverviewUiFootprintInteractionSlice &
 	OverviewUiViewerSlice;
 
 export type { OverviewUiFootprintInteractionSlice } from "./footprintInteractionSlice";
-export type { OverviewUiViewerSlice } from "./viewerSlice";
 export type {
-	OverviewUiCursorWorldCoordinate,
-	OverviewUiHoverAnchor,
-	OverviewUiSidebarTab,
 	OverviewUiTooltipMode,
-};
+	OverviewUiViewerSlice,
+} from "./viewerSlice";
 
 export const useOverviewUiStore = create<OverviewUiStoreState>()(
 	persist(
@@ -38,7 +34,6 @@ export const useOverviewUiStore = create<OverviewUiStoreState>()(
 			partialize: (state) => ({
 				showGrid: state.showGrid,
 				tooltipMode: state.tooltipMode,
-				activeSidebarTab: state.activeSidebarTab,
 				targetCoordinatePrecision: state.targetCoordinatePrecision,
 			}),
 		},

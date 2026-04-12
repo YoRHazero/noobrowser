@@ -25,6 +25,12 @@ export const overviewRecipe = defineSlotRecipe({
 			maxW: "400px",
 			h: "100%",
 			minH: 0,
+			overflow: "hidden",
+			borderLeftWidth: "1px",
+			borderLeftColor: "rgba(255, 255, 255, 0.16)",
+			bg: "linear-gradient(180deg, rgba(17, 25, 38, 0.96), rgba(6, 11, 20, 0.98))",
+			backdropFilter: "blur(22px)",
+			color: "white",
 		},
 	},
 });

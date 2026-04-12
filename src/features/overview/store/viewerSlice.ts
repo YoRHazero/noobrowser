@@ -1,20 +1,16 @@
 import type { StateCreator } from "zustand";
-import type {
-	OverviewCursorWorldCoordinate,
-	OverviewSidebarTab,
-	OverviewTooltipMode,
-} from "./types";
+import type { OverviewCursorWorldCoordinate } from "./types";
 import type { OverviewUiStoreState } from "./uiStore";
+
+export type OverviewUiTooltipMode = "footprint" | "coordinate";
 
 export interface OverviewUiViewerSlice {
 	showGrid: boolean;
-	tooltipMode: OverviewTooltipMode;
-	activeSidebarTab: OverviewSidebarTab;
+	tooltipMode: OverviewUiTooltipMode;
 	targetCoordinatePrecision: number;
 	cursorWorldCoordinate: OverviewCursorWorldCoordinate | null;
 	setShowGrid: (show: boolean) => void;
-	setTooltipMode: (mode: OverviewTooltipMode) => void;
-	setActiveSidebarTab: (tab: OverviewSidebarTab) => void;
+	setTooltipMode: (mode: OverviewUiTooltipMode) => void;
 	setTargetCoordinatePrecision: (precision: number) => void;
 	setCursorWorldCoordinate: (
 		coordinate: OverviewCursorWorldCoordinate | null,
@@ -30,7 +26,6 @@ export const createOverviewUiViewerSlice: StateCreator<
 > = (set) => ({
 	showGrid: true,
 	tooltipMode: "footprint",
-	activeSidebarTab: "footprints",
 	targetCoordinatePrecision: 6,
 	cursorWorldCoordinate: null,
 	setShowGrid: (show) => set({ showGrid: show }),
@@ -40,7 +35,6 @@ export const createOverviewUiViewerSlice: StateCreator<
 			cursorWorldCoordinate:
 				mode === "footprint" ? null : state.cursorWorldCoordinate,
 		})),
-	setActiveSidebarTab: (tab) => set({ activeSidebarTab: tab }),
 	setTargetCoordinatePrecision: (precision) =>
 		set({
 			targetCoordinatePrecision: Math.max(

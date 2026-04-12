@@ -1,17 +1,13 @@
-import { useState } from "react";
+import { useOverviewMapCanvas } from "./hooks/useOverviewMapCanvas";
 import { useOverviewSelectionValidity } from "./hooks/useOverviewSelectionValidity";
 
-export interface UseOverviewResult {
-	isViewerHudOpen: boolean;
-	setIsViewerHudOpen: (open: boolean) => void;
-}
-
-export function useOverview(): UseOverviewResult {
-	const [isViewerHudOpen, setIsViewerHudOpen] = useState(false);
+export function useOverview() {
 	useOverviewSelectionValidity();
+	const { actions: mapCanvasActions, model: mapCanvasModel } =
+		useOverviewMapCanvas();
 
 	return {
-		isViewerHudOpen,
-		setIsViewerHudOpen,
+		mapCanvasActions,
+		mapCanvasModel,
 	};
 }

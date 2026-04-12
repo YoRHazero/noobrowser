@@ -69,6 +69,8 @@ src/features/<feature>/
 - `index.tsx` 不调用 `use<Unit>()`。
 - `index.tsx` 不向 `<Unit />` 注入 Unit view model props。
 - `<Unit>.tsx` 负责调用 `use<Unit>()` 并装配自己的 parts / subfeatures。
+- `<Unit>.tsx` 不能直接 import 当前 Unit 的 `hooks/`、父 Unit hooks 或子 subfeature hooks。当前 Unit 的 hook 组合必须放在 `use<Unit>.ts`。
+- `<Unit>.tsx` 可以 import parts / subfeatures / components / recipes，并把 `use<Unit>()` 返回的 view model 拆分后传给它们。
 
 父级只能 import 子 Unit 的公开入口：
 
@@ -421,6 +423,8 @@ import { createNedSlice } from "../subfeatures/ned/store/nedSlice";
 
 `<Unit>.tsx` 不接收由 `use<Unit>.ts` 生成的 Unit model props；它应在文件内部调用 `use<Unit>()`。如果需要把数据继续传给 `parts/`，由 `<Unit>.tsx` 将 model 拆分后传入各个 part。
 
+`<Unit>.tsx` 不能通过直接 import `hooks/` 绕过 `use<Unit>.ts`。即使 hook 属于同一个 Unit，也必须由 `use<Unit>.ts` 调用，保证组合边界明确。
+
 允许：
 
 - 调用当前 Unit `hooks/` 中的子 hook。
@@ -514,6 +518,7 @@ src/features/<feature>/runtimes/
 - runtime 默认自包含；不要为单个 runtime 拆 `useRuntime` hook。
 - `use<Unit>.ts` 只做 composition，不直接写 effect / timer / listener。
 - `index.tsx` 只做 public entry；`<Unit>.tsx` 内部调用 `use<Unit>()`。
+- `<Unit>.tsx` 不直接 import `hooks/`；当前 Unit hook 组合通过 `use<Unit>.ts`。
 - 顶层 store 创建 store；子级 store 只聚合 slice。
 - 出现 `subfeatures/` 后，根 `<Unit>` 只做编排，不做大杂烩。
 
@@ -528,6 +533,7 @@ src/features/<feature>/runtimes/
 - runtime 是否拆出了只被自己使用的 `useRuntime` hook？
 - `use<Unit>.ts` 是否直接写了 `useEffect` / timer / listener / observer？
 - `index.tsx` 是否调用了 `use<Unit>()` 或向 `<Unit />` 注入了 Unit model props？
+- `<Unit>.tsx` 是否直接 import 了 `hooks/`，而不是通过 `use<Unit>.ts`？
 - `<Unit>.tsx` 是否接收了由 `use<Unit>.ts` 生成的整体 model props，而不是自己调用 `use<Unit>()`？
 - 是否预先创建了没有实际 slice / selector 的空 `store/`？
 - 有 `store/` 的 Unit 是否都有 `store/index.ts`？

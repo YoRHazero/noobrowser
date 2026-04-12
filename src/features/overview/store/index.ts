@@ -2,7 +2,6 @@ export type {
 	OverviewCursorWorldCoordinate,
 	OverviewHoverAnchor,
 	OverviewManualTarget,
-	OverviewSidebarTab,
 	OverviewTooltipMode,
 } from "../../../stores/overview";
 export { useOverviewStore } from "../../../stores/overview";
@@ -14,7 +13,6 @@ export type {
 	OverviewUiCursorWorldCoordinate,
 	OverviewUiFootprintInteractionSlice,
 	OverviewUiHoverAnchor,
-	OverviewUiSidebarTab,
 	OverviewUiStoreState,
 	OverviewUiTooltipMode,
 	OverviewUiViewerSlice,
