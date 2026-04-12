@@ -2,6 +2,7 @@ import { Box, Presence, useSlotRecipe } from "@chakra-ui/react";
 import { hudRecipe } from "./Hud.recipe";
 import { CoordinatePrecisionControl } from "./parts/CoordinatePrecisionControl";
 import { GridControl } from "./parts/GridControl";
+import { MapCanvasMountControl } from "./parts/MapCanvasMountControl";
 import { Panel } from "./parts/Panel";
 import { TooltipModeControl } from "./parts/TooltipModeControl";
 import { TriggerButton } from "./parts/TriggerButton";
@@ -13,9 +14,11 @@ export function Hud() {
 	const {
 		open,
 		setOpen,
+		mapCanvasMounted,
 		showGrid,
 		tooltipMode,
 		targetCoordinatePrecision,
+		setMapCanvasMounted,
 		setShowGrid,
 		setTooltipMode,
 		setTargetCoordinatePrecision,
@@ -45,6 +48,10 @@ export function Hud() {
 				animationTimingFunction="cubic-bezier(0.22, 1, 0.36, 1)"
 			>
 				<Panel title="Viewer HUD" onClose={() => setOpen(false)}>
+					<MapCanvasMountControl
+						mapCanvasMounted={mapCanvasMounted}
+						onMapCanvasMountedChange={setMapCanvasMounted}
+					/>
 					<TooltipModeControl
 						tooltipMode={tooltipMode}
 						onTooltipModeChange={setTooltipMode}

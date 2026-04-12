@@ -5,10 +5,12 @@ import type { OverviewUiStoreState } from "./uiStore";
 export type OverviewUiTooltipMode = "footprint" | "coordinate";
 
 export interface OverviewUiViewerSlice {
+	mapCanvasMounted: boolean;
 	showGrid: boolean;
 	tooltipMode: OverviewUiTooltipMode;
 	targetCoordinatePrecision: number;
 	cursorWorldCoordinate: OverviewCursorWorldCoordinate | null;
+	setMapCanvasMounted: (mounted: boolean) => void;
 	setShowGrid: (show: boolean) => void;
 	setTooltipMode: (mode: OverviewUiTooltipMode) => void;
 	setTargetCoordinatePrecision: (precision: number) => void;
@@ -24,10 +26,12 @@ export const createOverviewUiViewerSlice: StateCreator<
 	[],
 	OverviewUiViewerSlice
 > = (set) => ({
+	mapCanvasMounted: true,
 	showGrid: true,
 	tooltipMode: "footprint",
 	targetCoordinatePrecision: 6,
 	cursorWorldCoordinate: null,
+	setMapCanvasMounted: (mounted) => set({ mapCanvasMounted: mounted }),
 	setShowGrid: (show) => set({ showGrid: show }),
 	setTooltipMode: (mode) =>
 		set((state) => ({

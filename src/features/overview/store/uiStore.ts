@@ -32,6 +32,7 @@ export const useOverviewUiStore = create<OverviewUiStoreState>()(
 		{
 			name: "noobrowser-overview-ui-store",
 			partialize: (state) => ({
+				mapCanvasMounted: state.mapCanvasMounted,
 				showGrid: state.showGrid,
 				tooltipMode: state.tooltipMode,
 				targetCoordinatePrecision: state.targetCoordinatePrecision,

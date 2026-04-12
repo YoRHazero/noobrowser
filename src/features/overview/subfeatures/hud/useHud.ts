@@ -5,9 +5,11 @@ import { type OverviewUiTooltipMode, useOverviewUiStore } from "../../store";
 export interface UseHudResult {
 	open: boolean;
 	setOpen: (open: boolean) => void;
+	mapCanvasMounted: boolean;
 	showGrid: boolean;
 	tooltipMode: OverviewUiTooltipMode;
 	targetCoordinatePrecision: number;
+	setMapCanvasMounted: (mounted: boolean) => void;
 	setShowGrid: (show: boolean) => void;
 	setTooltipMode: (mode: OverviewUiTooltipMode) => void;
 	setTargetCoordinatePrecision: (precision: number) => void;
@@ -17,17 +19,21 @@ export interface UseHudResult {
 export function useHud(): UseHudResult {
 	const [open, setOpen] = useState(false);
 	const {
+		mapCanvasMounted,
 		showGrid,
 		tooltipMode,
 		targetCoordinatePrecision,
+		setMapCanvasMounted,
 		setShowGrid,
 		setTooltipMode,
 		setTargetCoordinatePrecision,
 	} = useOverviewUiStore(
 		useShallow((state) => ({
+			mapCanvasMounted: state.mapCanvasMounted,
 			showGrid: state.showGrid,
 			tooltipMode: state.tooltipMode,
 			targetCoordinatePrecision: state.targetCoordinatePrecision,
+			setMapCanvasMounted: state.setMapCanvasMounted,
 			setShowGrid: state.setShowGrid,
 			setTooltipMode: state.setTooltipMode,
 			setTargetCoordinatePrecision: state.setTargetCoordinatePrecision,
@@ -37,9 +43,11 @@ export function useHud(): UseHudResult {
 	return {
 		open,
 		setOpen,
+		mapCanvasMounted,
 		showGrid,
 		tooltipMode,
 		targetCoordinatePrecision,
+		setMapCanvasMounted,
 		setShowGrid,
 		setTooltipMode,
 		setTargetCoordinatePrecision,
