@@ -1,5 +1,5 @@
-import type { CartesianCoordinate, WorldCoordinate } from "./types";
-import { DEG_TO_RAD, RAD_TO_DEG } from "./constant";
+import { DEG_TO_RAD, RAD_TO_DEG } from "../shared/constants";
+import type { CartesianCoordinate, WorldCoordinate } from "../shared/types";
 
 export function raDecToCartesian(
 	coordinate: WorldCoordinate,

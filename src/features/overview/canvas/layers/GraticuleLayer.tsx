@@ -1,5 +1,5 @@
+import type { GraticuleLine } from "@/features/overview/shared/types";
 import { GraticuleLines } from "../objects/GraticuleLines";
-import type { GraticuleLine } from "@/features/overview/utils/types";
 
 export interface GraticuleLayerProps {
 	visible: boolean;

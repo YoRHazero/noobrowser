@@ -1,10 +1,10 @@
 import { Box, Tabs, useSlotRecipe } from "@chakra-ui/react";
 import { useShallow } from "zustand/react/shallow";
-import type { OverviewSidebarTab } from "@/stores/overview";
-import { useOverviewStore } from "@/stores/overview";
+import type { OverviewSidebarTab } from "../store";
+import { useOverviewStore } from "../store";
 import { FootprintsSection } from "./FootprintsSection";
-import { TargetsSection } from "./TargetsSection";
 import { overviewSidebarShellRecipe } from "./recipes/overview-sidebar-shell.recipe";
+import { TargetsSection } from "./TargetsSection";
 
 export function OverviewSidebar() {
 	const recipe = useSlotRecipe({ recipe: overviewSidebarShellRecipe });

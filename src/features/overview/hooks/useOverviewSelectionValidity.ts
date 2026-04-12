@@ -1,6 +1,6 @@
 import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
-import { useOverviewStore } from "@/stores/overview";
+import { useOverviewStore } from "../store";
 import { useOverviewFootprints } from "./useOverviewFootprints";
 
 export function useOverviewSelectionValidity() {
@@ -45,5 +45,11 @@ export function useOverviewSelectionValidity() {
 		if (!footprintIds.has(hoveredFootprintId)) {
 			clearHoveredFootprint();
 		}
-	}, [clearHoveredFootprint, footprintIds, hoveredFootprintId, isError, isLoading]);
+	}, [
+		clearHoveredFootprint,
+		footprintIds,
+		hoveredFootprintId,
+		isError,
+		isLoading,
+	]);
 }

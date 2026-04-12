@@ -3,7 +3,7 @@ import type {
 	ScreenPoint,
 	ViewportSize,
 	WorldPointInput,
-} from "./types";
+} from "../shared/types";
 
 function getPointX(point: WorldPointInput) {
 	return Array.isArray(point) ? point[0] : point.x;

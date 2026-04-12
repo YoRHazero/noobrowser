@@ -1,10 +1,10 @@
-import { FOOTPRINT_LINE_RADIUS_OFFSET } from "./constant";
-import { raDecToCartesian } from "./celestial";
+import { FOOTPRINT_LINE_RADIUS_OFFSET } from "../shared/constants";
 import type {
 	CartesianCoordinate,
 	ScreenPoint,
 	WorldCoordinate,
-} from "./types";
+} from "../shared/types";
+import { raDecToCartesian } from "./celestial";
 
 export function toFootprintPolygonPoints(
 	vertices: WorldCoordinate[],

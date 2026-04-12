@@ -1,5 +1,5 @@
+import type { OverviewFootprintRecord } from "@/features/overview/shared/types";
 import { FootprintMesh } from "../objects/FootprintMesh";
-import type { OverviewFootprintRecord } from "@/features/overview/utils/types";
 
 export interface FootprintsLayerProps {
 	footprints: OverviewFootprintRecord[];

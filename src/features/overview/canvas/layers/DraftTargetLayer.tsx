@@ -1,5 +1,5 @@
+import type { WorldCoordinate } from "@/features/overview/shared/types";
 import { ManualTargetMarker } from "../objects/ManualTargetMarker";
-import type { WorldCoordinate } from "@/features/overview/utils/types";
 
 export interface DraftTargetLayerProps {
 	draftTarget: WorldCoordinate | null;

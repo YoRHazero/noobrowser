@@ -1,5 +1,5 @@
 import { Line } from "@react-three/drei";
-import type { GraticuleLine } from "@/features/overview/utils/types";
+import type { GraticuleLine } from "@/features/overview/shared/types";
 
 export interface GraticuleLinesProps {
 	lines: GraticuleLine[];

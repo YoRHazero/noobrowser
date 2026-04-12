@@ -6,12 +6,12 @@ import {
 	type PerspectiveCamera,
 	type Sprite,
 } from "three";
-import { raDecToCartesian } from "@/features/overview/utils/celestial";
 import {
 	MANUAL_TARGET_RADIUS_OFFSET,
 	TARGET_MARKER_SIZE_PX,
-} from "@/features/overview/utils/constant";
-import type { WorldCoordinate } from "@/features/overview/utils/types";
+} from "@/features/overview/shared/constants";
+import type { WorldCoordinate } from "@/features/overview/shared/types";
+import { raDecToCartesian } from "@/features/overview/utils/celestial";
 
 export interface ManualTargetMarkerProps {
 	coordinate: WorldCoordinate;
@@ -62,7 +62,7 @@ export function ManualTargetMarker({
 	const texture = useMemo(() => getCircleTexture(), []);
 	const position = useMemo(
 		() => raDecToCartesian(coordinate, radius * MANUAL_TARGET_RADIUS_OFFSET),
-		[coordinate.dec, coordinate.ra, radius],
+		[coordinate, radius],
 	);
 
 	useFrame(() => {

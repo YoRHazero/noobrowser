@@ -1,7 +1,11 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import { Vector3 } from "three";
-import { FOOTPRINT_LINE_RADIUS_OFFSET } from "@/features/overview/utils/constant";
+import { FOOTPRINT_LINE_RADIUS_OFFSET } from "@/features/overview/shared/constants";
+import type {
+	OverviewFootprintRecord,
+	ScreenPoint,
+} from "@/features/overview/shared/types";
 import {
 	isPointInPolygon,
 	toFootprintPolygonPoints,
@@ -11,10 +15,6 @@ import {
 	isWorldPointFacingCamera,
 	ndcToScreenPoint,
 } from "@/features/overview/utils/projection";
-import type {
-	OverviewFootprintRecord,
-	ScreenPoint,
-} from "@/features/overview/utils/types";
 import {
 	type CanvasPointerState,
 	readCanvasPointerState,

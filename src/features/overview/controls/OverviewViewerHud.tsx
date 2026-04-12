@@ -11,7 +11,7 @@ import { FiSliders, FiX } from "react-icons/fi";
 import { useShallow } from "zustand/react/shallow";
 import { CompactNumberInput } from "@/components/ui/compact-number-input";
 import { Switch } from "@/components/ui/switch";
-import { useOverviewStore } from "@/stores/overview";
+import { useOverviewStore } from "../store";
 import { overviewViewerHudRecipe } from "./recipes/overview-viewer-hud.recipe";
 
 export interface OverviewViewerHudProps {
@@ -79,93 +79,91 @@ export function OverviewViewerHud({
 				animationTimingFunction="cubic-bezier(0.22, 1, 0.36, 1)"
 			>
 				<Box css={styles.panel}>
-						<HStack css={styles.header}>
-							<Stack gap={0}>
-								<Text
-									fontSize="2xs"
-									fontWeight="bold"
-									letterSpacing="0.18em"
-									textTransform="uppercase"
-									color="whiteAlpha.700"
-								>
-									Viewer HUD
-								</Text>
-								<Text fontSize="sm" fontWeight="semibold" color="white">
-									Overview Controls
-								</Text>
-							</Stack>
-
-							<IconButton
-								aria-label="Close overview viewer controls"
-								variant="plain"
-								css={styles.trigger}
-								onClick={() => onOpenChange(false)}
+					<HStack css={styles.header}>
+						<Stack gap={0}>
+							<Text
+								fontSize="2xs"
+								fontWeight="bold"
+								letterSpacing="0.18em"
+								textTransform="uppercase"
+								color="whiteAlpha.700"
 							>
-								<FiX />
-							</IconButton>
-						</HStack>
-
-						<Stack gap={3}>
-							<Box css={styles.section}>
-								<Text css={styles.sectionLabel}>Tooltip Mode</Text>
-								<Box css={styles.segmentGroup}>
-									<Box
-										as="button"
-										css={styles.segmentButton}
-										data-active={
-											tooltipMode === "footprint" ? "true" : undefined
-										}
-										aria-pressed={tooltipMode === "footprint"}
-										onClick={() => setTooltipMode("footprint")}
-									>
-										Footprint
-									</Box>
-									<Box
-										as="button"
-										css={styles.segmentButton}
-										data-active={tooltipMode === "target" ? "true" : undefined}
-										aria-pressed={tooltipMode === "target"}
-										onClick={() => setTooltipMode("target")}
-									>
-										Target
-									</Box>
-								</Box>
-							</Box>
-
-							<Box css={styles.section}>
-								<Text css={styles.sectionLabel}>Viewer State</Text>
-
-								<Box css={styles.fieldRow}>
-									<Text fontSize="sm" fontWeight="medium" color="whiteAlpha.900">
-										Show Grid
-									</Text>
-									<Switch
-										colorPalette="cyan"
-										size="sm"
-										checked={showGrid}
-										onCheckedChange={(event) => setShowGrid(event.checked)}
-									/>
-								</Box>
-							</Box>
-
-							<Box css={styles.section}>
-								<Text css={styles.sectionLabel}>Coordinate Precision</Text>
-								<Box css={styles.fieldRow}>
-									<CompactNumberInput
-										label="Digits"
-										value={targetCoordinatePrecision}
-										onChange={setTargetCoordinatePrecision}
-										step={1}
-										min={0}
-										max={100}
-										decimalScale={0}
-										inputWidth="88px"
-										labelWidth="auto"
-										disabled={tooltipMode !== "target"}
-									/>
-								</Box>
-							</Box>
+								Viewer HUD
+							</Text>
+							<Text fontSize="sm" fontWeight="semibold" color="white">
+								Overview Controls
+							</Text>
 						</Stack>
+
+						<IconButton
+							aria-label="Close overview viewer controls"
+							variant="plain"
+							css={styles.trigger}
+							onClick={() => onOpenChange(false)}
+						>
+							<FiX />
+						</IconButton>
+					</HStack>
+
+					<Stack gap={3}>
+						<Box css={styles.section}>
+							<Text css={styles.sectionLabel}>Tooltip Mode</Text>
+							<Box css={styles.segmentGroup}>
+								<Box
+									as="button"
+									css={styles.segmentButton}
+									data-active={tooltipMode === "footprint" ? "true" : undefined}
+									aria-pressed={tooltipMode === "footprint"}
+									onClick={() => setTooltipMode("footprint")}
+								>
+									Footprint
+								</Box>
+								<Box
+									as="button"
+									css={styles.segmentButton}
+									data-active={tooltipMode === "target" ? "true" : undefined}
+									aria-pressed={tooltipMode === "target"}
+									onClick={() => setTooltipMode("target")}
+								>
+									Target
+								</Box>
+							</Box>
+						</Box>
+
+						<Box css={styles.section}>
+							<Text css={styles.sectionLabel}>Viewer State</Text>
+
+							<Box css={styles.fieldRow}>
+								<Text fontSize="sm" fontWeight="medium" color="whiteAlpha.900">
+									Show Grid
+								</Text>
+								<Switch
+									colorPalette="cyan"
+									size="sm"
+									checked={showGrid}
+									onCheckedChange={(event) => setShowGrid(event.checked)}
+								/>
+							</Box>
+						</Box>
+
+						<Box css={styles.section}>
+							<Text css={styles.sectionLabel}>Coordinate Precision</Text>
+							<Box css={styles.fieldRow}>
+								<CompactNumberInput
+									label="Digits"
+									value={targetCoordinatePrecision}
+									onChange={setTargetCoordinatePrecision}
+									step={1}
+									min={0}
+									max={100}
+									decimalScale={0}
+									inputWidth="88px"
+									labelWidth="auto"
+									disabled={tooltipMode !== "target"}
+								/>
+							</Box>
+						</Box>
+					</Stack>
 				</Box>
 			</Presence>
 		</Box>

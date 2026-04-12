@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { useState } from "react";
 import { FiChevronDown, FiChevronUp } from "react-icons/fi";
-import type { OverviewFootprintRecord } from "@/features/overview/utils/types";
+import type { OverviewFootprintRecord } from "@/features/overview/shared/types";
 import { overviewFootprintCardRecipe } from "./recipes/overview-footprint-card.recipe";
 
 export interface OverviewFootprintCardProps {
@@ -57,9 +57,7 @@ export function OverviewFootprintCard({
 		>
 			<Card.Body css={styles.body}>
 				<Stack gap={1.5}>
-					<Text css={styles.title}>
-						Footprint {footprint.id}
-					</Text>
+					<Text css={styles.title}>Footprint {footprint.id}</Text>
 					<Text css={styles.coordinate}>
 						RA: {footprint.center.ra.toFixed(precision)} Dec:{" "}
 						{footprint.center.dec.toFixed(precision)}
@@ -114,9 +112,7 @@ export function OverviewFootprintCard({
 							</Portal>
 						</Popover.Root>
 					) : (
-						<Text css={styles.emptyFiles}>
-							Files (0)
-						</Text>
+						<Text css={styles.emptyFiles}>Files (0)</Text>
 					)}
 				</Stack>
 			</Card.Body>

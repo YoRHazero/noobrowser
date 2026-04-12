@@ -1,16 +1,16 @@
 import { useFrame, useThree } from "@react-three/fiber";
 import { useCallback, useEffect, useRef } from "react";
 import { Vector3 } from "three";
+import type {
+	GraticuleLine,
+	HoveredGraticule,
+	ScreenPoint,
+} from "@/features/overview/shared/types";
 import {
 	isProjectedPointVisible,
 	isWorldPointFacingCamera,
 	ndcToScreenPoint,
 } from "@/features/overview/utils/projection";
-import type {
-	GraticuleLine,
-	HoveredGraticule,
-	ScreenPoint,
-} from "@/features/overview/utils/types";
 import {
 	type CanvasPointerState,
 	readCanvasPointerState,

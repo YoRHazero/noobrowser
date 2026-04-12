@@ -1,10 +1,10 @@
 import { useMemo } from "react";
 import {
-	useGrismFootprints,
-	type UseGrismFootprintsParams,
 	type GrismFootprintItem,
+	type UseGrismFootprintsParams,
+	useGrismFootprints,
 } from "@/hooks/query/overview";
-import type { OverviewFootprintRecord, WorldCoordinate } from "../utils/types";
+import type { OverviewFootprintRecord, WorldCoordinate } from "../shared/types";
 
 export interface UseOverviewFootprintsParams extends UseGrismFootprintsParams {}
 
@@ -16,10 +16,12 @@ export interface UseOverviewFootprintsResult {
 }
 
 function normalizeFootprint(item: GrismFootprintItem): OverviewFootprintRecord {
-	const vertices: WorldCoordinate[] = item.footprint.vertices.map(([ra, dec]) => ({
-		ra,
-		dec,
-	}));
+	const vertices: WorldCoordinate[] = item.footprint.vertices.map(
+		([ra, dec]) => ({
+			ra,
+			dec,
+		}),
+	);
 
 	return {
 		id: item.id,

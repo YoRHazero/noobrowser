@@ -2,7 +2,7 @@ import { useThree } from "@react-three/fiber";
 import { type RefObject, useEffect } from "react";
 import { Vector3 } from "three";
 import type { OrbitControls as OrbitControlsType } from "three-stdlib";
-import { FOOTPRINT_LINE_RADIUS_OFFSET } from "@/features/overview/utils/constant";
+import { FOOTPRINT_LINE_RADIUS_OFFSET } from "@/features/overview/shared/constants";
 import {
 	resolveFootprintShellGapMetrics,
 	resolveNextCameraDistanceFromGapDelta,

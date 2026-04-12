@@ -24,9 +24,9 @@
 
 ## Utility And Hook Type Rules
 
-- Put reusable utility-level types in `src/features/overview/utils/types.ts`.
-- Put reusable utility-level constants in `src/features/overview/utils/constant.ts`.
-- If a type is likely to be reused across utils, hooks, layers, or objects, move it to `utils/types.ts`. If it is local to one file, keep it private and do not export it.
+- Put reusable utility-level types in `src/features/overview/shared/types.ts`.
+- Put reusable utility-level constants in `src/features/overview/shared/constants.ts`.
+- If a type is likely to be reused across utils, hooks, layers, or objects, move it to `shared/types.ts`. If it is local to one file, keep it private and do not export it.
 - Hook files may only export their public input/output contract types, such as `*Params` and `*Result`.
 - Do not export raw API payload types or other private intermediate normalization types from hook files.
 

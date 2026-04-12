@@ -1,8 +1,15 @@
-import { GRATICULE_POINT_STEP_DEG } from "./constant";
+import { GRATICULE_POINT_STEP_DEG } from "../shared/constants";
+import type {
+	CartesianCoordinate,
+	GraticuleConfig,
+	GraticuleLine,
+} from "../shared/types";
 import { raDecToCartesian } from "./celestial";
-import type { CartesianCoordinate, GraticuleConfig, GraticuleLine } from "./types";
 
-function createMeridianPoints(ra: number, radius: number): CartesianCoordinate[] {
+function createMeridianPoints(
+	ra: number,
+	radius: number,
+): CartesianCoordinate[] {
 	const points: CartesianCoordinate[] = [];
 	for (let dec = -90; dec <= 90; dec += GRATICULE_POINT_STEP_DEG) {
 		points.push(raDecToCartesian({ ra, dec }, radius));

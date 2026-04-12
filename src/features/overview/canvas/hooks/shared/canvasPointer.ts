@@ -1,4 +1,4 @@
-import type { ScreenPoint } from "@/features/overview/utils/types";
+import type { ScreenPoint } from "@/features/overview/shared/types";
 
 export interface CanvasPointerState {
 	client: ScreenPoint;
