@@ -2,26 +2,9 @@
 
 import { useShallow } from "zustand/react/shallow";
 import { useSourceStore } from "@/stores/source";
-import { useEditorStore } from "../../../store/useEditorStore";
-
-export interface EditorHeaderModel {
-	isDetail: boolean;
-	canReturn: boolean;
-	canSubmit: boolean;
-	onEnterCreateMode: () => void;
-	onReturnToDetailMode: () => void;
-	onCreateSource: () => void;
-}
-
-function parseDraftCoordinate(value: string): number | null {
-	const trimmed = value.trim();
-	if (trimmed.length === 0) {
-		return null;
-	}
-
-	const parsed = Number(trimmed);
-	return Number.isFinite(parsed) ? parsed : null;
-}
+import { useEditorStore } from "../../../store";
+import type { EditorHeaderModel } from "../shared/types";
+import { parseDraftCoordinate } from "../utils";
 
 export function useEditorHeaderModel(): EditorHeaderModel {
 	const {

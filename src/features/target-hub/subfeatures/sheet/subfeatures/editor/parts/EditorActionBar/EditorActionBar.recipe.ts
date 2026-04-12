@@ -1,8 +1,15 @@
 import { defineSlotRecipe } from "@chakra-ui/react";
 
-export const spectrumSectionRecipe = defineSlotRecipe({
-	className: "target-hub-sheet-spectrum-section",
-	slots: ["editorActions", "chipGroup", "chip"],
+export const editorActionBarRecipe = defineSlotRecipe({
+	className: "target-hub-sheet-editor-action-bar",
+	slots: [
+		"editorActions",
+		"chipGroup",
+		"chip",
+		"popoverContent",
+		"popoverArrow",
+		"popoverBody",
+	],
 	base: {
 		editorActions: {
 			display: "flex",
@@ -33,6 +40,18 @@ export const spectrumSectionRecipe = defineSlotRecipe({
 			_disabled: {
 				opacity: 0.42,
 			},
+		},
+		popoverContent: {
+			w: "240px",
+			borderColor: "whiteAlpha.180",
+			bg: "rgba(9, 15, 28, 0.98)",
+			boxShadow: "0 18px 42px rgba(2, 8, 23, 0.48)",
+		},
+		popoverArrow: {
+			bg: "rgba(9, 15, 28, 0.98)",
+		},
+		popoverBody: {
+			p: 3,
 		},
 	},
 	variants: {

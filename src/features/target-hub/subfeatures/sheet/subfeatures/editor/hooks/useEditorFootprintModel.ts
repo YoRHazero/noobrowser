@@ -3,43 +3,18 @@
 import { useShallow } from "zustand/react/shallow";
 import { useSourcePosition } from "@/hooks/query/source";
 import { useSourceStore } from "@/stores/source";
-import { useEditorStore } from "../../../store/useEditorStore";
+import { useEditorStore } from "../../../store";
 import { formatPositionValue } from "../../../utils";
+import type {
+	EditorFootprintModel,
+	EditorImagePositionModel,
+} from "../shared/types";
+import { parseDraftCoordinate } from "../utils";
 import { useFootprints } from "./useFootprints";
 
 interface FootprintSelection {
 	refBasename: string | null;
 	footprintId: string | null;
-}
-
-function parseDraftCoordinate(value: string): number | null {
-	const trimmed = value.trim();
-	if (trimmed.length === 0) {
-		return null;
-	}
-
-	const parsed = Number(trimmed);
-	return Number.isFinite(parsed) ? parsed : null;
-}
-
-export interface EditorFootprintModel {
-	value: string | null;
-	options: Array<{
-		label: string;
-		value: string;
-		tooltip: string | null;
-	}>;
-	canSyncCurrentFootprint: boolean;
-	onChange: (refBasename: string | null) => void;
-	onSyncCurrentFootprint: () => void;
-}
-
-export interface EditorImagePositionModel {
-	xValue: string;
-	yValue: string;
-	canResolveXY: boolean;
-	isResolvingXY: boolean;
-	onResolveXY: () => Promise<void> | void;
 }
 
 export function useEditorFootprintModel(): {

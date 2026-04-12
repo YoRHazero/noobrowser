@@ -1,8 +1,15 @@
 import { defineSlotRecipe } from "@chakra-ui/react";
 
-export const sourcesViewRecipe = defineSlotRecipe({
-	className: "target-hub-sheet-sources-view",
-	slots: ["panelBody", "panelContent", "emptyState"],
+export const sourcesRecipe = defineSlotRecipe({
+	className: "target-hub-sheet-sources",
+	slots: [
+		"panelBody",
+		"panelContent",
+		"title",
+		"emptyState",
+		"emptyTitle",
+		"emptyDescription",
+	],
 	base: {
 		panelBody: {
 			minH: 0,
@@ -20,6 +27,11 @@ export const sourcesViewRecipe = defineSlotRecipe({
 			gap: 2,
 			pr: 1,
 		},
+		title: {
+			fontSize: "sm",
+			fontWeight: "semibold",
+			color: "white",
+		},
 		emptyState: {
 			p: 4,
 			borderRadius: "xl",
@@ -27,6 +39,16 @@ export const sourcesViewRecipe = defineSlotRecipe({
 			borderStyle: "dashed",
 			borderColor: "whiteAlpha.140",
 			bg: "rgba(255, 255, 255, 0.02)",
+		},
+		emptyTitle: {
+			fontSize: "sm",
+			fontWeight: "semibold",
+			color: "white",
+		},
+		emptyDescription: {
+			fontSize: "xs",
+			color: "whiteAlpha.720",
+			mt: 1,
 		},
 	},
 });

@@ -2,26 +2,13 @@
 
 import { useShallow } from "zustand/react/shallow";
 import { useSourceStore } from "@/stores/source";
-import { useEditorStore } from "../../../store/useEditorStore";
+import { useEditorStore } from "../../../store";
 import { formatPositionValue } from "../../../utils";
-
-export interface EditorIdentityModel {
-	isDetail: boolean;
-	labelValue: string;
-	idValue: string;
-	draftLabel: string;
-	onLabelChange: (value: string) => void;
-}
-
-export interface EditorSkyPositionModel {
-	isDetail: boolean;
-	raValue: string;
-	decValue: string;
-	draftRa: string;
-	draftDec: string;
-	onRaChange: (value: string) => void;
-	onDecChange: (value: string) => void;
-}
+import { EDITOR_EMPTY_VALUE } from "../shared/constants";
+import type {
+	EditorIdentityModel,
+	EditorSkyPositionModel,
+} from "../shared/types";
 
 export function useEditorIdentityModel(): {
 	identity: EditorIdentityModel;
@@ -57,10 +44,10 @@ export function useEditorIdentityModel(): {
 			isDetail,
 			raValue: isDetail
 				? formatPositionValue(activeSource.position.ra, 5)
-				: createDraft.position.ra || "—",
+				: createDraft.position.ra || EDITOR_EMPTY_VALUE,
 			decValue: isDetail
 				? formatPositionValue(activeSource.position.dec, 5)
-				: createDraft.position.dec || "—",
+				: createDraft.position.dec || EDITOR_EMPTY_VALUE,
 			draftRa: createDraft.position.ra,
 			draftDec: createDraft.position.dec,
 			onRaChange: (value: string) => setCreateDraftField("ra", value),

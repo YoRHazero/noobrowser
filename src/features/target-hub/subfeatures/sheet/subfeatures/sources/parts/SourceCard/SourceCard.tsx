@@ -61,10 +61,8 @@ export function SourceCard({
 				}
 			/>
 
-			<Stack gap={1} minW={0} flex="1" align="flex-start">
-				<Text fontSize="sm" fontWeight="semibold" color="white">
-					{displayName}
-				</Text>
+			<Stack css={styles.sourceBody}>
+				<Text css={styles.sourceTitle}>{displayName}</Text>
 				<Text css={styles.helperText}>ID: {source.id}</Text>
 				<Text css={styles.helperText}>
 					RA/Dec: {formatPositionValue(source.position.ra, 5)} /{" "}
@@ -82,7 +80,6 @@ export function SourceCard({
 			<HStack
 				css={styles.sourceControls}
 				onClick={(event) => event.stopPropagation()}
-				alignSelf="center"
 			>
 				<ProjectionControls
 					isOverviewVisible={source.visibility.overview}

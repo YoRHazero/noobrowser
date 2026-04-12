@@ -2,7 +2,7 @@
 
 import { useShallow } from "zustand/react/shallow";
 import { type SourceVisibilityKey, useSourceStore } from "@/stores/source";
-import { useEditorStore } from "../../store/useEditorStore";
+import { useEditorStore } from "../../store";
 
 export function useSources() {
 	const {

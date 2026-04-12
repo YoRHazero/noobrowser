@@ -1,9 +1,10 @@
 import { Box, HStack, Text, useSlotRecipe } from "@chakra-ui/react";
+import type { ReactNode } from "react";
 import { editorFieldRecipe } from "./EditorField.recipe";
 
 interface EditorFieldProps {
 	label: string;
-	children: React.ReactNode;
+	children: ReactNode;
 	flex?: string;
 }
 
@@ -14,9 +15,7 @@ export function EditorField({ label, children, flex = "1" }: EditorFieldProps) {
 	return (
 		<HStack css={styles.inlineField} flex={flex}>
 			<Text css={styles.inlineFieldLabel}>{label}</Text>
-			<Box minW={0} w="full">
-				{children}
-			</Box>
+			<Box css={styles.fieldContent}>{children}</Box>
 		</HStack>
 	);
 }

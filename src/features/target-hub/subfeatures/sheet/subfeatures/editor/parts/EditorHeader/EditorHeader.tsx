@@ -1,6 +1,6 @@
-import { Box, Button, HStack, Text, useSlotRecipe } from "@chakra-ui/react";
+import { Button, HStack, Text, useSlotRecipe } from "@chakra-ui/react";
 import { ArrowLeft, Plus } from "lucide-react";
-import type { EditorHeaderModel } from "../../hooks/useEditorHeaderModel";
+import type { EditorHeaderModel } from "../../shared/types";
 import { editorHeaderRecipe } from "./EditorHeader.recipe";
 
 interface EditorHeaderProps {
@@ -13,11 +13,9 @@ export function EditorHeader({ header }: EditorHeaderProps) {
 
 	return (
 		<HStack css={styles.editorHeader}>
-			<Box>
-				<Text fontSize="sm" fontWeight="semibold" color="white">
-					{header.isDetail ? "Current Source" : "Create Source"}
-				</Text>
-			</Box>
+			<Text css={styles.editorHeaderTitle}>
+				{header.isDetail ? "Current Source" : "Create Source"}
+			</Text>
 
 			<HStack css={styles.editorHeaderActions}>
 				{header.canReturn ? (

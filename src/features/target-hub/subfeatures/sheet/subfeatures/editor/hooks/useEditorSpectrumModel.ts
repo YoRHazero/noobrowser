@@ -3,43 +3,22 @@
 import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useSourceStore } from "@/stores/source";
-import type { TargetHubExtractionDraft } from "../../../../../shared/types";
-import { sheetEditorLocalDefaults } from "../../../store/editorSlice";
-import { useEditorStore } from "../../../store/useEditorStore";
-
-interface ExtractionSettingsFormState {
-	apertureSize: string;
-	waveMinUm: string;
-	waveMaxUm: string;
-}
-
-export interface EditorExtractionModel {
-	isSettingsOpen: boolean;
-	apertureSize: string;
-	waveMinUm: string;
-	waveMaxUm: string;
-	canSave: boolean;
-	saveDisabledReason: string | null;
-	onOpenChange: (open: boolean) => void;
-	onApertureSizeChange: (value: string) => void;
-	onWaveMinUmChange: (value: string) => void;
-	onWaveMaxUmChange: (value: string) => void;
-	onSave: () => void;
-	onReset: () => void;
-}
-
-export interface EditorSpectrumModel {
-	canFetch: boolean;
-	fetchDisabledReason: string | null;
-	onFetch: () => void;
-}
-
-export interface EditorActionsModel {
-	overviewVisible: boolean;
-	inspectorVisible: boolean;
-	onToggleOverview: () => void;
-	onToggleInspector: () => void;
-}
+import { sheetEditorLocalDefaults, useEditorStore } from "../../../store";
+import {
+	EDITOR_EXTRACTION_SETTINGS_NUMERIC_REQUIRED_REASON,
+	EDITOR_SOURCE_POSITION_INCOMPLETE_REASON,
+	EDITOR_SPECTRUM_FETCH_PENDING_REASON,
+} from "../shared/constants";
+import type {
+	EditorActionsModel,
+	EditorExtractionModel,
+	EditorSpectrumModel,
+} from "../shared/types";
+import {
+	createExtractionSettingsFormState,
+	getExtractionDraftValidationReason,
+	parseExtractionSettingValue,
+} from "../utils";
 
 export function useEditorSpectrumModel(): {
 	extraction: EditorExtractionModel;
@@ -82,10 +61,9 @@ export function useEditorSpectrumModel(): {
 		? activeSource.visibility
 		: createDraft.visibility;
 	const [isExtractionSettingsOpen, setExtractionSettingsOpen] = useState(false);
-	const [extractionSettingsForm, setExtractionSettingsForm] =
-		useState<ExtractionSettingsFormState>(() =>
-			createExtractionSettingsFormState(extractionDraft),
-		);
+	const [extractionSettingsForm, setExtractionSettingsForm] = useState(() =>
+		createExtractionSettingsFormState(extractionDraft),
+	);
 	const parsedApertureSize = parseExtractionSettingValue(
 		extractionSettingsForm.apertureSize,
 	);
@@ -99,7 +77,7 @@ export function useEditorSpectrumModel(): {
 		parsedApertureSize === null ||
 		parsedWaveMinUm === null ||
 		parsedWaveMaxUm === null
-			? "All extraction settings must be numbers."
+			? EDITOR_EXTRACTION_SETTINGS_NUMERIC_REQUIRED_REASON
 			: getExtractionDraftValidationReason({
 					apertureSize: parsedApertureSize,
 					waveMinUm: parsedWaveMinUm,
@@ -109,9 +87,9 @@ export function useEditorSpectrumModel(): {
 		!isDetail ||
 		activeSource.position.ra === null ||
 		activeSource.position.dec === null
-			? "Source position is incomplete."
+			? EDITOR_SOURCE_POSITION_INCOMPLETE_REASON
 			: activeSource.spectrum.status === "pending"
-				? "Spectrum fetch is already running."
+				? EDITOR_SPECTRUM_FETCH_PENDING_REASON
 				: getExtractionDraftValidationReason(extractionDraft);
 
 	useEffect(() => {
@@ -222,38 +200,4 @@ export function useEditorSpectrumModel(): {
 			},
 		},
 	};
-}
-
-function createExtractionSettingsFormState(
-	extractionDraft: TargetHubExtractionDraft,
-): ExtractionSettingsFormState {
-	return {
-		apertureSize: extractionDraft.apertureSize.toString(),
-		waveMinUm: extractionDraft.waveMinUm.toString(),
-		waveMaxUm: extractionDraft.waveMaxUm.toString(),
-	};
-}
-
-function parseExtractionSettingValue(value: string): number | null {
-	const trimmedValue = value.trim();
-	if (trimmedValue.length === 0) {
-		return null;
-	}
-
-	const parsedValue = Number(trimmedValue);
-	return Number.isFinite(parsedValue) ? parsedValue : null;
-}
-
-function getExtractionDraftValidationReason(
-	extractionDraft: TargetHubExtractionDraft,
-): string | null {
-	if (extractionDraft.apertureSize <= 0) {
-		return "Aperture must be greater than 0.";
-	}
-
-	if (extractionDraft.waveMinUm >= extractionDraft.waveMaxUm) {
-		return "Wave min must be smaller than wave max.";
-	}
-
-	return null;
 }

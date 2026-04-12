@@ -1,13 +1,12 @@
+"use client";
+
 import { Button, HStack, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
 import { LuChevronsLeft } from "react-icons/lu";
 import { headerRecipe } from "./Header.recipe";
+import { useHeader } from "./useHeader";
 
-interface HeaderViewProps {
-	onOpenJobs: () => void;
-	onReturnToDock: () => void;
-}
-
-export function HeaderView({ onOpenJobs, onReturnToDock }: HeaderViewProps) {
+export default function Header() {
+	const { onOpenFitJob, onReturnToDock } = useHeader();
 	const recipe = useSlotRecipe({ recipe: headerRecipe });
 	const styles = recipe();
 
@@ -19,7 +18,7 @@ export function HeaderView({ onOpenJobs, onReturnToDock }: HeaderViewProps) {
 			</Stack>
 
 			<HStack css={styles.headerActions}>
-				<Button size="sm" variant="outline" onClick={onOpenJobs}>
+				<Button size="sm" variant="outline" onClick={onOpenFitJob}>
 					Jobs
 				</Button>
 				<Button size="sm" variant="ghost" onClick={onReturnToDock}>

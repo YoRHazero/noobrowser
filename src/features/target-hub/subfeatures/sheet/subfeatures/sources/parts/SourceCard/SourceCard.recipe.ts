@@ -5,6 +5,8 @@ export const sourceCardRecipe = defineSlotRecipe({
 	slots: [
 		"sourceCard",
 		"sourceIndicator",
+		"sourceBody",
+		"sourceTitle",
 		"sourceControls",
 		"helperText",
 		"chip",
@@ -39,12 +41,24 @@ export const sourceCardRecipe = defineSlotRecipe({
 			bg: "var(--source-color)",
 			boxShadow: "0 0 16px var(--source-color)",
 		},
+		sourceBody: {
+			minW: 0,
+			flex: "1",
+			gap: 1,
+			alignItems: "flex-start",
+		},
+		sourceTitle: {
+			fontSize: "sm",
+			fontWeight: "semibold",
+			color: "white",
+		},
 		sourceControls: {
 			display: "flex",
 			alignItems: "center",
 			gap: 1.5,
 			flexShrink: 0,
 			ml: "auto",
+			alignSelf: "center",
 		},
 		helperText: {
 			fontSize: "xs",

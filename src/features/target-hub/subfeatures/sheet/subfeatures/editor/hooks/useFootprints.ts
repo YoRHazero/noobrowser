@@ -2,11 +2,7 @@ import { useMemo } from "react";
 import { useGrismFootprints } from "@/hooks/query/overview";
 import type { GrismFootprintItem } from "@/hooks/query/overview/schemas";
 import { useOverviewStore } from "@/stores/overview";
-
-export interface TargetHubFootprintRecord {
-	id: string;
-	refBasename: string | null;
-}
+import type { TargetHubFootprintRecord } from "../shared/types";
 
 function getIncludedFiles(item: GrismFootprintItem) {
 	return Array.isArray(item.meta?.included_files)

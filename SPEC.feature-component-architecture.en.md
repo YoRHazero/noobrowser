@@ -236,13 +236,16 @@ TSX owns:
 
 Rules:
 
-- A part serves only the nearest owning Unit.
+- A part serves only the nearest owning Unit. In a complex Unit, a parent-owned reusable view fragment may be used by that Unit's direct child subfeatures.
 - A part may contain business copy, business field names, and business view-model shapes.
 - A part usually receives props / models prepared by its parent.
 - A part does not read stores directly.
 - A part does not call queries / mutations.
 - A part does not own business workflow state.
 - A part does not import sibling subfeatures.
+- A child subfeature may import only its nearest parent Unit `parts/` public entry. It must not import grandparent `parts/`.
+- A child subfeature must not import sibling subfeature `parts/`.
+- A parent part reused by child subfeatures must remain a view fragment: behavior comes through props / callbacks only, and it must not read stores, call queries / mutations, or own business workflow state.
 - If a part needs a recipe, it must be promoted to its own folder and own a colocated `<Part>.recipe.ts`.
 - If a part only serves a child subfeature, it must move into that child subfeature's `parts/`.
 
@@ -252,13 +255,28 @@ Example:
 sheet/subfeatures/ned/
   Ned.tsx
   useNed.ts
-  NedView.tsx
   parts/
     SettingsPanel.tsx
     ResultsPanel.tsx
 ```
 
 `Ned` is a subfeature. `SettingsPanel` and `ResultsPanel` are NED-internal parts.
+
+When a parent part is reused by multiple direct child subfeatures, it should stay in the parent `parts/`:
+
+```text
+sheet/
+  parts/
+    ProjectionControls/
+      ProjectionControls.tsx
+      ProjectionControls.recipe.ts
+      index.ts
+  subfeatures/
+    editor/
+    sources/
+```
+
+`ProjectionControls` is owned by `sheet` and may be used by `editor` and `sources`. If it only serves `sources`, it must move down into `sources/parts/`.
 
 ## `subfeatures/`
 
@@ -488,6 +506,7 @@ Good store-owned data:
 
 - Visible independent business capability: `subfeatures/`.
 - Current Unit's business view fragment: `parts/`.
+- Business view fragments owned by the current Unit and reused by multiple direct children: parent `parts/`.
 - Reusable non-business UI: `components/`.
 - Recipes follow concrete UI owners; do not create `recipes/` directories.
 - Current Unit lifecycle / behavior split: `hooks/useXxx.ts`.
@@ -517,3 +536,5 @@ Good store-owned data:
 - Once `subfeatures/` exists, do root `<Unit>.tsx` / `use<Unit>.ts` still contain grab-bag business logic?
 - Were query data / query status copied into Zustand store?
 - Was a child-subfeature-specific part incorrectly placed in parent `parts/`?
+- Did a child subfeature import grandparent `parts/`, or import sibling subfeature `parts/`?
+- Did a parent part reused by child subfeatures start reading stores, calling queries / mutations, or owning business workflow state?

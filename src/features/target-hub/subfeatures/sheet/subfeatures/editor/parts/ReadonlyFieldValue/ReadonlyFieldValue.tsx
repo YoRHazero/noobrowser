@@ -1,29 +1,25 @@
 import { Box, Text, useSlotRecipe } from "@chakra-ui/react";
 import { Tooltip } from "@/components/ui/tooltip";
+import { EDITOR_EMPTY_VALUE } from "../../shared/constants";
 import { readonlyFieldValueRecipe } from "./ReadonlyFieldValue.recipe";
 
 interface ReadonlyFieldValueProps {
 	value: string;
-	color: string;
+	tone?: "default" | "muted";
 }
 
-export function ReadonlyFieldValue({ value, color }: ReadonlyFieldValueProps) {
+export function ReadonlyFieldValue({
+	value,
+	tone = "default",
+}: ReadonlyFieldValueProps) {
 	const recipe = useSlotRecipe({ recipe: readonlyFieldValueRecipe });
-	const styles = recipe();
-	const shouldShowTooltip = value !== "—" && value.trim().length > 0;
+	const styles = recipe({ tone });
+	const shouldShowTooltip =
+		value !== EDITOR_EMPTY_VALUE && value.trim().length > 0;
 
 	const content = (
-		<Box css={styles.readonlyField} minW={0}>
-			<Text
-				color={color}
-				w="full"
-				minW={0}
-				overflow="hidden"
-				textOverflow="ellipsis"
-				whiteSpace="nowrap"
-			>
-				{value}
-			</Text>
+		<Box css={styles.readonlyField}>
+			<Text css={styles.readonlyValue}>{value}</Text>
 		</Box>
 	);
 

@@ -1,7 +1,7 @@
 import { defineSlotRecipe } from "@chakra-ui/react";
 
-export const editorViewRecipe = defineSlotRecipe({
-	className: "target-hub-sheet-editor-view",
+export const editorRecipe = defineSlotRecipe({
+	className: "target-hub-sheet-editor",
 	slots: ["currentCard"],
 	base: {
 		currentCard: {

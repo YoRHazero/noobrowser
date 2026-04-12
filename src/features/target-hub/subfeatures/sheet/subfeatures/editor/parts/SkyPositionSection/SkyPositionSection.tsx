@@ -1,6 +1,7 @@
-import { Box, NumberInput, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { EditorSkyPositionModel } from "../../hooks/useEditorIdentityModel";
+import { Box, NumberInput, useSlotRecipe } from "@chakra-ui/react";
+import type { EditorSkyPositionModel } from "../../shared/types";
 import { EditorField } from "../EditorField";
+import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { skyPositionSectionRecipe } from "./SkyPositionSection.recipe";
 
 interface SkyPositionSectionProps {
@@ -15,13 +16,11 @@ export function SkyPositionSection({ skyPosition }: SkyPositionSectionProps) {
 		<Box css={styles.editorRow}>
 			<EditorField label="RA">
 				{skyPosition.isDetail ? (
-					<Box css={styles.readonlyField}>
-						<Text color="white">{skyPosition.raValue}</Text>
-					</Box>
+					<ReadonlyFieldValue value={skyPosition.raValue} tone="default" />
 				) : (
 					<NumberInput.Root
+						css={styles.editableFieldRoot}
 						size="sm"
-						w="full"
 						value={skyPosition.draftRa}
 						onValueChange={(details) => skyPosition.onRaChange(details.value)}
 					>
@@ -34,13 +33,11 @@ export function SkyPositionSection({ skyPosition }: SkyPositionSectionProps) {
 			</EditorField>
 			<EditorField label="Dec">
 				{skyPosition.isDetail ? (
-					<Box css={styles.readonlyField}>
-						<Text color="white">{skyPosition.decValue}</Text>
-					</Box>
+					<ReadonlyFieldValue value={skyPosition.decValue} tone="default" />
 				) : (
 					<NumberInput.Root
+						css={styles.editableFieldRoot}
 						size="sm"
-						w="full"
 						value={skyPosition.draftDec}
 						onValueChange={(details) => skyPosition.onDecChange(details.value)}
 					>

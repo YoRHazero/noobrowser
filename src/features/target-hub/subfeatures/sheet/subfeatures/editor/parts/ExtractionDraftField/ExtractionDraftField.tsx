@@ -20,17 +20,10 @@ export function ExtractionDraftField({
 	const styles = recipe();
 
 	return (
-		<Stack gap={1.5}>
-			<Text
-				fontSize="11px"
-				fontWeight="medium"
-				letterSpacing="normal"
-				textTransform="none"
-				color="whiteAlpha.720"
-			>
-				{label}
-			</Text>
+		<Stack css={styles.fieldRoot}>
+			<Text css={styles.label}>{label}</Text>
 			<NumberInput.Root
+				css={styles.editableFieldRoot}
 				size="sm"
 				value={value}
 				step={step}

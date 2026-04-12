@@ -1,5 +1,6 @@
 import { Box, Input, useSlotRecipe } from "@chakra-ui/react";
-import type { EditorIdentityModel } from "../../hooks/useEditorIdentityModel";
+import { EDITOR_EMPTY_VALUE } from "../../shared/constants";
+import type { EditorIdentityModel } from "../../shared/types";
 import { EditorField } from "../EditorField";
 import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { identitySectionRecipe } from "./IdentitySection.recipe";
@@ -17,14 +18,14 @@ export function IdentitySection({ identity }: IdentitySectionProps) {
 			<EditorField label="ID">
 				<ReadonlyFieldValue
 					value={identity.idValue}
-					color={identity.isDetail ? "white" : "whiteAlpha.720"}
+					tone={identity.isDetail ? "default" : "muted"}
 				/>
 			</EditorField>
 			<EditorField label="Label">
 				{identity.isDetail ? (
 					<ReadonlyFieldValue
-						value={identity.labelValue || "—"}
-						color="white"
+						value={identity.labelValue || EDITOR_EMPTY_VALUE}
+						tone="default"
 					/>
 				) : (
 					<Input

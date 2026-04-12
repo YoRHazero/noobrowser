@@ -2,14 +2,21 @@ import { defineSlotRecipe } from "@chakra-ui/react";
 
 export const footprintSectionRecipe = defineSlotRecipe({
 	className: "target-hub-sheet-footprint-section",
-	slots: ["editorRow", "editableField", "readonlyField", "chip"],
+	slots: ["editorRow", "selectRoot", "selectContent", "editableField", "chip"],
 	base: {
 		editorRow: {
-			display: "grid",
-			gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
-			gap: 3,
+			display: "flex",
 			alignItems: "center",
+			gap: 2,
 			w: "full",
+		},
+		selectRoot: {
+			w: "full",
+		},
+		selectContent: {
+			bg: "rgba(9, 15, 28, 0.98)",
+			borderColor: "whiteAlpha.200",
+			zIndex: 1600,
 		},
 		editableField: {
 			h: "32px",
@@ -31,20 +38,6 @@ export const footprintSectionRecipe = defineSlotRecipe({
 				borderColor: "cyan.300",
 				boxShadow: "0 0 0 1px rgba(34, 211, 238, 0.22)",
 			},
-		},
-		readonlyField: {
-			minH: "32px",
-			borderRadius: "md",
-			borderWidth: "1px",
-			borderColor: "whiteAlpha.100",
-			bg: "rgba(255, 255, 255, 0.025)",
-			color: "whiteAlpha.860",
-			fontSize: "sm",
-			px: 3,
-			w: "full",
-			display: "flex",
-			alignItems: "center",
-			fontVariantNumeric: "tabular-nums",
 		},
 		chip: {
 			minW: "28px",

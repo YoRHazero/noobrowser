@@ -1,38 +1,12 @@
 "use client";
 
-import {
-	type EditorFootprintModel,
-	type EditorImagePositionModel,
-	useEditorFootprintModel,
-} from "./hooks/useEditorFootprintModel";
-import {
-	type EditorHeaderModel,
-	useEditorHeaderModel,
-} from "./hooks/useEditorHeaderModel";
-import {
-	type EditorIdentityModel,
-	type EditorSkyPositionModel,
-	useEditorIdentityModel,
-} from "./hooks/useEditorIdentityModel";
-import {
-	type EditorActionsModel,
-	type EditorExtractionModel,
-	type EditorSpectrumModel,
-	useEditorSpectrumModel,
-} from "./hooks/useEditorSpectrumModel";
+import { useEditorFootprintModel } from "./hooks/useEditorFootprintModel";
+import { useEditorHeaderModel } from "./hooks/useEditorHeaderModel";
+import { useEditorIdentityModel } from "./hooks/useEditorIdentityModel";
+import { useEditorSpectrumModel } from "./hooks/useEditorSpectrumModel";
+import type { EditorModel } from "./shared/types";
 
-export interface EditorViewModel {
-	header: EditorHeaderModel;
-	identity: EditorIdentityModel;
-	skyPosition: EditorSkyPositionModel;
-	imagePosition: EditorImagePositionModel;
-	footprint: EditorFootprintModel;
-	extraction: EditorExtractionModel;
-	spectrum: EditorSpectrumModel;
-	actions: EditorActionsModel;
-}
-
-export function useEditor(): EditorViewModel {
+export function useEditor(): EditorModel {
 	const header = useEditorHeaderModel();
 	const { identity, skyPosition } = useEditorIdentityModel();
 	const { footprint, imagePosition } = useEditorFootprintModel();

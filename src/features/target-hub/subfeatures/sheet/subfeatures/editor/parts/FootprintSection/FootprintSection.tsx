@@ -1,11 +1,9 @@
 import {
-	Box,
 	createListCollection,
 	HStack,
 	IconButton,
 	Portal,
 	Select,
-	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { Crosshair, RefreshCw } from "lucide-react";
@@ -14,8 +12,9 @@ import { Tooltip } from "@/components/ui/tooltip";
 import type {
 	EditorFootprintModel,
 	EditorImagePositionModel,
-} from "../../hooks/useEditorFootprintModel";
+} from "../../shared/types";
 import { EditorField } from "../EditorField";
+import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { footprintSectionRecipe } from "./FootprintSection.recipe";
 
 const NO_FOOTPRINT_VALUE = "__unassigned__";
@@ -51,67 +50,60 @@ export function FootprintSection({
 	const footprintDisplayValue = footprint.value ?? "Unassigned";
 
 	return (
-		<HStack align="center" gap={2} w="full">
+		<HStack css={styles.editorRow}>
 			<EditorField label="Footprint" flex="1">
-				<Box flex="1" minW={0} w="full">
-					{hasFootprintOptions ? (
-						<Select.Root
-							collection={footprintCollection}
-							size="sm"
-							positioning={{
-								placement: "bottom-start",
-								sameWidth: true,
-								offset: { mainAxis: 6, crossAxis: 0 },
-							}}
-							value={footprint.value ? [footprint.value] : [NO_FOOTPRINT_VALUE]}
-							onValueChange={(details) => {
-								const nextValue = details.value[0];
-								footprint.onChange(
-									!nextValue || nextValue === NO_FOOTPRINT_VALUE
-										? null
-										: nextValue,
-								);
-							}}
-						>
-							<Select.HiddenSelect />
-							<Select.Control css={styles.editableField}>
-								<Select.Trigger>
-									<Select.ValueText placeholder="Unassigned" />
-								</Select.Trigger>
-							</Select.Control>
-							<Portal>
-								<DarkMode>
-									<Select.Positioner>
-										<Select.Content
-											bg="rgba(9, 15, 28, 0.98)"
-											borderColor="whiteAlpha.200"
-											zIndex={1600}
-										>
-											{footprintCollection.items.map((item) => (
-												<Select.Item item={item} key={item.value}>
-													<Tooltip
-														content={item.tooltip ?? item.label}
-														disabled={
-															!item.tooltip || item.value === NO_FOOTPRINT_VALUE
-														}
-														showArrow
-													>
-														<Select.ItemText>{item.label}</Select.ItemText>
-													</Tooltip>
-													<Select.ItemIndicator />
-												</Select.Item>
-											))}
-										</Select.Content>
-									</Select.Positioner>
-								</DarkMode>
-							</Portal>
-						</Select.Root>
-					) : (
-						<Box css={styles.readonlyField}>
-							<Text color="whiteAlpha.820">{footprintDisplayValue}</Text>
-						</Box>
-					)}
-				</Box>
+				{hasFootprintOptions ? (
+					<Select.Root
+						collection={footprintCollection}
+						size="sm"
+						css={styles.selectRoot}
+						positioning={{
+							placement: "bottom-start",
+							sameWidth: true,
+							offset: { mainAxis: 6, crossAxis: 0 },
+						}}
+						value={footprint.value ? [footprint.value] : [NO_FOOTPRINT_VALUE]}
+						onValueChange={(details) => {
+							const nextValue = details.value[0];
+							footprint.onChange(
+								!nextValue || nextValue === NO_FOOTPRINT_VALUE
+									? null
+									: nextValue,
+							);
+						}}
+					>
+						<Select.HiddenSelect />
+						<Select.Control css={styles.editableField}>
+							<Select.Trigger>
+								<Select.ValueText placeholder="Unassigned" />
+							</Select.Trigger>
+						</Select.Control>
+						<Portal>
+							<DarkMode>
+								<Select.Positioner>
+									<Select.Content css={styles.selectContent}>
+										{footprintCollection.items.map((item) => (
+											<Select.Item item={item} key={item.value}>
+												<Tooltip
+													content={item.tooltip ?? item.label}
+													disabled={
+														!item.tooltip || item.value === NO_FOOTPRINT_VALUE
+													}
+													showArrow
+												>
+													<Select.ItemText>{item.label}</Select.ItemText>
+												</Tooltip>
+												<Select.ItemIndicator />
+											</Select.Item>
+										))}
+									</Select.Content>
+								</Select.Positioner>
+							</DarkMode>
+						</Portal>
+					</Select.Root>
+				) : (
+					<ReadonlyFieldValue value={footprintDisplayValue} tone="muted" />
+				)}
 			</EditorField>
 
 			<Tooltip content="Sync current footprint" showArrow>

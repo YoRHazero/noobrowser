@@ -1,39 +1,25 @@
+"use client";
+
 import { Box, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { Source, SourceVisibilityKey } from "@/stores/source";
 import { SourceCard } from "./parts/SourceCard";
-import { sourcesViewRecipe } from "./SourcesView.recipe";
+import { sourcesRecipe } from "./Sources.recipe";
+import { useSources } from "./useSources";
 
-interface SourcesViewProps {
-	sources: Source[];
-	activeSourceId: string | null;
-	onSelect: (sourceId: string) => void;
-	onToggleVisibility: (sourceId: string, key: SourceVisibilityKey) => void;
-	onDelete: (sourceId: string) => void;
-}
-
-export function SourcesView({
-	sources,
-	activeSourceId,
-	onSelect,
-	onToggleVisibility,
-	onDelete,
-}: SourcesViewProps) {
-	const recipe = useSlotRecipe({ recipe: sourcesViewRecipe });
+export default function Sources() {
+	const { sources, activeSourceId, onSelect, onToggleVisibility, onDelete } =
+		useSources();
+	const recipe = useSlotRecipe({ recipe: sourcesRecipe });
 	const styles = recipe();
 
 	return (
 		<Box css={styles.panelBody}>
 			<Stack css={styles.panelContent}>
-				<Text fontSize="sm" fontWeight="semibold" color="white">
-					Sources
-				</Text>
+				<Text css={styles.title}>Sources</Text>
 
 				{sources.length === 0 ? (
 					<Box css={styles.emptyState}>
-						<Text fontSize="sm" fontWeight="semibold" color="white">
-							No sources yet
-						</Text>
-						<Text fontSize="xs" color="whiteAlpha.720" mt={1}>
+						<Text css={styles.emptyTitle}>No sources yet</Text>
+						<Text css={styles.emptyDescription}>
 							Use the source editor above to create the first local source.
 						</Text>
 					</Box>

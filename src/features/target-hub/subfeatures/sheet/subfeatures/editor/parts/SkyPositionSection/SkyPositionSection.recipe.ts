@@ -2,7 +2,7 @@ import { defineSlotRecipe } from "@chakra-ui/react";
 
 export const skyPositionSectionRecipe = defineSlotRecipe({
 	className: "target-hub-sheet-sky-position-section",
-	slots: ["editorRow", "readonlyField", "editableField"],
+	slots: ["editorRow", "editableFieldRoot", "editableField"],
 	base: {
 		editorRow: {
 			display: "grid",
@@ -11,19 +11,8 @@ export const skyPositionSectionRecipe = defineSlotRecipe({
 			alignItems: "center",
 			w: "full",
 		},
-		readonlyField: {
-			minH: "32px",
-			borderRadius: "md",
-			borderWidth: "1px",
-			borderColor: "whiteAlpha.100",
-			bg: "rgba(255, 255, 255, 0.025)",
-			color: "whiteAlpha.860",
-			fontSize: "sm",
-			px: 3,
+		editableFieldRoot: {
 			w: "full",
-			display: "flex",
-			alignItems: "center",
-			fontVariantNumeric: "tabular-nums",
 		},
 		editableField: {
 			h: "32px",

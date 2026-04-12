@@ -4,11 +4,11 @@ import { useFitJobActions } from "../../../../hooks";
 import { useShellStore } from "../../../../store/useShellStore";
 
 export function useHeader() {
-	const { openFitJob: onOpenJobs } = useFitJobActions();
+	const { openFitJob: onOpenFitJob } = useFitJobActions();
 	const onReturnToDock = useShellStore((state) => state.returnToDock);
 
 	return {
-		onOpenJobs,
+		onOpenFitJob,
 		onReturnToDock,
 	};
 }

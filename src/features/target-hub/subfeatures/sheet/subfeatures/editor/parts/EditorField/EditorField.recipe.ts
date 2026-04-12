@@ -2,7 +2,7 @@ import { defineSlotRecipe } from "@chakra-ui/react";
 
 export const editorFieldRecipe = defineSlotRecipe({
 	className: "target-hub-sheet-editor-field",
-	slots: ["inlineField", "inlineFieldLabel"],
+	slots: ["inlineField", "inlineFieldLabel", "fieldContent"],
 	base: {
 		inlineField: {
 			display: "grid",
@@ -19,6 +19,10 @@ export const editorFieldRecipe = defineSlotRecipe({
 			textTransform: "none",
 			color: "whiteAlpha.680",
 			whiteSpace: "nowrap",
+		},
+		fieldContent: {
+			minW: 0,
+			w: "full",
 		},
 	},
 });

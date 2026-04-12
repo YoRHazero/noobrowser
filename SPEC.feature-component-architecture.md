@@ -236,13 +236,16 @@ TSX 负责：
 
 规则：
 
-- 只服务最近的 owning Unit。
+- 只服务最近的 owning Unit；在复杂 Unit 中，可以作为该 Unit 拥有的复用 view fragment 被直接 child subfeature 使用。
 - 可以包含业务文案、业务字段名、业务 view model。
 - 通常接收父级整理好的 props / model。
 - 不直接读 store。
 - 不调用 query / mutation。
 - 不拥有业务流程状态。
 - 不 import sibling subfeature。
+- child subfeature 只能 import 最近父 Unit 的 `parts/` 公开入口，不能越级 import grandparent `parts/`。
+- child subfeature 不能 import sibling subfeature 的 `parts/`。
+- 被 child subfeature 复用的父级 part 必须保持 view fragment 属性：只通过 props / callbacks 接入行为，不读 store、不调用 query / mutation、不拥有业务流程状态。
 - 如果 part 需要 recipe，必须升级为自己的文件夹，并持有同目录 `<Part>.recipe.ts`。
 - 如果一个 part 只服务某个 child subfeature，必须放到那个 child subfeature 的 `parts/`。
 
@@ -252,13 +255,28 @@ TSX 负责：
 sheet/subfeatures/ned/
   Ned.tsx
   useNed.ts
-  NedView.tsx
   parts/
     SettingsPanel.tsx
     ResultsPanel.tsx
 ```
 
 `Ned` 是 subfeature，`SettingsPanel` 和 `ResultsPanel` 是 NED 内部 parts。
+
+父级 part 被多个直接 child subfeature 复用时，应留在父级 `parts/`：
+
+```text
+sheet/
+  parts/
+    ProjectionControls/
+      ProjectionControls.tsx
+      ProjectionControls.recipe.ts
+      index.ts
+  subfeatures/
+    editor/
+    sources/
+```
+
+`ProjectionControls` 由 `sheet` 拥有，可以被 `editor` 和 `sources` 使用；如果它只服务 `sources`，则必须下沉到 `sources/parts/`。
 
 ## `subfeatures/`
 
@@ -488,6 +506,7 @@ src/features/<feature>/runtimes/
 
 - 可见独立业务能力：放 `subfeatures/`。
 - 当前 Unit 的业务视图片段：放 `parts/`。
+- 当前 Unit 拥有、被多个直接 child 复用的业务视图片段：放父级 `parts/`。
 - 可复用无业务 UI：放 `components/`。
 - recipe 跟随具体 UI owner；不要建 `recipes/` 目录。
 - 当前 Unit 的生命周期 / 行为拆分：放 `hooks/useXxx.ts`。
@@ -517,3 +536,5 @@ src/features/<feature>/runtimes/
 - 出现 `subfeatures/` 后，根 `<Unit>.tsx` / `use<Unit>.ts` 是否仍在承载大杂烩业务逻辑？
 - 是否把 query data / query status 复制进了 Zustand store？
 - 某个 child subfeature 专属 part 是否错误放在父级 `parts/`？
+- child subfeature 是否越级 import 了 grandparent `parts/`，或 import 了 sibling subfeature 的 `parts/`？
+- 被 child subfeature 复用的父级 part 是否开始读 store、调用 query / mutation，或拥有业务流程状态？

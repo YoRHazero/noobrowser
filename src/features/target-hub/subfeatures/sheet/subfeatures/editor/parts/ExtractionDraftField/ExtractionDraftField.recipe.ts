@@ -2,8 +2,21 @@ import { defineSlotRecipe } from "@chakra-ui/react";
 
 export const extractionDraftFieldRecipe = defineSlotRecipe({
 	className: "target-hub-sheet-extraction-draft-field",
-	slots: ["editableField"],
+	slots: ["fieldRoot", "label", "editableFieldRoot", "editableField"],
 	base: {
+		fieldRoot: {
+			gap: 1.5,
+		},
+		label: {
+			fontSize: "11px",
+			fontWeight: "medium",
+			letterSpacing: "normal",
+			textTransform: "none",
+			color: "whiteAlpha.720",
+		},
+		editableFieldRoot: {
+			w: "full",
+		},
 		editableField: {
 			h: "32px",
 			borderRadius: "md",

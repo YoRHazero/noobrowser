@@ -2,9 +2,10 @@ import { defineSlotRecipe } from "@chakra-ui/react";
 
 export const readonlyFieldValueRecipe = defineSlotRecipe({
 	className: "target-hub-sheet-readonly-field-value",
-	slots: ["readonlyField"],
+	slots: ["readonlyField", "readonlyValue"],
 	base: {
 		readonlyField: {
+			minW: 0,
 			minH: "32px",
 			borderRadius: "md",
 			borderWidth: "1px",
@@ -18,5 +19,29 @@ export const readonlyFieldValueRecipe = defineSlotRecipe({
 			alignItems: "center",
 			fontVariantNumeric: "tabular-nums",
 		},
+		readonlyValue: {
+			w: "full",
+			minW: 0,
+			overflow: "hidden",
+			textOverflow: "ellipsis",
+			whiteSpace: "nowrap",
+		},
+	},
+	variants: {
+		tone: {
+			default: {
+				readonlyValue: {
+					color: "white",
+				},
+			},
+			muted: {
+				readonlyValue: {
+					color: "whiteAlpha.820",
+				},
+			},
+		},
+	},
+	defaultVariants: {
+		tone: "default",
 	},
 });
