@@ -1,5 +1,5 @@
-export type { TargetHubNedSlice } from "../ned/store/nedSlice";
-export { createNedSlice } from "../ned/store/nedSlice";
+export type { TargetHubNedSlice } from "../subfeatures/ned/store";
+export { createNedSlice } from "../subfeatures/ned/store";
 export type { TargetHubSheetEditorSlice } from "./editorSlice";
 export {
 	createSheetEditorSlice,

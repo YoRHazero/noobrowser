@@ -1,5 +1,6 @@
 "use client";
 
+import { useFitJobActions } from "../../hooks";
 import { useShellStore } from "../../store/useShellStore";
 import { useDockAnchor } from "./hooks/useDockAnchor";
 import { useDockCollapse } from "./hooks/useDockCollapse";
@@ -8,6 +9,7 @@ import { useDockSourceCard } from "./hooks/useDockSourceCard";
 
 export function useDock() {
 	const openSheet = useShellStore((state) => state.openSheet);
+	const { openFitJob } = useFitJobActions();
 	const { isClosing, onCollapse } = useDockCollapse();
 	const sourceCard = useDockSourceCard();
 	const anchorTop = useDockAnchor();
@@ -20,6 +22,7 @@ export function useDock() {
 		sourceCard,
 		onHandlePointerDown,
 		onOpenSheet: openSheet,
+		onOpenFitJob: openFitJob,
 		onCollapse,
 	};
 }

@@ -19,6 +19,7 @@ export default function Dock() {
 		sourceCard,
 		onHandlePointerDown,
 		onOpenSheet,
+		onOpenFitJob,
 		onCollapse,
 	} = useDock();
 
@@ -40,7 +41,7 @@ export default function Dock() {
 				<ActionButton
 					label="Jobs"
 					icon={<LuBriefcaseBusiness size={14} />}
-					isDisabled
+					onClick={onOpenFitJob}
 				/>
 				<ActionButton
 					label="Collapse"
