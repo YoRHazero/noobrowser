@@ -19,3 +19,4 @@ export type {
 	Spectrum1DCanvasWavelengthUnit,
 	Spectrum1DCanvasWaveRange,
 } from "./api";
+export { default } from "./Spectrum1DCanvas";
