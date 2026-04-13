@@ -70,7 +70,7 @@ export function BrushLayer({
 				brushDirection="horizontal"
 				useWindowMoveEvents
 				renderBrushHandle={renderBrushHandle}
-				onBrushEnd={handleBrushChange}
+				onChange={handleBrushChange}
 				selectedBoxStyle={SELECTED_BOX_STYLE}
 			/>
 		</g>
