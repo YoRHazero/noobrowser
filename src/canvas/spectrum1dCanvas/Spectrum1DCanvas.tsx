@@ -1,5 +1,5 @@
 import { Box, useSlotRecipe } from "@chakra-ui/react";
-import { type CSSProperties, useState } from "react";
+import { type CSSProperties, useEffect } from "react";
 import type { Spectrum1DCanvasProps } from "./api";
 import { useCanvasSize } from "./hooks/useCanvasSize";
 import { useChartLayout } from "./hooks/useChartLayout";
@@ -13,7 +13,7 @@ import { OverviewSpectrumLayer } from "./layers/OverviewSpectrumLayer";
 import { SliceSpectrumLayer } from "./layers/SliceSpectrumLayer";
 import { SpectrumTooltip } from "./overlays/SpectrumTooltip";
 import { spectrum1DCanvasRecipe } from "./Spectrum1DCanvas.recipe";
-import type { Spectrum1DCanvasTooltipData } from "./shared/types";
+import { resetSpectrum1DCanvasInteractionStore } from "./store/interactionStore";
 import { useSpectrum1DCanvas } from "./useSpectrum1DCanvas";
 
 const SPECTRUM_1D_CANVAS_STYLE = {
@@ -41,8 +41,6 @@ export default function Spectrum1DCanvas({
 	const recipe = useSlotRecipe({ recipe: spectrum1DCanvasRecipe });
 	const styles = recipe();
 	const { containerRef, size } = useCanvasSize();
-	const [tooltipData, setTooltipData] =
-		useState<Spectrum1DCanvasTooltipData | null>(null);
 	const view = useSpectrum1DCanvas({ model, actions });
 	const layout = useChartLayout(size, model.layout);
 	const overviewScales = useOverviewScales(view.spectrumStats, layout);
@@ -56,6 +54,11 @@ export default function Spectrum1DCanvas({
 		size.height > 0 &&
 		layout.chartWidth > 0 &&
 		(layout.overviewHeight > 0 || layout.sliceHeight > 0);
+
+	useEffect(() => {
+		resetSpectrum1DCanvasInteractionStore();
+		return resetSpectrum1DCanvasInteractionStore;
+	}, []);
 
 	return (
 		<Box ref={containerRef} css={styles.root} style={SPECTRUM_1D_CANVAS_STYLE}>
@@ -136,7 +139,6 @@ export default function Spectrum1DCanvas({
 								xScale={sliceScales.xScale}
 								yScale={sliceScales.yScale}
 								anchor={layout.sliceAnchor}
-								onHoverDataChange={setTooltipData}
 							/>
 						) : null}
 					</svg>
@@ -144,7 +146,6 @@ export default function Spectrum1DCanvas({
 			</Box>
 			<Box css={styles.overlay}>
 				<SpectrumTooltip
-					tooltip={tooltipData}
 					anchor={layout.sliceAnchor}
 					wavelengthDisplay={view.wavelengthDisplay}
 				/>

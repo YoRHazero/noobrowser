@@ -1,11 +1,7 @@
 import type { ScaleLinear } from "d3-scale";
-import { useEffect } from "react";
 import type { Spectrum1DCanvasPoint } from "../api";
 import { usePointerHover } from "../canvasHooks/usePointerHover";
-import type {
-	ScreenAnchor,
-	Spectrum1DCanvasTooltipData,
-} from "../shared/types";
+import type { ScreenAnchor } from "../shared/types";
 
 export function HoverLayer({
 	points,
@@ -14,7 +10,6 @@ export function HoverLayer({
 	xScale,
 	yScale,
 	anchor,
-	onHoverDataChange,
 }: {
 	points: Spectrum1DCanvasPoint[];
 	width: number;
@@ -22,7 +17,6 @@ export function HoverLayer({
 	xScale: ScaleLinear<number, number>;
 	yScale: ScaleLinear<number, number>;
 	anchor: ScreenAnchor;
-	onHoverDataChange: (data: Spectrum1DCanvasTooltipData | null) => void;
 }) {
 	const { hoverData, handlePointerMove, handlePointerLeave } = usePointerHover({
 		points,
@@ -31,17 +25,6 @@ export function HoverLayer({
 		xScale,
 		yScale,
 	});
-
-	useEffect(() => {
-		onHoverDataChange(hoverData);
-	}, [hoverData, onHoverDataChange]);
-
-	useEffect(
-		() => () => {
-			onHoverDataChange(null);
-		},
-		[onHoverDataChange],
-	);
 
 	if (width <= 0 || height <= 0) {
 		return null;

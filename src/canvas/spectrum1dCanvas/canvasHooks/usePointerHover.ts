@@ -1,7 +1,7 @@
 import type { ScaleLinear } from "d3-scale";
-import { type PointerEvent, useCallback, useState } from "react";
+import { type PointerEvent, useCallback } from "react";
 import type { Spectrum1DCanvasPoint } from "../api";
-import type { Spectrum1DCanvasTooltipData } from "../shared/types";
+import { useSpectrum1DCanvasInteractionStore } from "../store/interactionStore";
 import { findNearestSpectrumPoint } from "../utils/findNearestSpectrumPoint";
 
 export function usePointerHover({
@@ -17,15 +17,22 @@ export function usePointerHover({
 	xScale: ScaleLinear<number, number>;
 	yScale: ScaleLinear<number, number>;
 }) {
-	const [hoverData, setHoverData] =
-		useState<Spectrum1DCanvasTooltipData | null>(null);
+	const hoverData = useSpectrum1DCanvasInteractionStore(
+		(state) => state.hoverData,
+	);
+	const setHoverData = useSpectrum1DCanvasInteractionStore(
+		(state) => state.setHoverData,
+	);
+	const clearHoverData = useSpectrum1DCanvasInteractionStore(
+		(state) => state.clearHoverData,
+	);
 	const clearHover = useCallback(() => {
-		setHoverData(null);
-	}, []);
+		clearHoverData();
+	}, [clearHoverData]);
 	const handlePointerMove = useCallback(
 		(event: PointerEvent<SVGRectElement>) => {
 			if (points.length === 0) {
-				setHoverData(null);
+				clearHoverData();
 				return;
 			}
 
@@ -40,14 +47,14 @@ export function usePointerHover({
 				pointer.y < 0 ||
 				pointer.y > height
 			) {
-				setHoverData(null);
+				clearHoverData();
 				return;
 			}
 
 			const wavelengthUm = xScale.invert(pointer.x);
 			const nearest = findNearestSpectrumPoint(points, wavelengthUm);
 			if (!nearest) {
-				setHoverData(null);
+				clearHoverData();
 				return;
 			}
 
@@ -60,7 +67,7 @@ export function usePointerHover({
 				pointer,
 			});
 		},
-		[height, points, width, xScale, yScale],
+		[clearHoverData, height, points, setHoverData, width, xScale, yScale],
 	);
 
 	return {

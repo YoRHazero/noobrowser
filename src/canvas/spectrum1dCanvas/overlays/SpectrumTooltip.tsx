@@ -1,21 +1,17 @@
 import { Box, Text, useSlotRecipe } from "@chakra-ui/react";
 import { spectrum1DCanvasRecipe } from "../Spectrum1DCanvas.recipe";
 import { SPECTRUM_1D_CANVAS_TOOLTIP_OFFSET_PX } from "../shared/constants";
-import type {
-	ScreenAnchor,
-	Spectrum1DCanvasTooltipData,
-} from "../shared/types";
+import type { ScreenAnchor } from "../shared/types";
+import { useSpectrum1DCanvasInteractionStore } from "../store/interactionStore";
 
 function formatFlux(value: number) {
 	return Number.isFinite(value) ? value.toFixed(4) : "n/a";
 }
 
 export function SpectrumTooltip({
-	tooltip,
 	anchor,
 	wavelengthDisplay,
 }: {
-	tooltip: Spectrum1DCanvasTooltipData | null;
 	anchor: ScreenAnchor;
 	wavelengthDisplay: {
 		format: (observedWavelengthUm: number) => string;
@@ -23,6 +19,9 @@ export function SpectrumTooltip({
 }) {
 	const recipe = useSlotRecipe({ recipe: spectrum1DCanvasRecipe });
 	const styles = recipe();
+	const tooltip = useSpectrum1DCanvasInteractionStore(
+		(state) => state.hoverData,
+	);
 
 	if (!tooltip) {
 		return null;
