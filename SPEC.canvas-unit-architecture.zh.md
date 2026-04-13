@@ -2,9 +2,13 @@
 
 ## 目标
 
-这份文档定义 `src/canvas/*` 下可复用 canvas / WebGL / Three.js 可视化单元的架构规则。
+这份文档定义 `src/canvas/*` 下可复用交互式可视化单元的架构规则。
 
-Canvas 渲染有自己的内部结构：场景基础设施、图层、可渲染对象、相机行为、指针解析和 hit test。这些概念不应该被强行塞进普通 feature component 的 `parts/` / `components/` 模型。
+这里的 `Canvas` 是架构概念，不等同于 HTML `<canvas>` 元素，也不等同于 `@react-three/fiber` 的 `<Canvas>` 组件。
+
+Canvas Unit 表示一个拥有独立坐标系、渲染层、交互解析和 overlay 的可视化 surface。它的 renderer 可以是 SVG、Canvas 2D、Pixi、WebGL、Three.js，或其它适合当前可视化任务的渲染技术。
+
+交互式可视化渲染有自己的内部结构：场景基础设施、图层、可渲染对象、坐标 / scale / viewport / 相机行为、指针解析、brush、hover 和 hit test。这些概念不应该被强行塞进普通 feature component 的 `parts/` / `components/` 模型。
 
 Canvas Unit 负责渲染机制。父 feature 负责业务数据组合。
 
@@ -30,11 +34,13 @@ src/canvas/<canvasUnit>/
 src/features/canvas/
 ```
 
-因为 `canvas` 是渲染技术层，不是业务 feature。
+因为 `canvas` 是交互式可视化渲染层，不是业务 feature。
 
 ## 命名
 
 Canvas Unit 的目录名和根组件名建议以 `Canvas` 结尾。
+
+`Canvas` 后缀表示这个单元遵循 Canvas Unit 架构规则，不表示内部必须使用 HTML `<canvas>`。例如 SVG / VisX 实现的 `Spectrum1DCanvas` 仍然是合法命名。
 
 例如：
 
@@ -42,9 +48,13 @@ Canvas Unit 的目录名和根组件名建议以 `Canvas` 结尾。
 src/canvas/mapCanvas/
   MapCanvas.tsx
   useMapCanvas.ts
+
+src/canvas/spectrum1dCanvas/
+  Spectrum1DCanvas.tsx
+  useSpectrum1DCanvas.ts
 ```
 
-`Canvas` 后缀是刻意的架构信号：这个单元遵循 Canvas Unit 规则，而不是普通 Feature Component 规则。
+如果单元不是独立交互式可视化 surface，只是普通业务面板或展示片段，不应为了复用而放进 `src/canvas`。
 
 ## 标准结构
 
@@ -97,6 +107,8 @@ src/canvas/<canvasUnit>/
     index.ts
     interactionSlice.ts
 ```
+
+上面的文件名只是结构示例。对 SVG / VisX 谱线这类单元，可以使用更贴近语义的命名，例如 `SpectrumLineLayer.tsx`、`BrushLayer.tsx`、`FitHandleLayer.tsx`、`SpectrumTooltip.tsx`；仍然遵守同一套 `model` / `actions`、layer、object、overlay 和 hook 边界。
 
 必需文件：
 
@@ -280,7 +292,7 @@ Canvas Unit 只负责渲染行为，不负责业务数据来源。
 
 Canvas Unit 可以拥有私有 `store/`。
 
-Canvas Unit 的 store 只能保存 canvas 内部渲染状态或交互状态，且生命周期必须被限制在 Canvas Unit 内。
+Canvas Unit 的 store 只能保存 Canvas Unit 内部渲染状态或交互状态，且生命周期必须被限制在 Canvas Unit 内。
 
 允许：
 
@@ -381,19 +393,19 @@ export interface CartesianCoordinate {
 
 ## `hooks/`
 
-`hooks/` 放不依赖当前 Canvas renderer context 的 Canvas Unit 内部 hook。
+`hooks/` 放不依赖当前 renderer context 的 Canvas Unit 内部 hook。
 
 允许：
 
 - overlay state hook
 - tooltip view-model hook
-- 不依赖 renderer context 的 derived state hook
-- 可以安全运行在 `<Canvas>` 外部的普通 React lifecycle hook
+- 不依赖 renderer context 的 derived state hook，例如 scale / layout / slice / tooltip model 推导
+- 可以安全运行在 renderer root 外部的普通 React lifecycle hook
 
 禁止：
 
-- 调用任何依赖当前 Canvas renderer context 的 hook，包括 R3F 的 `useThree`、`useFrame`、`useLoader`、`useGraph` 等 renderer-specific hook
-- import renderer context hook，例如从 `@react-three/fiber` import R3F context hook
+- 调用任何依赖当前 renderer context 的 hook，包括 R3F 的 `useThree`、`useFrame`、`useLoader`、`useGraph`，Pixi renderer context hook，或绑定 SVG brush / pointer lifecycle 的 renderer-specific hook
+- import renderer context hook，例如从 `@react-three/fiber` import R3F context hook，或从 `@pixi/react` import Pixi context hook
 - 读取外部业务 store
 - 调用 query hook
 - 调用 mutation hook
@@ -405,28 +417,31 @@ Canvas Unit 内部 hooks 可以读取 Canvas Unit 私有 store。
 
 Canvas Unit 内部 hooks 可以从 `use<CanvasUnit>.ts` 接收 scene model 的局部数据作为参数。
 
-如果一个 hook 只有在组件挂载于 `<Canvas>` 内部时才能工作，它不能放在 `hooks/`，必须放在 `canvasHooks/`。
+如果一个 hook 只有在组件挂载于当前 renderer root 内部时才能工作，或语义上绑定当前 renderer 的交互生命周期，它不能放在 `hooks/`，必须放在 `canvasHooks/`。
 
 ## `canvasHooks/`
 
-`canvasHooks/` 放依赖当前 Canvas renderer context，或语义上绑定 Canvas 渲染生命周期的 hook。
+`canvasHooks/` 放依赖当前 renderer context，或语义上绑定 Canvas Unit 渲染 / 交互生命周期的 hook。
+
+这里的 `canvasHooks` 使用 Canvas Unit 的架构语义，不表示 hook 必须依赖 HTML `<canvas>`。SVG / VisX brush、pointer capture、Pixi application、R3F camera / frame 这类 renderer-bound 逻辑都属于这个目录。
 
 允许：
 
-- 需要 Canvas context 的 camera lifecycle hook
+- 需要 renderer context 的 camera lifecycle hook
 - 读取 `gl.domElement`、camera、viewport 或 renderer state 的 pointer event hook
 - 使用 renderer camera / viewport / frame lifecycle 的 hit testing hook
-- 需要 React 或 renderer lifecycle 的 projection / viewport hook
+- 绑定 SVG brush / pointer capture / hover resolution 的 hook
+- 需要 React 或 renderer lifecycle 的 projection / viewport / scale hook
 - RAF loop hook
-- 绑定 Canvas render loop 的内部 animation state hook
+- 绑定 Canvas Unit render loop 的内部 animation state hook
 
 规则：
 
-- `canvasHooks/` 是 Canvas Unit 内唯一允许定义 renderer Canvas-context hook 的目录，例如 R3F 的 `useThree`、`useFrame`、`useLoader`、`useGraph`。
-- `canvasHooks/` 内的 hook 只能被挂载在 `<Canvas>` 内部的组件调用，或被同一条 Canvas-internal 调用链上的 hook 调用。
-- 当 `<CanvasUnit>.tsx` 在 `<Canvas>` 外部执行时，不能调用 `canvasHooks/` hook。
-- 当 `use<CanvasUnit>.ts` 在 `<Canvas>` 外部执行时，不能调用 `canvasHooks/` hook。
-- 如果 Canvas 内部状态需要展示在 `<Canvas>` 外部 overlay 中，应由 Canvas-internal 组件通过 callback 或 Canvas Unit 私有 store 向外发布状态。
+- `canvasHooks/` 是 Canvas Unit 内唯一允许定义 renderer-context hook 的目录，例如 R3F 的 `useThree`、`useFrame`、`useLoader`、`useGraph`，Pixi 的 `useApplication`，或只能在 SVG interactive layer 内安全运行的 brush / pointer hook。
+- `canvasHooks/` 内的 hook 只能被挂载在 renderer root 内部的组件调用，或被同一条 Canvas Unit 内部调用链上的 hook 调用。
+- 当 `<CanvasUnit>.tsx` 在 renderer root 外部执行时，不能调用 `canvasHooks/` hook。
+- 当 `use<CanvasUnit>.ts` 在 renderer root 外部执行时，不能调用 `canvasHooks/` hook。
+- 如果 Canvas Unit 内部状态需要展示在 renderer root 外部 overlay 中，应由 Canvas Unit 内部组件通过 callback 或 Canvas Unit 私有 store 向外发布状态。
 - 同时被外层 overlay hook 和 `canvasHooks/` 使用的共享状态类型必须放在 `shared/types.ts`，不能定义在 `canvasHooks/` 内。
 
 禁止：
@@ -501,12 +516,12 @@ GraticuleLines.tsx
 - object 不能 import 父 feature 代码。
 - object 可以 import Canvas Unit 的 public API types、shared types/constants 和 utils。
 - object 只能在“渲染行为本身需要”的情况下调用 `canvasHooks/` hook。
-- object 不能直接定义或 import renderer Canvas-context hook，例如 R3F 的 `useThree` / `useFrame`；这类上下文绑定逻辑必须放在 `canvasHooks/`。
+- object 不能直接定义或 import renderer-context hook，例如 R3F 的 `useThree` / `useFrame`、Pixi 的 `useApplication`，或 SVG brush / pointer lifecycle hook；这类上下文绑定逻辑必须放在 `canvasHooks/`。
 - object 应该保持为 Canvas Unit 内部可复用的低层渲染对象。
 
 ## `overlays/`
 
-`overlays/` 存放由 Canvas Unit 拥有、渲染在 canvas surface 上方或周围的 DOM UI。
+`overlays/` 存放由 Canvas Unit 拥有、渲染在 visualization surface 上方或周围的 DOM UI。
 
 允许：
 
@@ -526,7 +541,7 @@ SelectionHud.tsx
 - overlay 需要的 DOM measurement，例如 container rect 读取，应该放在 `hooks/`，不能 inline 写在 `<CanvasUnit>.tsx`。
 - overlay 不能读取外部业务 store 或 query hook。
 - overlay 不能 import 父 feature 内部代码。
-- overlay 不能调用 `canvasHooks/` 或任何 renderer Canvas-context hook。
+- overlay 不能调用 `canvasHooks/` 或任何 renderer-context hook。
 - 如果 overlay 需要超出 root recipe 的静态 DOM/CSS 样式，可以按照同一套 recipe 规则拥有同级 recipe 文件。
 
 ## `<CanvasUnit>.tsx`
@@ -536,7 +551,7 @@ SelectionHud.tsx
 允许：
 
 - 调用 `use<CanvasUnit>()`。
-- 渲染 canvas root。
+- 渲染 visualization root。
 - 组装 `core/`、`layers/` 和 `overlays/`。
 - 把 scene model 的局部数据和 actions 传给 layers / core。
 - 使用 `<CanvasUnit>.recipe.ts` 管理自己直接拥有的 root layout 样式。
@@ -554,7 +569,7 @@ SelectionHud.tsx
 
 ## `use<CanvasUnit>.ts`
 
-`use<CanvasUnit>.ts` 从 props 和 canvas 内部状态组合 Canvas Unit 的 view model。
+`use<CanvasUnit>.ts` 从 props 和 Canvas Unit 内部状态组合 Canvas Unit 的 view model。
 
 允许：
 
@@ -566,8 +581,8 @@ SelectionHud.tsx
 
 禁止：
 
-- 当 `use<CanvasUnit>.ts` 在 `<Canvas>` 外部执行时，调用 `canvasHooks/` hook。
-- 在 `<Canvas>` 外部直接或间接调用 renderer Canvas-context hook，例如 R3F 的 `useThree` / `useFrame`。
+- 在 renderer root 外部执行 `use<CanvasUnit>.ts` 时调用 `canvasHooks/` hook。
+- 在 renderer root 外部直接或间接调用 renderer-context hook，例如 R3F 的 `useThree` / `useFrame`、Pixi 的 `useApplication`，或 SVG brush / pointer lifecycle hook。
 - 直接读取外部业务 store。
 - 调用 query hook / mutation hook。
 - 把 query result 复制进 Canvas Unit store。
@@ -583,7 +598,7 @@ Canvas Unit 遵循和 Feature Unit 相同的 recipe 规则。
 - 不允许创建 `recipes/` 目录。
 - `<CanvasUnit>.tsx` 可以使用同级 `<CanvasUnit>.recipe.ts`。
 - layer 或 object 如果需要显著的静态 DOM/CSS 样式，可以拥有同级 recipe。
-- 纯 Three.js material / geometry 数值不需要强行做 recipe。
+- 纯 renderer 数值不需要强行做 recipe，例如 Three.js material / geometry、Pixi texture 参数、SVG path geometry、scale domain / range。
 - TSX 可以传入坐标、transform、material color、CSS variable 等运行时渲染数据。
 - 静态 DOM/CSS 视觉规则应进入 recipe。
 
@@ -624,6 +639,8 @@ src/features/overview/
 
 - 这个单元是否位于 `src/canvas/<canvasUnit>/`，而不是 `src/features/canvas/`？
 - 目录名和根组件名是否以 `Canvas` 结尾？
+- 这个单元是否是独立交互式可视化 surface，而不是普通业务 panel / part？
+- 文档和命名是否避免把 Canvas Unit 误解为必须使用 HTML `<canvas>`？
 - `index.tsx` 是否只暴露 public entry 并 re-export API types？
 - public model/action types 是否定义在 `api.ts`？
 - 业务数据和 callback 是否被收敛到 `model` 和 `actions` props？
@@ -631,14 +648,14 @@ src/features/overview/
 - Canvas Unit store 是否是私有的，并且只保存渲染/交互状态？
 - constants 和内部 types 是否放在 `shared/`，而不是 `utils/`？
 - public contract types 是否放在 `api.ts`，而不是只放在 `shared/types.ts`？
-- renderer Canvas-context hook 是否全部隔离在 `canvasHooks/`？
-- `hooks/` 是否避免了 renderer Canvas-context hook，包括 R3F 的 `useThree`、`useFrame`、`useLoader`、`useGraph`？
-- 外层 `use<CanvasUnit>.ts` 在 `<Canvas>` 外运行时是否避免调用 `canvasHooks/`？
+- renderer-context hook 是否全部隔离在 `canvasHooks/`？
+- `hooks/` 是否避免了 renderer-context hook，包括 R3F 的 `useThree`、`useFrame`、`useLoader`、`useGraph`，Pixi 的 `useApplication`，以及 SVG brush / pointer lifecycle hook？
+- 外层 `use<CanvasUnit>.ts` 在 renderer root 外运行时是否避免调用 `canvasHooks/`？
 - utils 是否是纯函数，并通过 `utils/index.ts` 导出？
 - 场景基础设施是否放在 `core/`？
 - scene-level composition 是否放在 `layers/`？
 - 低层可渲染对象是否放在 `objects/`？
-- canvas-owned DOM overlays 是否放在 `overlays/`，而不是 inline 写在 `<CanvasUnit>.tsx`？
+- Canvas Unit owned DOM overlays 是否放在 `overlays/`，而不是 inline 写在 `<CanvasUnit>.tsx`？
 - overlay view-model 推导是否放在 `use<CanvasUnit>.ts` 或 `hooks/`？
 - 格式化和 tooltip positioning helper 是否放在 `utils/`，而不是 inline 写在 `<CanvasUnit>.tsx`？
 - overlay layout 需要的 DOM measurement 是否放在 `hooks/`，而不是 inline 写在 `<CanvasUnit>.tsx`？
