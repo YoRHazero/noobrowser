@@ -8,6 +8,7 @@ import { useSliceScales } from "./hooks/useSliceScales";
 import { BrushLayer } from "./layers/BrushLayer";
 import { EmissionLineLayer } from "./layers/EmissionLineLayer";
 import { FitCurveLayer } from "./layers/FitCurveLayer";
+import { FitHandleLayer } from "./layers/FitHandleLayer";
 import { HoverLayer } from "./layers/HoverLayer";
 import { OverviewSpectrumLayer } from "./layers/OverviewSpectrumLayer";
 import { SliceSpectrumLayer } from "./layers/SliceSpectrumLayer";
@@ -22,6 +23,7 @@ const SPECTRUM_1D_CANVAS_STYLE = {
 	"--spectrum-1d-brush-stroke-color": "var(--chakra-colors-cyan-500)",
 	"--spectrum-1d-error-band-color": "currentColor",
 	"--spectrum-1d-emission-line-color": "var(--chakra-colors-red-500)",
+	"--spectrum-1d-fit-handle-stroke-color": "var(--chakra-colors-bg)",
 	"--spectrum-1d-hover-color": "var(--chakra-colors-blue-500)",
 	"--spectrum-1d-hover-fill-color": "var(--chakra-colors-bg)",
 	"--spectrum-1d-overview-line-color": "currentColor",
@@ -139,6 +141,17 @@ export default function Spectrum1DCanvas({
 								xScale={sliceScales.xScale}
 								yScale={sliceScales.yScale}
 								anchor={layout.sliceAnchor}
+							/>
+						) : null}
+						{view.visibility.slice && view.visibility.fitHandles ? (
+							<FitHandleLayer
+								models={view.slice.modelsDrawnOnSlice}
+								xScale={sliceScales.xScale}
+								yScale={sliceScales.yScale}
+								height={layout.sliceHeight}
+								anchor={layout.sliceAnchor}
+								sliceRange={view.sliceRange}
+								actions={view.actions}
 							/>
 						) : null}
 					</svg>
