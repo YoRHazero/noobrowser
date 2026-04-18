@@ -4,6 +4,7 @@ import Title from "@/components/layout/Title";
 import Analyzer from "@/features/analyzer/AnalyzerView";
 import Inspector from "@/features/inspector/InspectorView";
 import OverviewFeature from "@/features/overview";
+import SpectrumWorkspace from "@/features/spectrum-workspace";
 import TargetHubRoot from "@/features/target-hub";
 
 export const Route = createFileRoute("/wfss")({
@@ -16,6 +17,7 @@ function RouteComponent() {
 			<Title />
 			<TargetHubRoot />
 			<OverviewFeature />
+			<SpectrumWorkspace />
 			{/*			<Counterpart /> */}
 			<Analyzer />
 			<Inspector />

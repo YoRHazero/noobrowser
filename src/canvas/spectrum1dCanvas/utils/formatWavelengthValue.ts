@@ -1,7 +1,7 @@
 import type { Spectrum1DCanvasDisplayModel } from "../api";
 import { toDisplayWavelength } from "./toDisplayWavelength";
 
-export function formatWavelength(
+export function formatWavelengthValue(
 	observedWavelengthUm: number,
 	display: Spectrum1DCanvasDisplayModel,
 ): string {
@@ -9,7 +9,5 @@ export function formatWavelength(
 	const digits =
 		display.wavelengthDigits ?? (display.wavelengthUnit === "um" ? 4 : 0);
 
-	return display.wavelengthUnit === "um"
-		? `${displayWavelength.toFixed(digits)} um`
-		: `${displayWavelength.toFixed(digits)} A`;
+	return displayWavelength.toFixed(digits);
 }

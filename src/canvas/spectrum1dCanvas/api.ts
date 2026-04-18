@@ -1,11 +1,11 @@
 export interface Spectrum1DCanvasProps {
 	model: Spectrum1DCanvasModel;
-	actions: Spectrum1DCanvasActions;
+	actions?: Spectrum1DCanvasActions;
 }
 
 export interface Spectrum1DCanvasModel {
 	points: Spectrum1DCanvasPoint[];
-	sliceRange: Spectrum1DCanvasWaveRange;
+	sliceRange?: Spectrum1DCanvasWaveRange;
 	display: Spectrum1DCanvasDisplayModel;
 	fitModels: Spectrum1DCanvasFitModel[];
 	emissionLines: Spectrum1DCanvasEmissionLineModel[];
@@ -15,7 +15,7 @@ export interface Spectrum1DCanvasModel {
 }
 
 export interface Spectrum1DCanvasActions {
-	setSliceRange: (range: Spectrum1DCanvasWaveRange) => void;
+	setSliceRange?: (range: Spectrum1DCanvasWaveRange) => void;
 	updateFitModel?: (
 		modelId: number,
 		patch: Spectrum1DCanvasFitModelPatch,

@@ -13,6 +13,11 @@ const AXIS_TICK_LABEL_PROPS = {
 	fontSize: 11,
 };
 
+const Y_AXIS_TICK_LABEL_PROPS = {
+	...AXIS_TICK_LABEL_PROPS,
+	dx: -6,
+};
+
 const AXIS_LABEL_PROPS = {
 	fill: "var(--spectrum-1d-axis-color)",
 	fontSize: 12,
@@ -37,7 +42,7 @@ export function SliceSpectrumLayer({
 	anchor: ScreenAnchor;
 	labels: Required<Spectrum1DCanvasLabelsModel>;
 	wavelengthDisplay: {
-		format: (observedWavelengthUm: number) => string;
+		formatValue: (observedWavelengthUm: number) => string;
 	};
 	showErrorBand: boolean;
 }) {
@@ -52,7 +57,7 @@ export function SliceSpectrumLayer({
 				label={labels.fluxAxis}
 				labelOffset={42}
 				animationTrajectory="outside"
-				tickLabelProps={AXIS_TICK_LABEL_PROPS}
+				tickLabelProps={Y_AXIS_TICK_LABEL_PROPS}
 				labelProps={AXIS_LABEL_PROPS}
 				stroke="var(--spectrum-1d-axis-color)"
 				tickStroke="var(--spectrum-1d-axis-color)"
@@ -66,7 +71,7 @@ export function SliceSpectrumLayer({
 				numTicks={xTickCount}
 				label={labels.wavelengthAxis}
 				tickFormat={(value) =>
-					wavelengthDisplay.format(
+					wavelengthDisplay.formatValue(
 						typeof value === "number" ? value : Number(value.valueOf()),
 					)
 				}

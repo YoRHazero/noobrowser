@@ -5,6 +5,7 @@ import { useCanvasSize } from "./hooks/useCanvasSize";
 import { useChartLayout } from "./hooks/useChartLayout";
 import { useOverviewScales } from "./hooks/useOverviewScales";
 import { useSliceScales } from "./hooks/useSliceScales";
+import { useTooltipViewModel } from "./hooks/useTooltipViewModel";
 import { BrushLayer } from "./layers/BrushLayer";
 import { EmissionLineLayer } from "./layers/EmissionLineLayer";
 import { FitCurveLayer } from "./layers/FitCurveLayer";
@@ -50,6 +51,10 @@ export default function Spectrum1DCanvas({
 		layout,
 		sliceRange: view.sliceRange,
 		sliceSpectrum: view.slice.sliceSpectrum,
+	});
+	const tooltip = useTooltipViewModel({
+		anchor: layout.sliceAnchor,
+		wavelengthFormat: view.wavelengthDisplay.formatWithUnit,
 	});
 	const hasDrawableArea =
 		size.width > 0 &&
@@ -158,10 +163,7 @@ export default function Spectrum1DCanvas({
 				) : null}
 			</Box>
 			<Box css={styles.overlay}>
-				<SpectrumTooltip
-					anchor={layout.sliceAnchor}
-					wavelengthDisplay={view.wavelengthDisplay}
-				/>
+				<SpectrumTooltip tooltip={tooltip} />
 			</Box>
 		</Box>
 	);

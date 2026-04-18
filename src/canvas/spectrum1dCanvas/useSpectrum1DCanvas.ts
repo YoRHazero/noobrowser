@@ -1,12 +1,15 @@
 import { useMemo } from "react";
 import type {
+	Spectrum1DCanvasActions,
 	Spectrum1DCanvasLabelsModel,
 	Spectrum1DCanvasProps,
 	Spectrum1DCanvasVisibilityModel,
+	Spectrum1DCanvasWaveRange,
 } from "./api";
 import {
 	useFitModelSamples,
 	useObservedEmissionLines,
+	useResolvedSliceRange,
 	useSliceIndices,
 	useSliceSpectrum,
 	useSpectrumStats,
@@ -22,6 +25,13 @@ const DEFAULT_VISIBILITY: Required<Spectrum1DCanvasVisibilityModel> = {
 	fitCurves: true,
 	fitHandles: true,
 	hover: true,
+};
+
+type ResolvedSpectrum1DCanvasActions = Omit<
+	Spectrum1DCanvasActions,
+	"setSliceRange"
+> & {
+	setSliceRange: (range: Spectrum1DCanvasWaveRange) => void;
 };
 
 export function useSpectrum1DCanvas({ model, actions }: Spectrum1DCanvasProps) {
@@ -46,10 +56,27 @@ export function useSpectrum1DCanvas({ model, actions }: Spectrum1DCanvasProps) {
 		labels.wavelengthAxis || undefined,
 	);
 	const spectrumStats = useSpectrumStats(model.points);
-	const sliceIndices = useSliceIndices(
-		spectrumStats.wavelengthsUm,
-		model.sliceRange,
+	const dataRange = useMemo<Spectrum1DCanvasWaveRange>(
+		() => ({
+			minUm: spectrumStats.wavelengthMinUm,
+			maxUm: spectrumStats.wavelengthMaxUm,
+		}),
+		[spectrumStats.wavelengthMaxUm, spectrumStats.wavelengthMinUm],
 	);
+	const { sliceRange, setSliceRange } = useResolvedSliceRange({
+		dataRange,
+		sliceRange: model.sliceRange,
+		onSliceRangeChange: actions?.setSliceRange,
+	});
+	const resolvedActions = useMemo<ResolvedSpectrum1DCanvasActions>(
+		() => ({
+			setSliceRange,
+			updateFitModel: actions?.updateFitModel,
+			commitFitModelEdit: actions?.commitFitModelEdit,
+		}),
+		[actions?.commitFitModelEdit, actions?.updateFitModel, setSliceRange],
+	);
+	const sliceIndices = useSliceIndices(spectrumStats.wavelengthsUm, sliceRange);
 	const slice = useSliceSpectrum({
 		points: model.points,
 		startIndex: sliceIndices.startIndex,
@@ -58,7 +85,7 @@ export function useSpectrum1DCanvas({ model, actions }: Spectrum1DCanvasProps) {
 	});
 	const fitCurveSamples = useFitModelSamples({
 		models: slice.modelsDrawnOnSlice,
-		viewRange: model.sliceRange,
+		viewRange: sliceRange,
 	});
 	const observedEmissionLines = useObservedEmissionLines(
 		model.emissionLines,
@@ -66,7 +93,7 @@ export function useSpectrum1DCanvas({ model, actions }: Spectrum1DCanvasProps) {
 	);
 
 	return {
-		actions,
+		actions: resolvedActions,
 		fitCurveSamples,
 		labels: {
 			...labels,
@@ -76,7 +103,7 @@ export function useSpectrum1DCanvas({ model, actions }: Spectrum1DCanvasProps) {
 		points: model.points,
 		slice,
 		sliceIndices,
-		sliceRange: model.sliceRange,
+		sliceRange,
 		spectrumStats,
 		visibility,
 		wavelengthDisplay,

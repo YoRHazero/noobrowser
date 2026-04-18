@@ -1,0 +1,20 @@
+export type {
+	Spectrum2DCanvasActions,
+	Spectrum2DCanvasAsinhNorm,
+	Spectrum2DCanvasAxesModel,
+	Spectrum2DCanvasCollapseWindow,
+	Spectrum2DCanvasColorMap,
+	Spectrum2DCanvasDisplayModel,
+	Spectrum2DCanvasEmissionLineModel,
+	Spectrum2DCanvasGuidesModel,
+	Spectrum2DCanvasInterpolation,
+	Spectrum2DCanvasLabelsModel,
+	Spectrum2DCanvasLinearNorm,
+	Spectrum2DCanvasLogNorm,
+	Spectrum2DCanvasModel,
+	Spectrum2DCanvasNorm,
+	Spectrum2DCanvasProps,
+	Spectrum2DCanvasRasterDataType,
+	Spectrum2DCanvasRasterModel,
+} from "./api";
+export { default } from "./Spectrum2DCanvas";

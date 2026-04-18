@@ -1,6 +1,7 @@
 import { useCallback, useMemo } from "react";
 import type { Spectrum1DCanvasDisplayModel } from "../api";
-import { formatWavelength } from "../utils/formatWavelength";
+import { formatWavelengthValue } from "../utils/formatWavelengthValue";
+import { formatWavelengthWithUnit } from "../utils/formatWavelengthWithUnit";
 import { fromDisplayWavelength } from "../utils/fromDisplayWavelength";
 import { toDisplayWavelength } from "../utils/toDisplayWavelength";
 
@@ -8,9 +9,14 @@ export function useWavelengthDisplay(
 	display: Spectrum1DCanvasDisplayModel,
 	wavelengthAxisLabel?: string,
 ) {
-	const formatter = useCallback(
+	const formatterWithUnit = useCallback(
 		(observedWavelengthUm: number) =>
-			formatWavelength(observedWavelengthUm, display),
+			formatWavelengthWithUnit(observedWavelengthUm, display),
+		[display],
+	);
+	const valueFormatter = useCallback(
+		(observedWavelengthUm: number) =>
+			formatWavelengthValue(observedWavelengthUm, display),
 		[display],
 	);
 	const toDisplay = useCallback(
@@ -36,7 +42,8 @@ export function useWavelengthDisplay(
 
 	return {
 		axisLabel,
-		format: formatter,
+		formatValue: valueFormatter,
+		formatWithUnit: formatterWithUnit,
 		fromDisplay,
 		toDisplay,
 	};

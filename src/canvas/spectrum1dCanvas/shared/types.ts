@@ -50,6 +50,14 @@ export interface Spectrum1DCanvasTooltipData {
 	pointer: ScreenPoint;
 }
 
+export interface Spectrum1DCanvasTooltipViewModel {
+	left: number;
+	top: number;
+	wavelengthText: string;
+	fluxText: string;
+	errorText: string;
+}
+
 export interface Spectrum1DCanvasSampledPoint {
 	wavelengthUm: number;
 	flux: number;
