@@ -1,0 +1,1 @@
+export { FitConfigurationCard } from "./FitConfigurationCard";

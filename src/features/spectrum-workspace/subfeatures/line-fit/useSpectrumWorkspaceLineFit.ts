@@ -25,10 +25,12 @@ export interface FitConfigurationCardModel {
 	id: string;
 	name: string;
 	selected: boolean;
+	includedInJob: boolean;
 	modelSummary: string;
 	onSelect: (configurationId: string) => void;
 	onDelete: (configurationId: string) => void;
 	onRename: (configurationId: string, name: string) => void;
+	onToggleIncludedInJob: (configurationId: string) => void;
 }
 
 export interface FitConfigurationStripModel {
@@ -99,6 +101,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 	const {
 		fitConfigurationsBySourceId,
 		selectedFitConfigurationIdBySourceId,
+		selectedFitJobConfigurationIdsBySourceId,
 		spectrum1dSliceRangeSourceId,
 		spectrum1dSliceRange,
 		redshift,
@@ -107,6 +110,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 		createFitConfiguration,
 		deleteFitConfiguration,
 		selectFitConfiguration,
+		toggleFitJobConfigurationSelection,
 		renameFitConfiguration,
 		addFitModel,
 		updateFitModel,
@@ -123,6 +127,8 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			fitConfigurationsBySourceId: state.fitConfigurationsBySourceId,
 			selectedFitConfigurationIdBySourceId:
 				state.selectedFitConfigurationIdBySourceId,
+			selectedFitJobConfigurationIdsBySourceId:
+				state.selectedFitJobConfigurationIdsBySourceId,
 			spectrum1dSliceRangeSourceId: state.spectrum1dSliceRangeSourceId,
 			spectrum1dSliceRange: state.spectrum1dSliceRange,
 			redshift: state.redshift,
@@ -131,6 +137,8 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			createFitConfiguration: state.createFitConfiguration,
 			deleteFitConfiguration: state.deleteFitConfiguration,
 			selectFitConfiguration: state.selectFitConfiguration,
+			toggleFitJobConfigurationSelection:
+				state.toggleFitJobConfigurationSelection,
 			renameFitConfiguration: state.renameFitConfiguration,
 			addFitModel: state.addFitModel,
 			updateFitModel: state.updateFitModel,
@@ -152,6 +160,15 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 	const selectedConfigurationId = sourceId
 		? (selectedFitConfigurationIdBySourceId[sourceId] ?? null)
 		: null;
+	const selectedFitJobConfigurationIds = useMemo(
+		() =>
+			new Set(
+				sourceId
+					? (selectedFitJobConfigurationIdsBySourceId[sourceId] ?? [])
+					: [],
+			),
+		[selectedFitJobConfigurationIdsBySourceId, sourceId],
+	);
 	const selectedConfiguration = useMemo(
 		() =>
 			selectedConfigurationId === null
@@ -246,6 +263,16 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			renameFitConfiguration(sourceId, configurationId, name);
 		},
 		[renameFitConfiguration, sourceId],
+	);
+	const handleToggleFitJobConfiguration = useCallback(
+		(configurationId: string) => {
+			if (sourceId === null) {
+				return;
+			}
+
+			toggleFitJobConfigurationSelection(sourceId, configurationId);
+		},
+		[sourceId, toggleFitJobConfigurationSelection],
 	);
 	const handleAddModel = useCallback(() => {
 		if (
@@ -418,10 +445,12 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 				id: configuration.id,
 				name: configuration.name,
 				selected: configuration.id === selectedConfigurationId,
+				includedInJob: selectedFitJobConfigurationIds.has(configuration.id),
 				modelSummary: getModelSummary(configuration.models),
 				onSelect: handleSelectConfiguration,
 				onDelete: handleDeleteConfiguration,
 				onRename: handleRenameConfiguration,
+				onToggleIncludedInJob: handleToggleFitJobConfiguration,
 			})),
 			canCreateConfiguration,
 			onCreateConfiguration: handleCreateConfiguration,

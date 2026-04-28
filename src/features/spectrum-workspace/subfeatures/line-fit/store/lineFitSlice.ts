@@ -31,6 +31,7 @@ export interface LineFitSlice {
 		SpectrumWorkspaceFitConfiguration[]
 	>;
 	selectedFitConfigurationIdBySourceId: Record<string, string | null>;
+	selectedFitJobConfigurationIdsBySourceId: Record<string, string[]>;
 	createFitConfiguration: (
 		sourceId: string,
 		sliceRange: Spectrum1DCanvasWaveRange,
@@ -40,6 +41,15 @@ export interface LineFitSlice {
 		sourceId: string,
 		configurationId: string | null,
 	) => void;
+	toggleFitJobConfigurationSelection: (
+		sourceId: string,
+		configurationId: string,
+	) => void;
+	setFitJobConfigurationSelection: (
+		sourceId: string,
+		configurationIds: string[],
+	) => void;
+	clearFitJobConfigurationSelection: (sourceId: string) => void;
 	renameFitConfiguration: (
 		sourceId: string,
 		configurationId: string,
@@ -281,6 +291,7 @@ export const createLineFitSlice: StateCreator<
 > = (set) => ({
 	fitConfigurationsBySourceId: {},
 	selectedFitConfigurationIdBySourceId: {},
+	selectedFitJobConfigurationIdsBySourceId: {},
 	createFitConfiguration: (sourceId, sliceRange) => {
 		if (!sourceId) {
 			return null;
@@ -329,6 +340,12 @@ export const createLineFitSlice: StateCreator<
 							? null
 							: (state.selectedFitConfigurationIdBySourceId[sourceId] ?? null),
 				},
+				selectedFitJobConfigurationIdsBySourceId: {
+					...state.selectedFitJobConfigurationIdsBySourceId,
+					[sourceId]: (
+						state.selectedFitJobConfigurationIdsBySourceId[sourceId] ?? []
+					).filter((selectedId) => selectedId !== configurationId),
+				},
 			};
 		}),
 	selectFitConfiguration: (sourceId, configurationId) =>
@@ -349,6 +366,54 @@ export const createLineFitSlice: StateCreator<
 				},
 			};
 		}),
+	toggleFitJobConfigurationSelection: (sourceId, configurationId) =>
+		set((state) => {
+			const configurations = state.fitConfigurationsBySourceId[sourceId] ?? [];
+			if (
+				!configurations.some(
+					(configuration) => configuration.id === configurationId,
+				)
+			) {
+				return state;
+			}
+
+			const selectedIds =
+				state.selectedFitJobConfigurationIdsBySourceId[sourceId] ?? [];
+			const nextSelectedIds = selectedIds.includes(configurationId)
+				? selectedIds.filter((selectedId) => selectedId !== configurationId)
+				: [...selectedIds, configurationId];
+
+			return {
+				selectedFitJobConfigurationIdsBySourceId: {
+					...state.selectedFitJobConfigurationIdsBySourceId,
+					[sourceId]: nextSelectedIds,
+				},
+			};
+		}),
+	setFitJobConfigurationSelection: (sourceId, configurationIds) =>
+		set((state) => {
+			const validConfigurationIds = new Set(
+				(state.fitConfigurationsBySourceId[sourceId] ?? []).map(
+					(configuration) => configuration.id,
+				),
+			);
+
+			return {
+				selectedFitJobConfigurationIdsBySourceId: {
+					...state.selectedFitJobConfigurationIdsBySourceId,
+					[sourceId]: configurationIds.filter((configurationId) =>
+						validConfigurationIds.has(configurationId),
+					),
+				},
+			};
+		}),
+	clearFitJobConfigurationSelection: (sourceId) =>
+		set((state) => ({
+			selectedFitJobConfigurationIdsBySourceId: {
+				...state.selectedFitJobConfigurationIdsBySourceId,
+				[sourceId]: [],
+			},
+		})),
 	renameFitConfiguration: (sourceId, configurationId, name) =>
 		set((state) =>
 			updateConfiguration(state, sourceId, configurationId, (configuration) => {
@@ -514,6 +579,8 @@ export const createLineFitSlice: StateCreator<
 				SpectrumWorkspaceFitConfiguration[]
 			> = {};
 			const nextSelectedBySourceId: Record<string, string | null> = {};
+			const nextSelectedJobConfigurationsBySourceId: Record<string, string[]> =
+				{};
 
 			for (const [sourceId, configurations] of Object.entries(
 				state.fitConfigurationsBySourceId,
@@ -537,10 +604,23 @@ export const createLineFitSlice: StateCreator<
 				nextSelectedBySourceId[sourceId] = configurationId;
 			}
 
+			for (const [sourceId, configurationIds] of Object.entries(
+				state.selectedFitJobConfigurationIdsBySourceId,
+			)) {
+				if (!validSourceIdSet.has(sourceId)) {
+					changed = true;
+					continue;
+				}
+
+				nextSelectedJobConfigurationsBySourceId[sourceId] = configurationIds;
+			}
+
 			return changed
 				? {
 						fitConfigurationsBySourceId: nextConfigurationsBySourceId,
 						selectedFitConfigurationIdBySourceId: nextSelectedBySourceId,
+						selectedFitJobConfigurationIdsBySourceId:
+							nextSelectedJobConfigurationsBySourceId,
 					}
 				: state;
 		}),
