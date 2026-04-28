@@ -1,4 +1,6 @@
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
+import { filterSpectrumWorkspaceWaveColumnIndices } from "./filterSpectrumWorkspaceWaveColumnIndices";
+import { resolveSpectrumWorkspaceSpatialRowRange } from "./resolveSpectrumWorkspaceSpatialRowRange";
 
 export interface SpectrumWorkspaceCollapseWindowLike {
 	waveMinUm: number;
@@ -11,41 +13,6 @@ export interface CollapsedSpectrumPoint {
 	wavelengthUm: number;
 	flux: number;
 	error: number;
-}
-
-function clamp(value: number, min: number, max: number): number {
-	return Math.min(Math.max(value, min), max);
-}
-
-function resolveWaveColumnRange(
-	wavelengths: number[],
-	waveMinUm: number,
-	waveMaxUm: number,
-): { startIndex: number; endIndex: number } | null {
-	if (wavelengths.length === 0) {
-		return null;
-	}
-
-	const firstWave = wavelengths[0];
-	const lastWave = wavelengths[wavelengths.length - 1];
-	const low = clamp(Math.min(waveMinUm, waveMaxUm), firstWave, lastWave);
-	const high = clamp(Math.max(waveMinUm, waveMaxUm), firstWave, lastWave);
-
-	let startIndex = wavelengths.findIndex((value) => value >= low);
-	if (startIndex < 0) {
-		startIndex = 0;
-	}
-
-	let endIndex = wavelengths.findIndex((value) => value > high) - 1;
-	if (endIndex < 0) {
-		endIndex = wavelengths.length - 1;
-	}
-
-	if (endIndex < startIndex) {
-		return null;
-	}
-
-	return { startIndex, endIndex };
 }
 
 export function extractCollapsedSpectrum1D(
@@ -65,36 +32,26 @@ export function extractCollapsedSpectrum1D(
 		return [];
 	}
 
-	const waveRange = resolveWaveColumnRange(
+	const waveColumnIndices = filterSpectrumWorkspaceWaveColumnIndices({
 		wavelengths,
-		collapseWindow.waveMinUm,
-		collapseWindow.waveMaxUm,
-	);
-	if (!waveRange) {
+		waveMinUm: collapseWindow.waveMinUm,
+		waveMaxUm: collapseWindow.waveMaxUm,
+	});
+	if (waveColumnIndices.length === 0) {
 		return [];
 	}
 
-	const spatialStart = Math.floor(
-		clamp(
-			Math.min(collapseWindow.spatialMin, collapseWindow.spatialMax),
-			0,
-			rowCount - 1,
-		),
-	);
-	const spatialEnd = Math.ceil(
-		clamp(
-			Math.max(collapseWindow.spatialMin, collapseWindow.spatialMax),
-			0,
-			rowCount - 1,
-		),
-	);
+	const spatialRange = resolveSpectrumWorkspaceSpatialRowRange({
+		rowCount,
+		spatialMin: collapseWindow.spatialMin,
+		spatialMax: collapseWindow.spatialMax,
+	});
+	if (!spatialRange) {
+		return [];
+	}
 
 	const points: CollapsedSpectrumPoint[] = [];
-	for (
-		let columnIndex = waveRange.startIndex;
-		columnIndex <= waveRange.endIndex;
-		columnIndex += 1
-	) {
+	for (const columnIndex of waveColumnIndices) {
 		const wavelengthUm = wavelengths[columnIndex];
 		if (!Number.isFinite(wavelengthUm)) {
 			continue;
@@ -104,7 +61,11 @@ export function extractCollapsedSpectrum1D(
 		let errorSumSq = 0;
 		let hasSample = false;
 
-		for (let rowIndex = spatialStart; rowIndex <= spatialEnd; rowIndex += 1) {
+		for (
+			let rowIndex = spatialRange.startIndex;
+			rowIndex <= spatialRange.endIndex;
+			rowIndex += 1
+		) {
 			const fluxValue = fluxRows[rowIndex]?.[columnIndex];
 			const errorValue = errorRows[rowIndex]?.[columnIndex];
 			if (!Number.isFinite(fluxValue) || !Number.isFinite(errorValue)) {

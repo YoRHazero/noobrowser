@@ -6,19 +6,23 @@ import type {
 	Spectrum2DCanvasCollapseWindow,
 	Spectrum2DCanvasColorMap,
 	Spectrum2DCanvasDisplayModel,
-	Spectrum2DCanvasNorm,
 } from "@/canvas/spectrum2dCanvas";
 import type { ExtractedSpectrum } from "@/hooks/query/source/schemas";
 import type { Source } from "@/stores/source";
+import { SPECTRUM_WORKSPACE_DEFAULT_DISPLAY_STATE } from "../shared/constants";
+import type {
+	SpectrumWorkspaceDisplayNormKind,
+	SpectrumWorkspaceDisplayRangeMode,
+	SpectrumWorkspaceDisplaySampleSource,
+	SpectrumWorkspaceDisplayState,
+} from "../shared/types";
 import { useSpectrumWorkspaceStore } from "../store";
-import { createInitialCollapseWindow } from "../utils/createInitialCollapseWindow";
-import { getInitialSpectrum2DDisplay } from "../utils/getInitialSpectrum2DDisplay";
-
-const DEFAULT_DISPLAY: Spectrum2DCanvasDisplayModel = {
-	norm: { kind: "linear", min: 0, max: 1 },
-	colorMap: "gray",
-	interpolation: "nearest",
-};
+import {
+	createInitialCollapseWindow,
+	createInitialSpectrumWorkspaceDisplayState,
+	getSpectrumWorkspaceWaveBounds,
+	resolveSpectrumWorkspaceDisplay,
+} from "../utils";
 
 function clampValue(value: number, min: number, max: number): number {
 	return Math.min(Math.max(value, min), max);
@@ -29,14 +33,26 @@ function clampCollapseWindow(
 	extractedSpectrum: ExtractedSpectrum,
 ): Spectrum2DCanvasCollapseWindow {
 	const wavelengths = extractedSpectrum.wavelength;
-	const firstWave = wavelengths[0] ?? window.waveMinUm;
-	const lastWave = wavelengths[wavelengths.length - 1] ?? window.waveMaxUm;
+	const waveBounds = getSpectrumWorkspaceWaveBounds(
+		wavelengths,
+		window.waveMinUm,
+	);
 	const spatialMaxBound = Math.max(0, extractedSpectrum.spectrum_2d.length - 1);
+	const clampedWaveMin = clampValue(
+		window.waveMinUm,
+		waveBounds.min,
+		waveBounds.max,
+	);
+	const clampedWaveMax = clampValue(
+		window.waveMaxUm,
+		waveBounds.min,
+		waveBounds.max,
+	);
 
 	return {
 		...window,
-		waveMinUm: clampValue(window.waveMinUm, firstWave, lastWave),
-		waveMaxUm: clampValue(window.waveMaxUm, firstWave, lastWave),
+		waveMinUm: Math.min(clampedWaveMin, clampedWaveMax),
+		waveMaxUm: Math.max(clampedWaveMin, clampedWaveMax),
 		spatialMin: clampValue(window.spatialMin, 0, spatialMaxBound),
 		spatialMax: clampValue(window.spatialMax, 0, spatialMaxBound),
 	};
@@ -56,12 +72,23 @@ function areCollapseWindowsEqual(
 }
 
 export interface SpectrumWorkspaceControls {
+	bounds: {
+		waveMinUm: number;
+		waveMaxUm: number;
+		spatialMin: number;
+		spatialMax: number;
+	};
 	collapseWindow: Spectrum2DCanvasCollapseWindow;
 	setCollapseWindow: (window: Spectrum2DCanvasCollapseWindow) => void;
 	commitCollapseWindowEdit: (window: Spectrum2DCanvasCollapseWindow) => void;
 	display: Spectrum2DCanvasDisplayModel;
-	setNorm: (norm: Spectrum2DCanvasNorm) => void;
+	displayState: SpectrumWorkspaceDisplayState;
 	setColorMap: (colorMap: Spectrum2DCanvasColorMap) => void;
+	setNormKind: (normKind: SpectrumWorkspaceDisplayNormKind) => void;
+	setRangeMode: (rangeMode: SpectrumWorkspaceDisplayRangeMode) => void;
+	setSampleSource: (sampleSource: SpectrumWorkspaceDisplaySampleSource) => void;
+	setPercentileRange: (range: { pmin: number; pmax: number }) => void;
+	setAbsoluteRange: (range: { vmin: number; vmax: number }) => void;
 	showSpatialCenterLine: boolean;
 	setShowSpatialCenterLine: (value: boolean) => void;
 	setOutlineVisible: (value: boolean) => void;
@@ -77,33 +104,42 @@ export function useSpectrumWorkspaceControls({
 	const isReady = source !== null && extractedSpectrum !== null;
 	const {
 		storedCollapseWindow,
-		storedDisplay,
+		storedDisplayState,
 		showSpatialCenterLine,
 		initializeCollapseWindow,
 		storeSetCollapseWindow,
 		storeCommitCollapseWindowEdit,
 		reconcileCollapseWindow,
-		initializeDisplay,
-		setNorm,
+		initializeDisplayState,
 		setColorMap,
+		setNormKind,
+		setRangeMode,
+		setSampleSource,
+		setPercentileRange,
+		setAbsoluteRange,
 		setShowSpatialCenterLine,
 		setOutlineVisible,
 	} = useSpectrumWorkspaceStore(
 		useShallow((state) => ({
 			storedCollapseWindow: state.collapseWindow,
-			storedDisplay: state.display,
+			storedDisplayState: state.displayState,
 			showSpatialCenterLine: state.showSpatialCenterLine,
 			initializeCollapseWindow: state.initializeCollapseWindow,
 			storeSetCollapseWindow: state.setCollapseWindow,
 			storeCommitCollapseWindowEdit: state.commitCollapseWindowEdit,
 			reconcileCollapseWindow: state.reconcileCollapseWindow,
-			initializeDisplay: state.initializeDisplay,
-			setNorm: state.setNorm,
+			initializeDisplayState: state.initializeDisplayState,
 			setColorMap: state.setColorMap,
+			setNormKind: state.setNormKind,
+			setRangeMode: state.setRangeMode,
+			setSampleSource: state.setSampleSource,
+			setPercentileRange: state.setPercentileRange,
+			setAbsoluteRange: state.setAbsoluteRange,
 			setShowSpatialCenterLine: state.setShowSpatialCenterLine,
 			setOutlineVisible: state.setOutlineVisible,
 		})),
 	);
+
 	const initialCollapseWindow = useMemo(
 		() =>
 			isReady
@@ -117,13 +153,34 @@ export function useSpectrumWorkspaceControls({
 					},
 		[extractedSpectrum, isReady, source],
 	);
-	const initialDisplay = useMemo(
+	const initialDisplayState = useMemo(
 		() =>
 			extractedSpectrum
-				? getInitialSpectrum2DDisplay(extractedSpectrum)
-				: DEFAULT_DISPLAY,
+				? createInitialSpectrumWorkspaceDisplayState(extractedSpectrum)
+				: SPECTRUM_WORKSPACE_DEFAULT_DISPLAY_STATE,
 		[extractedSpectrum],
 	);
+	const bounds = useMemo(() => {
+		if (!extractedSpectrum) {
+			return {
+				waveMinUm: 0,
+				waveMaxUm: 0,
+				spatialMin: 0,
+				spatialMax: 0,
+			};
+		}
+
+		const waveBounds = getSpectrumWorkspaceWaveBounds(
+			extractedSpectrum.wavelength,
+		);
+
+		return {
+			waveMinUm: waveBounds.min,
+			waveMaxUm: waveBounds.max,
+			spatialMin: 0,
+			spatialMax: Math.max(0, extractedSpectrum.spectrum_2d.length - 1),
+		};
+	}, [extractedSpectrum]);
 	const collapseWindow = useMemo(
 		() =>
 			extractedSpectrum && storedCollapseWindow
@@ -131,13 +188,22 @@ export function useSpectrumWorkspaceControls({
 				: initialCollapseWindow,
 		[extractedSpectrum, initialCollapseWindow, storedCollapseWindow],
 	);
-	const display = storedDisplay ?? initialDisplay;
+	const displayState = storedDisplayState ?? initialDisplayState;
+	const display = useMemo(
+		() =>
+			resolveSpectrumWorkspaceDisplay({
+				displayState,
+				extractedSpectrum,
+				collapseWindow,
+			}),
+		[collapseWindow, displayState, extractedSpectrum],
+	);
 
 	useEffect(() => {
-		if (storedDisplay === null) {
-			initializeDisplay(initialDisplay);
+		if (storedDisplayState === null) {
+			initializeDisplayState(initialDisplayState);
 		}
-	}, [initializeDisplay, initialDisplay, storedDisplay]);
+	}, [initializeDisplayState, initialDisplayState, storedDisplayState]);
 
 	useEffect(() => {
 		if (!extractedSpectrum) {
@@ -189,12 +255,18 @@ export function useSpectrumWorkspaceControls({
 	}
 
 	return {
+		bounds,
 		collapseWindow,
 		setCollapseWindow,
 		commitCollapseWindowEdit,
 		display,
-		setNorm,
+		displayState,
 		setColorMap,
+		setNormKind,
+		setRangeMode,
+		setSampleSource,
+		setPercentileRange,
+		setAbsoluteRange,
 		showSpatialCenterLine,
 		setShowSpatialCenterLine,
 		setOutlineVisible,

@@ -3,6 +3,7 @@
 import { useMemo } from "react";
 import type {
 	Spectrum2DCanvasActions,
+	Spectrum2DCanvasEmissionLineModel,
 	Spectrum2DCanvasModel,
 	Spectrum2DCanvasRasterModel,
 } from "@/canvas/spectrum2dCanvas";
@@ -47,10 +48,12 @@ export function useSourceSpectrum2DCanvas({
 	source,
 	extractedSpectrum,
 	controls,
+	emissionLines,
 }: {
 	source: Source | null;
 	extractedSpectrum: ExtractedSpectrum | null;
 	controls: SpectrumWorkspaceControls | null;
+	emissionLines: Spectrum2DCanvasEmissionLineModel[];
 }): SourceSpectrum2DCanvasReadyResult | null {
 	const raster = useMemo(
 		() => (extractedSpectrum ? buildRasterModel(extractedSpectrum) : null),
@@ -74,7 +77,7 @@ export function useSourceSpectrum2DCanvas({
 			guides: {
 				showSpatialCenterLine: controls.showSpatialCenterLine,
 			},
-			emissionLines: [],
+			emissionLines,
 			labels: {
 				accessibilityLabel: `${source.label ?? source.id} 2D spectrum`,
 				wavelengthAxis: "Observed Wavelength (um)",

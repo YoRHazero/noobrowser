@@ -1,41 +1,39 @@
 import { clampValue } from "./clampValue";
 
+const WAVELENGTH_WINDOW_PRECISION = 3;
+
+function roundWavelengthValue(value: number): number {
+	return Number(value.toFixed(WAVELENGTH_WINDOW_PRECISION));
+}
+
 function resolveWavelengthSliceIndices(
 	wavelengthsUm: number[],
 	waveMinUm: number,
 	waveMaxUm: number,
-): { startIndex: number; endIndex: number } {
+): number[] {
 	if (wavelengthsUm.length === 0) {
-		return {
-			startIndex: 0,
-			endIndex: -1,
-		};
+		return [];
 	}
 
-	const firstWavelength = wavelengthsUm[0];
-	const lastWavelength = wavelengthsUm[wavelengthsUm.length - 1];
-	const lowerWave = Math.min(waveMinUm, waveMaxUm);
-	const upperWave = Math.max(waveMinUm, waveMaxUm);
-	const clampedMin = clampValue(lowerWave, firstWavelength, lastWavelength);
-	const clampedMax = clampValue(upperWave, firstWavelength, lastWavelength);
-
-	let startIndex = wavelengthsUm.findIndex(
-		(wavelength) => wavelength >= clampedMin,
+	const firstWavelength = roundWavelengthValue(wavelengthsUm[0] ?? waveMinUm);
+	const lastWavelength = roundWavelengthValue(
+		wavelengthsUm[wavelengthsUm.length - 1] ?? waveMaxUm,
 	);
-	if (startIndex < 0) {
-		startIndex = wavelengthsUm.length - 1;
-	}
+	const minWavelength = Math.min(firstWavelength, lastWavelength);
+	const maxWavelength = Math.max(firstWavelength, lastWavelength);
+	const lowerWave = roundWavelengthValue(Math.min(waveMinUm, waveMaxUm));
+	const upperWave = roundWavelengthValue(Math.max(waveMinUm, waveMaxUm));
+	const clampedMin = clampValue(lowerWave, minWavelength, maxWavelength);
+	const clampedMax = clampValue(upperWave, minWavelength, maxWavelength);
 
-	let endIndex =
-		wavelengthsUm.findIndex((wavelength) => wavelength > clampedMax) - 1;
-	if (endIndex < 0) {
-		endIndex = wavelengthsUm.length - 1;
-	}
+	return wavelengthsUm.reduce<number[]>((indices, wavelength, columnIndex) => {
+		const roundedWavelength = roundWavelengthValue(wavelength);
+		if (roundedWavelength >= clampedMin && roundedWavelength <= clampedMax) {
+			indices.push(columnIndex);
+		}
 
-	return {
-		startIndex,
-		endIndex,
-	};
+		return indices;
+	}, []);
 }
 
 export interface ResolveWavelengthWindowToWorldRangeParams {
@@ -61,12 +59,22 @@ export function resolveWavelengthWindowToWorldRange({
 		};
 	}
 
-	const { startIndex, endIndex } = resolveWavelengthSliceIndices(
+	const sliceIndices = resolveWavelengthSliceIndices(
 		wavelengthsUm,
 		waveMinUm,
 		waveMaxUm,
 	);
+	if (sliceIndices.length === 0) {
+		return {
+			worldLeftX: 0,
+			worldRightX: 0,
+		};
+	}
+
 	const columnWidth = width / wavelengthsUm.length;
+	const startIndex = sliceIndices[0] ?? 0;
+	const endIndex = sliceIndices[sliceIndices.length - 1] ?? startIndex;
+
 	return {
 		worldLeftX: startIndex * columnWidth,
 		worldRightX: (endIndex + 1) * columnWidth,

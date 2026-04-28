@@ -1,12 +1,19 @@
 "use client";
 
-import { useShallow } from "zustand/react/shallow";
-import { useSourceStore } from "@/stores/source";
+import {
+	useSpectrumWorkspaceSource,
+	useSpectrumWorkspaceSourceReconcile,
+	useSpectrumWorkspaceWavelengthDisplay,
+	useWorkspaceSpectrumData,
+} from "./hooks";
 import {
 	type SpectrumWorkspaceReadyResult,
 	useSpectrumWorkspaceReady,
 } from "./hooks/useSpectrumWorkspaceReady";
-import { useWorkspaceSpectrumData } from "./hooks/useWorkspaceSpectrumData";
+import type {
+	SpectrumWorkspaceWavelengthFrame,
+	SpectrumWorkspaceWavelengthUnit,
+} from "./shared/types";
 
 interface SpectrumWorkspaceMessageResult {
 	state:
@@ -21,18 +28,34 @@ interface SpectrumWorkspaceMessageResult {
 	detail?: string;
 }
 
+interface SpectrumWorkspaceSidebarViewModel {
+	sourceName: string;
+	redshift: number;
+	redshiftStep: number;
+	wavelengthFrame: SpectrumWorkspaceWavelengthFrame;
+	wavelengthUnit: SpectrumWorkspaceWavelengthUnit;
+	onRedshiftChange: (redshift: number) => void;
+	onRedshiftStepChange: (redshiftStep: number) => void;
+	onWavelengthFrameChange: (
+		wavelengthFrame: SpectrumWorkspaceWavelengthFrame,
+	) => void;
+	onWavelengthUnitChange: (
+		wavelengthUnit: SpectrumWorkspaceWavelengthUnit,
+	) => void;
+}
+
 export type SpectrumWorkspaceViewModel =
-	| SpectrumWorkspaceReadyResult
+	| (SpectrumWorkspaceReadyResult & {
+			sidebar: SpectrumWorkspaceSidebarViewModel;
+	  })
 	| SpectrumWorkspaceMessageResult;
 
 export function useSpectrumWorkspace(): SpectrumWorkspaceViewModel {
-	const activeSource = useSourceStore(
-		useShallow(
-			(state) =>
-				state.sources.find((source) => source.id === state.activeSourceId) ??
-				null,
-		),
-	);
+	useSpectrumWorkspaceSourceReconcile();
+	const activeSource = useSpectrumWorkspaceSource();
+	const wavelengthDisplay = useSpectrumWorkspaceWavelengthDisplay({
+		source: activeSource,
+	});
 	const workspaceData = useWorkspaceSpectrumData({
 		source: activeSource,
 	});
@@ -41,6 +64,12 @@ export function useSpectrumWorkspace(): SpectrumWorkspaceViewModel {
 	const readyModel = useSpectrumWorkspaceReady({
 		source: activeSource,
 		extractedSpectrum,
+		wavelengthDisplay: {
+			redshift: wavelengthDisplay.redshift,
+			redshiftStep: wavelengthDisplay.redshiftStep,
+			wavelengthFrame: wavelengthDisplay.wavelengthFrame,
+			wavelengthUnit: wavelengthDisplay.wavelengthUnit,
+		},
 	});
 
 	if (workspaceData.state !== "ready") {
@@ -54,5 +83,18 @@ export function useSpectrumWorkspace(): SpectrumWorkspaceViewModel {
 		};
 	}
 
-	return readyModel;
+	return {
+		...readyModel,
+		sidebar: {
+			sourceName: activeSource?.label ?? activeSource?.id ?? "Unknown source",
+			redshift: wavelengthDisplay.redshift,
+			redshiftStep: wavelengthDisplay.redshiftStep,
+			wavelengthFrame: wavelengthDisplay.wavelengthFrame,
+			wavelengthUnit: wavelengthDisplay.wavelengthUnit,
+			onRedshiftChange: wavelengthDisplay.setRedshift,
+			onRedshiftStepChange: wavelengthDisplay.setRedshiftStep,
+			onWavelengthFrameChange: wavelengthDisplay.setWavelengthFrame,
+			onWavelengthUnitChange: wavelengthDisplay.setWavelengthUnit,
+		},
+	};
 }
