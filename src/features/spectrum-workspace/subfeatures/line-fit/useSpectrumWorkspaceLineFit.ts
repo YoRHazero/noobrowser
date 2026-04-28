@@ -9,10 +9,17 @@ import type {
 import { useSpectrumWorkspaceSource } from "../../hooks";
 import type { SpectrumWorkspaceWavelengthDisplayState } from "../../shared/types";
 import { useSpectrumWorkspaceStore } from "../../store";
+import { useLineFitSpectrumPoints } from "./hooks/useLineFitSpectrumPoints";
 import type {
 	LineFitModelKind,
 	SpectrumWorkspaceFitConfiguration,
 } from "./store";
+import {
+	countLineFitFittedParameters,
+	filterFiniteFitPoints,
+	resolveFitModelRangeIntersection,
+	runDeterministicLineFit,
+} from "./utils";
 
 export interface FitConfigurationCardModel {
 	id: string;
@@ -34,9 +41,12 @@ export interface FitToolbarModel {
 	modelKind: LineFitModelKind;
 	canAddModel: boolean;
 	canSyncModels: boolean;
+	canFit: boolean;
+	fitError: string | null;
 	onModelKindChange: (kind: LineFitModelKind) => void;
 	onAddModel: () => void;
 	onSyncModels: () => void;
+	onFit: () => void;
 }
 
 export interface FitModelListModel {
@@ -81,6 +91,11 @@ function getModelSummary(models: readonly Spectrum1DCanvasFitModel[]): string {
 export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel {
 	const source = useSpectrumWorkspaceSource();
 	const [modelKind, setModelKind] = useState<LineFitModelKind>("gaussian");
+	const [fitError, setFitError] = useState<{
+		scope: string;
+		message: string;
+	} | null>(null);
+	const spectrumPoints = useLineFitSpectrumPoints(source);
 	const {
 		fitConfigurationsBySourceId,
 		selectedFitConfigurationIdBySourceId,
@@ -101,6 +116,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 		deleteFitModel,
 		toggleFitModelActive,
 		toggleFitModelSubtractFromSlice,
+		replaceFitConfigurationModels,
 		syncFitConfigurationToSliceRange,
 	} = useSpectrumWorkspaceStore(
 		useShallow((state) => ({
@@ -124,6 +140,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			deleteFitModel: state.deleteFitModel,
 			toggleFitModelActive: state.toggleFitModelActive,
 			toggleFitModelSubtractFromSlice: state.toggleFitModelSubtractFromSlice,
+			replaceFitConfigurationModels: state.replaceFitConfigurationModels,
 			syncFitConfigurationToSliceRange: state.syncFitConfigurationToSliceRange,
 		})),
 	);
@@ -144,6 +161,11 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 					) ?? null),
 		[configurations, selectedConfigurationId],
 	);
+	const fitErrorScope = `${sourceId ?? "no-source"}:${
+		selectedConfiguration?.id ?? "no-configuration"
+	}`;
+	const scopedFitError =
+		fitError?.scope === fitErrorScope ? fitError.message : null;
 	const currentSliceRange =
 		sourceId !== null && spectrum1dSliceRangeSourceId === sourceId
 			? spectrum1dSliceRange
@@ -154,6 +176,39 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 		sourceId !== null &&
 		selectedConfiguration !== null &&
 		currentSliceRange !== null;
+	const selectedFitWindow = useMemo(
+		() =>
+			selectedConfiguration
+				? resolveFitModelRangeIntersection(selectedConfiguration.models)
+				: null,
+		[selectedConfiguration],
+	);
+	const fittedParameterCount = useMemo(
+		() =>
+			selectedConfiguration
+				? countLineFitFittedParameters(selectedConfiguration.models)
+				: 0,
+		[selectedConfiguration],
+	);
+	const validFitPointCount = useMemo(
+		() =>
+			selectedFitWindow
+				? filterFiniteFitPoints(spectrumPoints, selectedFitWindow).length
+				: 0,
+		[selectedFitWindow, spectrumPoints],
+	);
+	const canFit =
+		sourceId !== null &&
+		selectedConfiguration !== null &&
+		selectedFitWindow !== null &&
+		fittedParameterCount > 0 &&
+		validFitPointCount >= fittedParameterCount;
+	const setCurrentFitError = useCallback(
+		(message: string) => {
+			setFitError({ scope: fitErrorScope, message });
+		},
+		[fitErrorScope],
+	);
 
 	const handleCreateConfiguration = useCallback(() => {
 		if (sourceId === null || currentSliceRange === null) {
@@ -233,6 +288,52 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 		selectedConfiguration,
 		sourceId,
 		syncFitConfigurationToSliceRange,
+	]);
+	const handleFit = useCallback(() => {
+		if (sourceId === null || selectedConfiguration === null) {
+			setCurrentFitError("Select a configuration before fitting.");
+			return;
+		}
+
+		if (selectedFitWindow === null) {
+			setCurrentFitError("No valid fit window.");
+			return;
+		}
+
+		if (fittedParameterCount === 0) {
+			setCurrentFitError("No active models to fit.");
+			return;
+		}
+
+		if (validFitPointCount < fittedParameterCount) {
+			setCurrentFitError("Not enough valid points to fit.");
+			return;
+		}
+
+		const result = runDeterministicLineFit({
+			models: selectedConfiguration.models,
+			points: spectrumPoints,
+		});
+		if (!result.ok) {
+			setCurrentFitError(result.reason);
+			return;
+		}
+
+		replaceFitConfigurationModels(
+			sourceId,
+			selectedConfiguration.id,
+			result.models,
+		);
+		setFitError(null);
+	}, [
+		fittedParameterCount,
+		replaceFitConfigurationModels,
+		setCurrentFitError,
+		selectedConfiguration,
+		selectedFitWindow,
+		sourceId,
+		spectrumPoints,
+		validFitPointCount,
 	]);
 	const handleUpdateModel = useCallback(
 		(modelId: number, patch: Spectrum1DCanvasFitModelPatch) => {
@@ -329,9 +430,12 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			modelKind,
 			canAddModel: canEditModels,
 			canSyncModels: canEditModels,
+			canFit,
+			fitError: scopedFitError,
 			onModelKindChange: setModelKind,
 			onAddModel: handleAddModel,
 			onSyncModels: handleSyncModels,
+			onFit: handleFit,
 		},
 		modelList: {
 			models: selectedConfiguration?.models ?? [],

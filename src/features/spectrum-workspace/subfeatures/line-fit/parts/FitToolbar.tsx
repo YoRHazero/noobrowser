@@ -13,10 +13,15 @@ export function FitToolbar({
 	modelKind,
 	canAddModel,
 	canSyncModels,
+	canFit,
+	fitError,
 	onModelKindChange,
 	onAddModel,
 	onSyncModels,
+	onFit,
 }: FitToolbarModel) {
+	const fitTooltip = fitError ?? "Fit current configuration";
+
 	return (
 		<HStack gap={2} w="full" align="center">
 			<SegmentGroup.Root
@@ -78,13 +83,14 @@ export function FitToolbar({
 						</IconButton>
 					</Box>
 				</Tooltip>
-				<Tooltip content="Guess is reserved for a later fitting pass">
+				<Tooltip content={fitTooltip}>
 					<Box display="inline-flex">
 						<IconButton
-							aria-label="Guess fit model parameters"
+							aria-label="Fit current configuration"
 							size="xs"
 							variant="outline"
-							disabled
+							disabled={!canFit}
+							onClick={onFit}
 						>
 							<WandSparkles size={14} />
 						</IconButton>

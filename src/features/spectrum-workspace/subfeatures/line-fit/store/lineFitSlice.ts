@@ -89,6 +89,11 @@ export interface LineFitSlice {
 		configurationId: string,
 		modelId: number,
 	) => void;
+	replaceFitConfigurationModels: (
+		sourceId: string,
+		configurationId: string,
+		models: Spectrum1DCanvasFitModel[],
+	) => void;
 	syncFitConfigurationToSliceRange: (
 		sourceId: string,
 		configurationId: string,
@@ -472,6 +477,15 @@ export const createLineFitSlice: StateCreator<
 							? { ...model, subtractFromSlice: !model.subtractFromSlice }
 							: model,
 					),
+				}),
+			),
+		),
+	replaceFitConfigurationModels: (sourceId, configurationId, models) =>
+		set((state) =>
+			updateConfiguration(state, sourceId, configurationId, (configuration) =>
+				withAutoName({
+					...configuration,
+					models,
 				}),
 			),
 		),
