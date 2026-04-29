@@ -8,10 +8,12 @@ import type {
 	Spectrum1DCanvasLinearFitModel,
 	Spectrum1DCanvasWaveRange,
 } from "@/canvas/spectrum1dCanvas";
+import type { FitPrior } from "@/hooks/query/fit/schemas";
 import type { SpectrumWorkspaceStore } from "../../../store";
 import {
 	createDefaultGaussianFitModel,
 	createDefaultLinearFitModel,
+	getLineFitPriorParameters,
 	getNextFitModelId,
 	resolveAutoFitConfigurationName,
 } from "../utils";
@@ -23,6 +25,7 @@ export interface SpectrumWorkspaceFitConfiguration {
 	name: string;
 	isNameCustomized: boolean;
 	models: Spectrum1DCanvasFitModel[];
+	priorsByModelId?: Record<number, Partial<Record<string, FitPrior>>>;
 }
 
 export interface LineFitSlice {
@@ -98,6 +101,27 @@ export interface LineFitSlice {
 		sourceId: string,
 		configurationId: string,
 		modelId: number,
+	) => void;
+	setFitModelPrior: (
+		sourceId: string,
+		configurationId: string,
+		modelId: number,
+		paramName: string,
+		prior: FitPrior | undefined,
+	) => void;
+	clearFitModelPrior: (
+		sourceId: string,
+		configurationId: string,
+		modelId: number,
+		paramName: string,
+	) => void;
+	clearActiveFitConfigurationPriors: (
+		sourceId: string,
+		configurationId: string,
+	) => void;
+	pruneFitConfigurationPriors: (
+		sourceId: string,
+		configurationId: string,
 	) => void;
 	replaceFitConfigurationModels: (
 		sourceId: string,
@@ -201,6 +225,7 @@ function createDefaultConfiguration(
 		name: resolveAutoFitConfigurationName(1),
 		isNameCustomized: false,
 		models: [gaussian, linear],
+		priorsByModelId: {},
 	};
 }
 
@@ -280,6 +305,84 @@ function commitFitModel(
 	return {
 		...model,
 		range: normalizeRange(model.range),
+	};
+}
+
+function prunePriorsByModelId(
+	models: readonly Spectrum1DCanvasFitModel[],
+	priorsByModelId: SpectrumWorkspaceFitConfiguration["priorsByModelId"],
+): SpectrumWorkspaceFitConfiguration["priorsByModelId"] {
+	if (!priorsByModelId) {
+		return priorsByModelId;
+	}
+
+	const validModelParams = new Map(
+		models.map((model) => [
+			model.id,
+			new Set(getLineFitPriorParameters(model)),
+		]),
+	);
+	const nextPriorsByModelId: NonNullable<
+		SpectrumWorkspaceFitConfiguration["priorsByModelId"]
+	> = {};
+
+	for (const [modelIdKey, priors] of Object.entries(priorsByModelId)) {
+		const modelId = Number(modelIdKey);
+		const validParams = validModelParams.get(modelId);
+		if (!validParams || !priors) {
+			continue;
+		}
+
+		const nextPriors: Partial<Record<string, FitPrior>> = {};
+		for (const [paramName, prior] of Object.entries(priors)) {
+			if (validParams.has(paramName) && prior) {
+				nextPriors[paramName] = prior;
+			}
+		}
+
+		if (Object.keys(nextPriors).length > 0) {
+			nextPriorsByModelId[modelId] = nextPriors;
+		}
+	}
+
+	return Object.keys(nextPriorsByModelId).length > 0 ? nextPriorsByModelId : {};
+}
+
+function setPriorOnConfiguration(
+	configuration: SpectrumWorkspaceFitConfiguration,
+	modelId: number,
+	paramName: string,
+	prior: FitPrior | undefined,
+): SpectrumWorkspaceFitConfiguration {
+	const model = configuration.models.find(
+		(candidate) => candidate.id === modelId,
+	);
+	if (!model || !getLineFitPriorParameters(model).includes(paramName)) {
+		return configuration;
+	}
+
+	const currentPriorsByModelId = configuration.priorsByModelId ?? {};
+	const currentModelPriors = currentPriorsByModelId[modelId] ?? {};
+	const nextModelPriors: Partial<Record<string, FitPrior>> = {
+		...currentModelPriors,
+	};
+
+	if (prior) {
+		nextModelPriors[paramName] = prior;
+	} else {
+		delete nextModelPriors[paramName];
+	}
+
+	const nextPriorsByModelId = { ...currentPriorsByModelId };
+	if (Object.keys(nextModelPriors).length > 0) {
+		nextPriorsByModelId[modelId] = nextModelPriors;
+	} else {
+		delete nextPriorsByModelId[modelId];
+	}
+
+	return {
+		...configuration,
+		priorsByModelId: nextPriorsByModelId,
 	};
 }
 
@@ -512,6 +615,11 @@ export const createLineFitSlice: StateCreator<
 				withAutoName({
 					...configuration,
 					models: configuration.models.filter((model) => model.id !== modelId),
+					priorsByModelId: Object.fromEntries(
+						Object.entries(configuration.priorsByModelId ?? {}).filter(
+							([priorModelId]) => Number(priorModelId) !== modelId,
+						),
+					),
 				}),
 			),
 		),
@@ -545,12 +653,63 @@ export const createLineFitSlice: StateCreator<
 				}),
 			),
 		),
+	setFitModelPrior: (sourceId, configurationId, modelId, paramName, prior) =>
+		set((state) =>
+			updateConfiguration(state, sourceId, configurationId, (configuration) =>
+				setPriorOnConfiguration(configuration, modelId, paramName, prior),
+			),
+		),
+	clearFitModelPrior: (sourceId, configurationId, modelId, paramName) =>
+		set((state) =>
+			updateConfiguration(state, sourceId, configurationId, (configuration) =>
+				setPriorOnConfiguration(configuration, modelId, paramName, undefined),
+			),
+		),
+	clearActiveFitConfigurationPriors: (sourceId, configurationId) =>
+		set((state) =>
+			updateConfiguration(state, sourceId, configurationId, (configuration) => {
+				const activeModelIds = new Set(
+					configuration.models
+						.filter((model) => model.active)
+						.map((model) => model.id),
+				);
+				const nextPriorsByModelId = Object.fromEntries(
+					Object.entries(configuration.priorsByModelId ?? {}).filter(
+						([modelId]) => !activeModelIds.has(Number(modelId)),
+					),
+				);
+
+				return {
+					...configuration,
+					priorsByModelId: nextPriorsByModelId,
+				};
+			}),
+		),
+	pruneFitConfigurationPriors: (sourceId, configurationId) =>
+		set((state) =>
+			updateConfiguration(
+				state,
+				sourceId,
+				configurationId,
+				(configuration) => ({
+					...configuration,
+					priorsByModelId: prunePriorsByModelId(
+						configuration.models,
+						configuration.priorsByModelId,
+					),
+				}),
+			),
+		),
 	replaceFitConfigurationModels: (sourceId, configurationId, models) =>
 		set((state) =>
 			updateConfiguration(state, sourceId, configurationId, (configuration) =>
 				withAutoName({
 					...configuration,
 					models,
+					priorsByModelId: prunePriorsByModelId(
+						models,
+						configuration.priorsByModelId,
+					),
 				}),
 			),
 		),

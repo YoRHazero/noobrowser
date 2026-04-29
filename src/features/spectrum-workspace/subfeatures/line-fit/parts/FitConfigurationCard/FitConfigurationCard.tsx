@@ -22,6 +22,7 @@ export function FitConfigurationCard({
 	onSelect,
 	onDelete,
 	onRename,
+	onOpenPriors,
 	onToggleIncludedInJob,
 }: FitConfigurationCardModel) {
 	const recipe = useSlotRecipe({ recipe: fitConfigurationCardRecipe });
@@ -50,7 +51,7 @@ export function FitConfigurationCard({
 						onKeyDown={(event) => event.stopPropagation()}
 						onChange={(event) => onRename(id, event.currentTarget.value)}
 					/>
-					<Tooltip content="Prior drawer is not available yet">
+					<Tooltip content="Configure priors">
 						<Box
 							css={styles.controlWrap}
 							onClick={(event) => event.stopPropagation()}
@@ -60,8 +61,8 @@ export function FitConfigurationCard({
 								aria-label={`Configure priors for ${name}`}
 								size="2xs"
 								variant="ghost"
-								disabled
 								css={styles.priorButton}
+								onClick={() => onOpenPriors(id)}
 							>
 								<SlidersHorizontal size={13} />
 							</IconButton>

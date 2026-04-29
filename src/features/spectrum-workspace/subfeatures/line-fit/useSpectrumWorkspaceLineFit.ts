@@ -9,6 +9,10 @@ import type {
 import { useSpectrumWorkspaceSource } from "../../hooks";
 import type { SpectrumWorkspaceWavelengthDisplayState } from "../../shared/types";
 import { useSpectrumWorkspaceStore } from "../../store";
+import {
+	type LineFitPriorDrawerModel,
+	useLineFitPriorDrawer,
+} from "./hooks/useLineFitPriorDrawer";
 import { useLineFitSpectrumPoints } from "./hooks/useLineFitSpectrumPoints";
 import type {
 	LineFitModelKind,
@@ -30,6 +34,7 @@ export interface FitConfigurationCardModel {
 	onSelect: (configurationId: string) => void;
 	onDelete: (configurationId: string) => void;
 	onRename: (configurationId: string, name: string) => void;
+	onOpenPriors: (configurationId: string) => void;
 	onToggleIncludedInJob: (configurationId: string) => void;
 }
 
@@ -75,6 +80,7 @@ export interface SpectrumWorkspaceLineFitViewModel {
 	configurationStrip: FitConfigurationStripModel;
 	toolbar: FitToolbarModel;
 	modelList: FitModelListModel;
+	priorDrawer: LineFitPriorDrawerModel;
 }
 
 function getModelSummary(models: readonly Spectrum1DCanvasFitModel[]): string {
@@ -98,6 +104,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 		message: string;
 	} | null>(null);
 	const spectrumPoints = useLineFitSpectrumPoints(source);
+	const priorDrawer = useLineFitPriorDrawer();
 	const {
 		fitConfigurationsBySourceId,
 		selectedFitConfigurationIdBySourceId,
@@ -154,7 +161,10 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 	);
 	const sourceId = source?.id ?? null;
 	const configurations = useMemo(
-		() => (sourceId ? (fitConfigurationsBySourceId[sourceId] ?? []) : []),
+		() =>
+			sourceId
+				? [...(fitConfigurationsBySourceId[sourceId] ?? [])].reverse()
+				: [],
 		[fitConfigurationsBySourceId, sourceId],
 	);
 	const selectedConfigurationId = sourceId
@@ -450,6 +460,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 				onSelect: handleSelectConfiguration,
 				onDelete: handleDeleteConfiguration,
 				onRename: handleRenameConfiguration,
+				onOpenPriors: priorDrawer.open,
 				onToggleIncludedInJob: handleToggleFitJobConfiguration,
 			})),
 			canCreateConfiguration,
@@ -481,5 +492,6 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			onToggleModelActive: handleToggleModelActive,
 			onToggleModelSubtractFromSlice: handleToggleModelSubtractFromSlice,
 		},
+		priorDrawer,
 	};
 }
