@@ -1,7 +1,7 @@
 import { Box, Stack, Text } from "@chakra-ui/react";
 import { useState } from "react";
 import type { Spectrum1DCanvasFitModel } from "@/canvas/spectrum1dCanvas";
-import type { FitModelListModel } from "../useSpectrumWorkspaceLineFit";
+import type { FitModelListModel } from "../hooks/lineFitModels";
 import { FitModelCard } from "./FitModelCard";
 import type { FitModelParameterKey } from "./FitParameterEditorRow";
 

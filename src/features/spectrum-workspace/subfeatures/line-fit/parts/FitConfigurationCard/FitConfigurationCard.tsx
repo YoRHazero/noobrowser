@@ -10,7 +10,7 @@ import {
 } from "@chakra-ui/react";
 import { SlidersHorizontal, Trash2 } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { FitConfigurationCardModel } from "../../useSpectrumWorkspaceLineFit";
+import type { FitConfigurationCardModel } from "../../hooks/lineFitModels";
 import { fitConfigurationCardRecipe } from "./FitConfigurationCard.recipe";
 
 export function FitConfigurationCard({

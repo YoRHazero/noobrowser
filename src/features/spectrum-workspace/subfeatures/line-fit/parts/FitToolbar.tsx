@@ -1,8 +1,8 @@
 import { Box, HStack, IconButton, SegmentGroup } from "@chakra-ui/react";
 import { Plus, RefreshCw, WandSparkles } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
+import type { FitToolbarModel } from "../hooks/lineFitModels";
 import type { LineFitModelKind } from "../store";
-import type { FitToolbarModel } from "../useSpectrumWorkspaceLineFit";
 
 const modelKindItems: { label: string; value: LineFitModelKind }[] = [
 	{ label: "Gaussian", value: "gaussian" },

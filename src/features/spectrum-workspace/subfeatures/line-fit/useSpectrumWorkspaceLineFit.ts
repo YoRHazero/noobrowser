@@ -7,79 +7,18 @@ import type {
 	Spectrum1DCanvasFitModelPatch,
 } from "@/canvas/spectrum1dCanvas";
 import { useSpectrumWorkspaceSource } from "../../hooks";
-import type { SpectrumWorkspaceWavelengthDisplayState } from "../../shared/types";
 import { useSpectrumWorkspaceStore } from "../../store";
-import type { LineFitPriorDrawerModel } from "./hooks/lineFitPriorDrawerModels";
+import type { SpectrumWorkspaceLineFitViewModel } from "./hooks/lineFitModels";
+import { useLineFitMcmcSubmission } from "./hooks/useLineFitMcmcSubmission";
 import { useLineFitPriorDrawer } from "./hooks/useLineFitPriorDrawer";
 import { useLineFitSpectrumPoints } from "./hooks/useLineFitSpectrumPoints";
-import type {
-	LineFitModelKind,
-	SpectrumWorkspaceFitConfiguration,
-} from "./store";
+import type { LineFitModelKind } from "./store";
 import {
 	countLineFitFittedParameters,
 	filterFiniteFitPoints,
 	resolveFitModelRangeIntersection,
 	runDeterministicLineFit,
 } from "./utils";
-
-export interface FitConfigurationCardModel {
-	id: string;
-	name: string;
-	selected: boolean;
-	includedInJob: boolean;
-	modelSummary: string;
-	onSelect: (configurationId: string) => void;
-	onDelete: (configurationId: string) => void;
-	onRename: (configurationId: string, name: string) => void;
-	onOpenPriors: (configurationId: string) => void;
-	onToggleIncludedInJob: (configurationId: string) => void;
-}
-
-export interface FitConfigurationStripModel {
-	configurations: FitConfigurationCardModel[];
-	canCreateConfiguration: boolean;
-	onCreateConfiguration: () => void;
-}
-
-export interface FitToolbarModel {
-	modelKind: LineFitModelKind;
-	canAddModel: boolean;
-	canSyncModels: boolean;
-	canFit: boolean;
-	fitError: string | null;
-	onModelKindChange: (kind: LineFitModelKind) => void;
-	onAddModel: () => void;
-	onSyncModels: () => void;
-	onFit: () => void;
-}
-
-export interface FitModelListModel {
-	models: Spectrum1DCanvasFitModel[];
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>;
-	onUpdateModel: (
-		modelId: number,
-		patch: Spectrum1DCanvasFitModelPatch,
-	) => void;
-	onCommitModelEdit: (modelId: number) => void;
-	onRenameModel: (modelId: number, label: string) => void;
-	onSetModelColor: (modelId: number, color: string) => void;
-	onDeleteModel: (modelId: number) => void;
-	onToggleModelActive: (modelId: number) => void;
-	onToggleModelSubtractFromSlice: (modelId: number) => void;
-}
-
-export interface SpectrumWorkspaceLineFitViewModel {
-	sourceReady: boolean;
-	selectedConfiguration: SpectrumWorkspaceFitConfiguration | null;
-	configurationStrip: FitConfigurationStripModel;
-	toolbar: FitToolbarModel;
-	modelList: FitModelListModel;
-	priorDrawer: LineFitPriorDrawerModel;
-}
 
 function getModelSummary(models: readonly Spectrum1DCanvasFitModel[]): string {
 	const gaussianCount = models.filter(
@@ -170,13 +109,20 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 		: null;
 	const selectedFitJobConfigurationIds = useMemo(
 		() =>
-			new Set(
-				sourceId
-					? (selectedFitJobConfigurationIdsBySourceId[sourceId] ?? [])
-					: [],
-			),
+			sourceId
+				? (selectedFitJobConfigurationIdsBySourceId[sourceId] ?? [])
+				: [],
 		[selectedFitJobConfigurationIdsBySourceId, sourceId],
 	);
+	const selectedFitJobConfigurationIdSet = useMemo(
+		() => new Set(selectedFitJobConfigurationIds),
+		[selectedFitJobConfigurationIds],
+	);
+	const jobActionBar = useLineFitMcmcSubmission({
+		source,
+		configurations,
+		selectedConfigurationIds: selectedFitJobConfigurationIds,
+	});
 	const selectedConfiguration = useMemo(
 		() =>
 			selectedConfigurationId === null
@@ -453,7 +399,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 				id: configuration.id,
 				name: configuration.name,
 				selected: configuration.id === selectedConfigurationId,
-				includedInJob: selectedFitJobConfigurationIds.has(configuration.id),
+				includedInJob: selectedFitJobConfigurationIdSet.has(configuration.id),
 				modelSummary: getModelSummary(configuration.models),
 				onSelect: handleSelectConfiguration,
 				onDelete: handleDeleteConfiguration,
@@ -464,6 +410,7 @@ export function useSpectrumWorkspaceLineFit(): SpectrumWorkspaceLineFitViewModel
 			canCreateConfiguration,
 			onCreateConfiguration: handleCreateConfiguration,
 		},
+		jobActionBar,
 		toolbar: {
 			modelKind,
 			canAddModel: canEditModels,

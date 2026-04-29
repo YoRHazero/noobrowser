@@ -1,5 +1,6 @@
 import { Box, Stack, Text } from "@chakra-ui/react";
 import { FitConfigurationStrip } from "./parts/FitConfigurationStrip";
+import { FitJobActionBar } from "./parts/FitJobActionBar";
 import { FitModelList } from "./parts/FitModelList";
 import { FitToolbar } from "./parts/FitToolbar";
 import { PriorDrawer } from "./parts/PriorDrawer";
@@ -23,6 +24,10 @@ export function SpectrumWorkspaceLineFit() {
 			<Stack h="full" minH={0} gap={0}>
 				<Box px={4} py={3} borderBottomWidth="1px" borderColor="border.muted">
 					<FitConfigurationStrip {...lineFit.configurationStrip} />
+				</Box>
+
+				<Box px={4} py={2} borderBottomWidth="1px" borderColor="border.muted">
+					<FitJobActionBar {...lineFit.jobActionBar} />
 				</Box>
 
 				<Box px={4} py={3} borderBottomWidth="1px" borderColor="border.muted">

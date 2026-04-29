@@ -1,7 +1,7 @@
 import { Box, HStack, IconButton, useSlotRecipe } from "@chakra-ui/react";
 import { Plus } from "lucide-react";
 import { Tooltip } from "@/components/ui/tooltip";
-import type { FitConfigurationStripModel } from "../../useSpectrumWorkspaceLineFit";
+import type { FitConfigurationStripModel } from "../../hooks/lineFitModels";
 import { FitConfigurationCard } from "../FitConfigurationCard";
 import { fitConfigurationStripRecipe } from "./FitConfigurationStrip.recipe";
 
