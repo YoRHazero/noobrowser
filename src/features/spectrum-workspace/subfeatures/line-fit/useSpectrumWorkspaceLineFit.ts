@@ -9,10 +9,8 @@ import type {
 import { useSpectrumWorkspaceSource } from "../../hooks";
 import type { SpectrumWorkspaceWavelengthDisplayState } from "../../shared/types";
 import { useSpectrumWorkspaceStore } from "../../store";
-import {
-	type LineFitPriorDrawerModel,
-	useLineFitPriorDrawer,
-} from "./hooks/useLineFitPriorDrawer";
+import type { LineFitPriorDrawerModel } from "./hooks/lineFitPriorDrawerModels";
+import { useLineFitPriorDrawer } from "./hooks/useLineFitPriorDrawer";
 import { useLineFitSpectrumPoints } from "./hooks/useLineFitSpectrumPoints";
 import type {
 	LineFitModelKind,

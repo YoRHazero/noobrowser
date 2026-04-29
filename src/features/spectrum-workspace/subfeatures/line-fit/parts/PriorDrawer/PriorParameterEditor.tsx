@@ -5,15 +5,18 @@ import {
 	NumberInput,
 	SegmentGroup,
 	Stack,
+	Switch,
 	Tabs,
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
+import type { ReactNode } from "react";
+import { Tooltip } from "@/components/ui/tooltip";
 import type {
 	LineFitPriorDrawerEditorModel,
 	LineFitPriorDrawerPriorType,
 	LineFitPriorDrawerReferenceOptionModel,
-} from "../../hooks/useLineFitPriorDrawer";
+} from "../../hooks/lineFitPriorDrawerModels";
 import { priorDrawerRecipe } from "./PriorDrawer.recipe";
 
 const PRIOR_TYPE_OPTIONS: {
@@ -90,6 +93,36 @@ function DeterministicModeField({
 				</SegmentGroup.Item>
 			</SegmentGroup.Root>
 		</Stack>
+	);
+}
+
+function SigmaVelocityToggle({
+	useVelocity,
+	onUseVelocityChange,
+}: {
+	useVelocity: boolean;
+	onUseVelocityChange: (useVelocity: boolean) => void;
+}) {
+	const recipe = useSlotRecipe({ recipe: priorDrawerRecipe });
+	const styles = recipe();
+
+	return (
+		<Tooltip content="Edit sigma prior values as FWHM velocity in km/s">
+			<HStack css={styles.velocityToggle}>
+				<Text css={styles.velocityToggleLabel}>FWHM km/s</Text>
+				<Switch.Root
+					size="xs"
+					colorPalette="teal"
+					checked={useVelocity}
+					onCheckedChange={(details) => onUseVelocityChange(details.checked)}
+				>
+					<Switch.HiddenInput />
+					<Switch.Control>
+						<Switch.Thumb />
+					</Switch.Control>
+				</Switch.Root>
+			</HStack>
+		</Tooltip>
 	);
 }
 
@@ -233,6 +266,35 @@ function DeterministicReferenceField({
 	);
 }
 
+function PriorTabPanel({
+	value,
+	canUseVelocity,
+	useVelocity,
+	onUseVelocityChange,
+	children,
+}: {
+	value: LineFitPriorDrawerPriorType;
+	canUseVelocity: boolean;
+	useVelocity: boolean;
+	onUseVelocityChange: (useVelocity: boolean) => void;
+	children: ReactNode;
+}) {
+	const recipe = useSlotRecipe({ recipe: priorDrawerRecipe });
+	const styles = recipe();
+
+	return (
+		<Tabs.Content value={value} css={styles.tabsPanel}>
+			{canUseVelocity ? (
+				<SigmaVelocityToggle
+					useVelocity={useVelocity}
+					onUseVelocityChange={onUseVelocityChange}
+				/>
+			) : null}
+			{children}
+		</Tabs.Content>
+	);
+}
+
 export function PriorParameterEditor({
 	modelName,
 	paramLabel,
@@ -241,9 +303,12 @@ export function PriorParameterEditor({
 	type,
 	draft,
 	referenceOptions,
+	canUseVelocity,
+	useVelocity,
 	validationError,
 	onTypeChange,
 	onDraftChange,
+	onUseVelocityChange,
 }: LineFitPriorDrawerEditorModel) {
 	const recipe = useSlotRecipe({ recipe: priorDrawerRecipe });
 	const styles = recipe();
@@ -286,7 +351,12 @@ export function PriorParameterEditor({
 					</Stack>
 				</Tabs.Content>
 
-				<Tabs.Content value="Fixed" css={styles.tabsPanel}>
+				<PriorTabPanel
+					value="Fixed"
+					canUseVelocity={canUseVelocity}
+					useVelocity={useVelocity}
+					onUseVelocityChange={onUseVelocityChange}
+				>
 					<Box css={styles.fieldGrid}>
 						<NumberField
 							label="Value"
@@ -295,9 +365,14 @@ export function PriorParameterEditor({
 							onChange={(value) => onDraftChange("value", value)}
 						/>
 					</Box>
-				</Tabs.Content>
+				</PriorTabPanel>
 
-				<Tabs.Content value="Normal" css={styles.tabsPanel}>
+				<PriorTabPanel
+					value="Normal"
+					canUseVelocity={canUseVelocity}
+					useVelocity={useVelocity}
+					onUseVelocityChange={onUseVelocityChange}
+				>
 					<Box css={styles.fieldGrid}>
 						<NumberField
 							label="mu"
@@ -312,9 +387,14 @@ export function PriorParameterEditor({
 							onChange={(value) => onDraftChange("sigma", value)}
 						/>
 					</Box>
-				</Tabs.Content>
+				</PriorTabPanel>
 
-				<Tabs.Content value="Uniform" css={styles.tabsPanel}>
+				<PriorTabPanel
+					value="Uniform"
+					canUseVelocity={canUseVelocity}
+					useVelocity={useVelocity}
+					onUseVelocityChange={onUseVelocityChange}
+				>
 					<Box css={styles.fieldGrid}>
 						<NumberField
 							label="Lower"
@@ -329,9 +409,14 @@ export function PriorParameterEditor({
 							onChange={(value) => onDraftChange("upper", value)}
 						/>
 					</Box>
-				</Tabs.Content>
+				</PriorTabPanel>
 
-				<Tabs.Content value="TruncatedNormal" css={styles.tabsPanel}>
+				<PriorTabPanel
+					value="TruncatedNormal"
+					canUseVelocity={canUseVelocity}
+					useVelocity={useVelocity}
+					onUseVelocityChange={onUseVelocityChange}
+				>
 					<Stack gap={3}>
 						<Box css={styles.fieldGrid}>
 							<NumberField
@@ -362,9 +447,14 @@ export function PriorParameterEditor({
 							/>
 						</Box>
 					</Stack>
-				</Tabs.Content>
+				</PriorTabPanel>
 
-				<Tabs.Content value="Deterministic" css={styles.tabsPanel}>
+				<PriorTabPanel
+					value="Deterministic"
+					canUseVelocity={canUseVelocity}
+					useVelocity={useVelocity}
+					onUseVelocityChange={onUseVelocityChange}
+				>
 					<Stack gap={3}>
 						<Box css={styles.fieldGrid}>
 							<DeterministicModeField
@@ -388,7 +478,7 @@ export function PriorParameterEditor({
 							onReferenceChange={(value) => onDraftChange("reference", value)}
 						/>
 					</Stack>
-				</Tabs.Content>
+				</PriorTabPanel>
 
 				{validationError ? (
 					<Text css={styles.errorText}>{validationError}</Text>

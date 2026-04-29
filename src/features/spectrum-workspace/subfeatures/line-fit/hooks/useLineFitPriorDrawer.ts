@@ -2,7 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
-import type { Spectrum1DCanvasFitModel } from "@/canvas/spectrum1dCanvas";
+import type {
+	Spectrum1DCanvasFitModel,
+	Spectrum1DCanvasGaussianFitModel,
+} from "@/canvas/spectrum1dCanvas";
 import type { FitPrior, PriorType } from "@/hooks/query/fit/schemas";
 import { useSpectrumWorkspaceSource } from "../../../hooks";
 import type { SpectrumWorkspaceWavelengthDisplayState } from "../../../shared/types";
@@ -10,73 +13,34 @@ import { useSpectrumWorkspaceStore } from "../../../store";
 import type { SpectrumWorkspaceFitConfiguration } from "../store";
 import {
 	createDefaultLineFitPrior,
+	createTwoGaussianFwhmAutoPriors,
 	formatLineFitNumber,
 	fromLineFitDisplayWavelength,
+	fwhmKmSToSigmaUm,
 	getLineFitParameterValue,
 	getLineFitPriorParameters,
+	sigmaUmToFwhmKmS,
 	toLineFitDisplayWavelength,
 	validateLineFitPrior,
 } from "../utils";
-
-export type LineFitPriorDrawerPriorType = PriorType | "Default";
-
-export interface LineFitPriorDrawerModelOptionModel {
-	modelId: number;
-	name: string;
-	hasPrior: boolean;
-	selected: boolean;
-	onSelect: () => void;
-}
-
-export interface LineFitPriorDrawerParameterModel {
-	modelId: number;
-	paramName: string;
-	label: string;
-	currentValue: string;
-	priorType: LineFitPriorDrawerPriorType;
-	selected: boolean;
-	onSelect: () => void;
-}
-
-export interface LineFitPriorDrawerReferenceOptionModel {
-	value: string;
-	label: string;
-	modelId: number;
-	modelName: string;
-	paramName: string;
-	paramLabel: string;
-}
-
-export interface LineFitPriorDrawerEditorModel {
-	modelName: string;
-	paramName: string;
-	paramLabel: string;
-	currentValue: string;
-	unitLabel: string | null;
-	type: LineFitPriorDrawerPriorType;
-	draft: Record<string, string>;
-	referenceOptions: LineFitPriorDrawerReferenceOptionModel[];
-	validationError: string | null;
-	onTypeChange: (type: LineFitPriorDrawerPriorType) => void;
-	onDraftChange: (field: string, value: string) => void;
-}
-
-export interface LineFitPriorDrawerModel {
-	isOpen: boolean;
-	configurationName: string;
-	models: LineFitPriorDrawerModelOptionModel[];
-	parameters: LineFitPriorDrawerParameterModel[];
-	editor: LineFitPriorDrawerEditorModel | null;
-	canClearActivePriors: boolean;
-	open: (configurationId: string) => void;
-	close: () => void;
-	onOpenChange: (open: boolean) => void;
-	onClearActivePriors: () => void;
-}
+import type {
+	LineFitPriorDrawerModel,
+	LineFitPriorDrawerPriorType,
+	LineFitPriorDrawerReferenceOptionModel,
+} from "./lineFitPriorDrawerModels";
 
 interface EditingTarget {
 	modelId: number;
 	paramName: string;
+}
+
+interface PriorDisplayContext
+	extends Pick<
+		SpectrumWorkspaceWavelengthDisplayState,
+		"redshift" | "wavelengthFrame" | "wavelengthUnit"
+	> {
+	useVelocityForSigma: boolean;
+	sigmaVelocityMuUm: number | null;
 }
 
 const PARAMETER_LABELS: Record<string, string> = {
@@ -87,10 +51,16 @@ const PARAMETER_LABELS: Record<string, string> = {
 	b: "b",
 };
 
+const AUTO_FWHM_PRIOR_SIGMA_KM_S = 500;
+
 function getDisplayUnitLabel(
 	paramName: string,
-	display: Pick<SpectrumWorkspaceWavelengthDisplayState, "wavelengthUnit">,
+	display: PriorDisplayContext,
 ): string | null {
+	if (shouldUseSigmaVelocity(paramName, display)) {
+		return "km/s";
+	}
+
 	if (isWavelengthLikeParameter(paramName)) {
 		return display.wavelengthUnit;
 	}
@@ -102,14 +72,26 @@ function isWavelengthLikeParameter(paramName: string): boolean {
 	return paramName === "mu" || paramName === "sigma";
 }
 
+function shouldUseSigmaVelocity(
+	paramName: string,
+	display: PriorDisplayContext,
+): boolean {
+	return (
+		paramName === "sigma" &&
+		display.useVelocityForSigma &&
+		display.sigmaVelocityMuUm !== null
+	);
+}
+
 function toDisplayNumber(
 	paramName: string,
 	value: number,
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>,
-): number {
+	display: PriorDisplayContext,
+): number | null {
+	if (shouldUseSigmaVelocity(paramName, display)) {
+		return sigmaUmToFwhmKmS(display.sigmaVelocityMuUm ?? 0, value);
+	}
+
 	return isWavelengthLikeParameter(paramName)
 		? toLineFitDisplayWavelength(value, display)
 		: value;
@@ -118,11 +100,12 @@ function toDisplayNumber(
 function fromDisplayNumber(
 	paramName: string,
 	value: number,
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>,
-): number {
+	display: PriorDisplayContext,
+): number | null {
+	if (shouldUseSigmaVelocity(paramName, display)) {
+		return fwhmKmSToSigmaUm(display.sigmaVelocityMuUm ?? 0, value);
+	}
+
 	return isWavelengthLikeParameter(paramName)
 		? fromLineFitDisplayWavelength(value, display)
 		: value;
@@ -131,31 +114,25 @@ function fromDisplayNumber(
 function toDisplaySpreadNumber(
 	paramName: string,
 	value: number,
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>,
-): number {
+	display: PriorDisplayContext,
+): number | null {
 	return isWavelengthLikeParameter(paramName)
-		? toLineFitDisplayWavelength(value, display)
+		? toDisplayNumber(paramName, value, display)
 		: value;
 }
 
 function fromDisplaySpreadNumber(
 	paramName: string,
 	value: number,
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>,
-): number {
+	display: PriorDisplayContext,
+): number | null {
 	return isWavelengthLikeParameter(paramName)
-		? fromLineFitDisplayWavelength(value, display)
+		? fromDisplayNumber(paramName, value, display)
 		: value;
 }
 
-function numericString(value: number | undefined): string {
-	if (value === undefined || !Number.isFinite(value)) {
+function numericString(value: number | null | undefined): string {
+	if (value === undefined || value === null || !Number.isFinite(value)) {
 		return "";
 	}
 
@@ -193,10 +170,7 @@ function createDraftFromPrior({
 }: {
 	prior: FitPrior | undefined;
 	paramName: string;
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>;
+	display: PriorDisplayContext;
 }): Record<string, string> {
 	if (!prior) {
 		return {};
@@ -263,10 +237,7 @@ function createPriorFromDraft({
 	type: LineFitPriorDrawerPriorType;
 	draft: Record<string, string>;
 	paramName: string;
-	display: Pick<
-		SpectrumWorkspaceWavelengthDisplayState,
-		"redshift" | "wavelengthFrame" | "wavelengthUnit"
-	>;
+	display: PriorDisplayContext;
 }): { prior?: FitPrior; error: string | null } {
 	if (type === "Default") {
 		return { prior: undefined, error: null };
@@ -274,12 +245,14 @@ function createPriorFromDraft({
 
 	if (type === "Fixed") {
 		const value = parseFiniteNumber(draft.value ?? "");
-		return value === null
+		const canonicalValue =
+			value === null ? null : fromDisplayNumber(paramName, value, display);
+		return value === null || canonicalValue === null
 			? { error: "Fixed value must be a finite number." }
 			: {
 					prior: {
 						type,
-						value: fromDisplayNumber(paramName, value, display),
+						value: canonicalValue,
 					},
 					error: null,
 				};
@@ -288,13 +261,22 @@ function createPriorFromDraft({
 	if (type === "Normal") {
 		const mu = parseFiniteNumber(draft.mu ?? "");
 		const sigma = parseFiniteNumber(draft.sigma ?? "");
-		return mu === null || sigma === null
+		const canonicalMu =
+			mu === null ? null : fromDisplayNumber(paramName, mu, display);
+		const canonicalSigma =
+			sigma === null
+				? null
+				: fromDisplaySpreadNumber(paramName, sigma, display);
+		return mu === null ||
+			sigma === null ||
+			canonicalMu === null ||
+			canonicalSigma === null
 			? { error: "Normal mu and sigma must be finite numbers." }
 			: {
 					prior: {
 						type,
-						mu: fromDisplayNumber(paramName, mu, display),
-						sigma: fromDisplaySpreadNumber(paramName, sigma, display),
+						mu: canonicalMu,
+						sigma: canonicalSigma,
 					},
 					error: null,
 				};
@@ -303,13 +285,20 @@ function createPriorFromDraft({
 	if (type === "Uniform") {
 		const lower = parseFiniteNumber(draft.lower ?? "");
 		const upper = parseFiniteNumber(draft.upper ?? "");
-		return lower === null || upper === null
+		const canonicalLower =
+			lower === null ? null : fromDisplayNumber(paramName, lower, display);
+		const canonicalUpper =
+			upper === null ? null : fromDisplayNumber(paramName, upper, display);
+		return lower === null ||
+			upper === null ||
+			canonicalLower === null ||
+			canonicalUpper === null
 			? { error: "Uniform lower and upper must be finite numbers." }
 			: {
 					prior: {
 						type,
-						lower: fromDisplayNumber(paramName, lower, display),
-						upper: fromDisplayNumber(paramName, upper, display),
+						lower: canonicalLower,
+						upper: canonicalUpper,
 					},
 					error: null,
 				};
@@ -334,19 +323,35 @@ function createPriorFromDraft({
 			};
 		}
 
+		const canonicalMu = fromDisplayNumber(paramName, mu, display);
+		const canonicalSigma = fromDisplaySpreadNumber(paramName, sigma, display);
+		const canonicalLower =
+			lower === undefined
+				? undefined
+				: fromDisplayNumber(paramName, lower, display);
+		const canonicalUpper =
+			upper === undefined
+				? undefined
+				: fromDisplayNumber(paramName, upper, display);
+
+		if (
+			canonicalMu === null ||
+			canonicalSigma === null ||
+			canonicalLower === null ||
+			canonicalUpper === null
+		) {
+			return {
+				error: "Truncated normal values must be finite in the selected unit.",
+			};
+		}
+
 		return {
 			prior: {
 				type,
-				mu: fromDisplayNumber(paramName, mu, display),
-				sigma: fromDisplaySpreadNumber(paramName, sigma, display),
-				lower:
-					lower === undefined
-						? undefined
-						: fromDisplayNumber(paramName, lower, display),
-				upper:
-					upper === undefined
-						? undefined
-						: fromDisplayNumber(paramName, upper, display),
+				mu: canonicalMu,
+				sigma: canonicalSigma,
+				lower: canonicalLower,
+				upper: canonicalUpper,
 			},
 			error: null,
 		};
@@ -356,8 +361,19 @@ function createPriorFromDraft({
 	const [refModelIdText, refParam] = (draft.reference ?? "").split(":");
 	const refModelId = Number.parseInt(refModelIdText ?? "", 10);
 	const mode = draft.mode === "multiply" ? "multiply" : "add";
+	const canonicalValue =
+		value === null
+			? null
+			: mode === "add"
+				? fromDisplaySpreadNumber(paramName, value, display)
+				: value;
 
-	if (value === null || !Number.isFinite(refModelId) || !refParam) {
+	if (
+		value === null ||
+		canonicalValue === null ||
+		!Number.isFinite(refModelId) ||
+		!refParam
+	) {
 		return {
 			error:
 				"Deterministic prior needs a finite value and reference parameter.",
@@ -368,10 +384,7 @@ function createPriorFromDraft({
 		prior: {
 			type,
 			mode,
-			value:
-				mode === "add"
-					? fromDisplaySpreadNumber(paramName, value, display)
-					: value,
+			value: canonicalValue,
 			refModelId,
 			refParam,
 		},
@@ -405,6 +418,12 @@ function getActiveModels(
 	configuration: SpectrumWorkspaceFitConfiguration | null,
 ): Spectrum1DCanvasFitModel[] {
 	return configuration?.models.filter((model) => model.active) ?? [];
+}
+
+function isGaussianFitModel(
+	model: Spectrum1DCanvasFitModel,
+): model is Spectrum1DCanvasGaussianFitModel {
+	return model.kind === "gaussian";
 }
 
 function createReferenceOptions(
@@ -464,6 +483,7 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 		null,
 	);
 	const [draft, setDraft] = useState<Record<string, string>>({});
+	const [useVelocityForSigma, setUseVelocityForSigma] = useState(true);
 	const [validationError, setValidationError] = useState<string | null>(null);
 	const sourceId = source?.id ?? null;
 	const {
@@ -501,10 +521,38 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 		() => getActiveModels(configuration),
 		[configuration],
 	);
+	const activeGaussianModels = useMemo(
+		() => activeModels.filter(isGaussianFitModel),
+		[activeModels],
+	);
+	const autoFwhmPriorResult = useMemo(
+		() =>
+			createTwoGaussianFwhmAutoPriors(activeGaussianModels, {
+				priorSigmaFwhmKmS: AUTO_FWHM_PRIOR_SIGMA_KM_S,
+			}),
+		[activeGaussianModels],
+	);
 	const selectedModel =
 		selectedModelId === null
 			? null
 			: (activeModels.find((model) => model.id === selectedModelId) ?? null);
+	const canUseVelocity =
+		selectedModel?.kind === "gaussian" &&
+		selectedParamName === "sigma" &&
+		Number.isFinite(selectedModel.muUm) &&
+		selectedModel.muUm > 0;
+	const sigmaVelocityMuUm =
+		canUseVelocity && selectedModel?.kind === "gaussian"
+			? selectedModel.muUm
+			: null;
+	const displayContext = useMemo(
+		() => ({
+			...display,
+			useVelocityForSigma: canUseVelocity && useVelocityForSigma,
+			sigmaVelocityMuUm,
+		}),
+		[canUseVelocity, display, sigmaVelocityMuUm, useVelocityForSigma],
+	);
 	const editingTarget =
 		selectedModel && selectedParamName
 			? { modelId: selectedModel.id, paramName: selectedParamName }
@@ -550,7 +598,7 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 				type,
 				draft: nextDraft,
 				paramName: target.paramName,
-				display,
+				display: displayContext,
 			});
 			if (result.error || !result.prior) {
 				setValidationError(result.error);
@@ -578,7 +626,7 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 		[
 			clearFitModelPrior,
 			configurationId,
-			display,
+			displayContext,
 			setFitModelPrior,
 			sourceId,
 			validReferenceParams,
@@ -646,11 +694,30 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 
 			const prior =
 				configuration?.priorsByModelId?.[selectedModel.id]?.[paramName];
+			const nextCanUseVelocity =
+				selectedModel.kind === "gaussian" &&
+				paramName === "sigma" &&
+				Number.isFinite(selectedModel.muUm) &&
+				selectedModel.muUm > 0;
+			const nextDisplayContext = {
+				...display,
+				useVelocityForSigma: nextCanUseVelocity && useVelocityForSigma,
+				sigmaVelocityMuUm:
+					nextCanUseVelocity && selectedModel.kind === "gaussian"
+						? selectedModel.muUm
+						: null,
+			};
 			setSelectedParamName(paramName);
-			setDraft(createDraftFromPrior({ prior, paramName, display }));
+			setDraft(
+				createDraftFromPrior({
+					prior,
+					paramName,
+					display: nextDisplayContext,
+				}),
+			);
 			setValidationError(null);
 		},
-		[configuration, display, selectedModel],
+		[configuration, display, selectedModel, useVelocityForSigma],
 	);
 
 	const open = useCallback((nextConfigurationId: string) => {
@@ -699,12 +766,18 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 			const nextDraft = createDraftFromPrior({
 				prior,
 				paramName: editingTarget.paramName,
-				display,
+				display: displayContext,
 			});
 			setDraft(nextDraft);
 			commitDraft({ target: editingTarget, type, nextDraft });
 		},
-		[commitDraft, display, editingTarget, referenceOptions, selectedModel],
+		[
+			commitDraft,
+			displayContext,
+			editingTarget,
+			referenceOptions,
+			selectedModel,
+		],
 	);
 
 	const handleDraftChange = useCallback(
@@ -729,6 +802,84 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 		setDraft({});
 		setValidationError(null);
 	}, [clearActiveFitConfigurationPriors, configurationId, sourceId]);
+
+	const handleApplyAutoFwhmPriors = useCallback(() => {
+		if (
+			sourceId === null ||
+			configurationId === null ||
+			autoFwhmPriorResult.reason !== null
+		) {
+			return;
+		}
+
+		for (const assignment of autoFwhmPriorResult.assignments) {
+			setFitModelPrior(
+				sourceId,
+				configurationId,
+				assignment.modelId,
+				assignment.paramName,
+				assignment.prior,
+			);
+		}
+
+		const editingAssignment =
+			editingTarget?.paramName === "sigma"
+				? autoFwhmPriorResult.assignments.find(
+						(assignment) => assignment.modelId === editingTarget.modelId,
+					)
+				: undefined;
+		if (editingAssignment) {
+			setDraft(
+				createDraftFromPrior({
+					prior: editingAssignment.prior,
+					paramName: editingAssignment.paramName,
+					display: displayContext,
+				}),
+			);
+			setValidationError(null);
+		}
+	}, [
+		autoFwhmPriorResult,
+		configurationId,
+		displayContext,
+		editingTarget,
+		setFitModelPrior,
+		sourceId,
+	]);
+
+	const handleUseVelocityChange = useCallback(
+		(nextUseVelocity: boolean) => {
+			setUseVelocityForSigma(nextUseVelocity);
+
+			if (!selectedModel || selectedParamName === null) {
+				return;
+			}
+
+			const nextCanUseVelocity =
+				selectedModel.kind === "gaussian" &&
+				selectedParamName === "sigma" &&
+				Number.isFinite(selectedModel.muUm) &&
+				selectedModel.muUm > 0;
+			const nextDisplayContext = {
+				...display,
+				useVelocityForSigma: nextCanUseVelocity && nextUseVelocity,
+				sigmaVelocityMuUm:
+					nextCanUseVelocity && selectedModel.kind === "gaussian"
+						? selectedModel.muUm
+						: null,
+			};
+
+			setDraft(
+				createDraftFromPrior({
+					prior: currentPrior,
+					paramName: selectedParamName,
+					display: nextDisplayContext,
+				}),
+			);
+			setValidationError(null);
+		},
+		[currentPrior, display, selectedModel, selectedParamName],
+	);
 
 	const modelOptions = useMemo(
 		() =>
@@ -757,7 +908,7 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 						const displayValue =
 							canonicalValue === null
 								? null
-								: toDisplayNumber(paramName, canonicalValue, display);
+								: toDisplayNumber(paramName, canonicalValue, displayContext);
 
 						return {
 							modelId: selectedModel.id,
@@ -772,7 +923,13 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 						};
 					})
 				: [],
-		[configuration, display, selectParameter, selectedModel, selectedParamName],
+		[
+			configuration,
+			displayContext,
+			selectParameter,
+			selectedModel,
+			selectedParamName,
+		],
 	);
 
 	const editor =
@@ -790,17 +947,23 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 								selectedModel,
 								editingTarget.paramName,
 							) ?? 0,
-							display,
+							displayContext,
 						),
 						5,
 					),
-					unitLabel: getDisplayUnitLabel(editingTarget.paramName, display),
+					unitLabel: getDisplayUnitLabel(
+						editingTarget.paramName,
+						displayContext,
+					),
 					type: currentType,
 					draft,
 					referenceOptions,
+					canUseVelocity,
+					useVelocity: displayContext.useVelocityForSigma,
 					validationError,
 					onTypeChange: handleTypeChange,
 					onDraftChange: handleDraftChange,
+					onUseVelocityChange: handleUseVelocityChange,
 				}
 			: null;
 
@@ -809,6 +972,13 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 			(paramName) => getLineFitPriorParameters(model).includes(paramName),
 		),
 	);
+	const autoFwhmPriors = {
+		canApply: autoFwhmPriorResult.reason === null,
+		tooltip:
+			autoFwhmPriorResult.reason ??
+			"Generate truncated-normal FWHM priors for two active gaussians.",
+		onApply: handleApplyAutoFwhmPriors,
+	};
 
 	return {
 		isOpen: configurationId !== null,
@@ -816,6 +986,7 @@ export function useLineFitPriorDrawer(): LineFitPriorDrawerModel {
 		models: modelOptions,
 		parameters: parameterOptions,
 		editor,
+		autoFwhmPriors,
 		canClearActivePriors,
 		open,
 		close,

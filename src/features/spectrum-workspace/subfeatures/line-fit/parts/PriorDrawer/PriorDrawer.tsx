@@ -9,7 +9,8 @@ import {
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
-import type { LineFitPriorDrawerModel } from "../../hooks/useLineFitPriorDrawer";
+import { Tooltip } from "@/components/ui/tooltip";
+import type { LineFitPriorDrawerModel } from "../../hooks/lineFitPriorDrawerModels";
 import { priorDrawerRecipe } from "./PriorDrawer.recipe";
 import { PriorModelList } from "./PriorModelList";
 import { PriorParameterEditor } from "./PriorParameterEditor";
@@ -71,6 +72,19 @@ export function PriorDrawer({ model }: PriorDrawerProps) {
 						</Drawer.Body>
 
 						<Drawer.Footer css={styles.footer}>
+							<Tooltip content={model.autoFwhmPriors.tooltip}>
+								<Box display="inline-flex">
+									<Button
+										size="sm"
+										variant="solid"
+										colorPalette="teal"
+										disabled={!model.autoFwhmPriors.canApply}
+										onClick={model.autoFwhmPriors.onApply}
+									>
+										Auto
+									</Button>
+								</Box>
+							</Tooltip>
 							<Button
 								size="sm"
 								variant="outline"

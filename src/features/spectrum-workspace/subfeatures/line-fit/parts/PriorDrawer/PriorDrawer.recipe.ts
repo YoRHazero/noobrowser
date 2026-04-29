@@ -34,6 +34,8 @@ export const priorDrawerRecipe = defineSlotRecipe({
 		"tabsList",
 		"tabsTrigger",
 		"tabsPanel",
+		"velocityToggle",
+		"velocityToggleLabel",
 		"fieldGrid",
 		"field",
 		"fieldLabel",
@@ -246,6 +248,17 @@ export const priorDrawerRecipe = defineSlotRecipe({
 			borderRadius: "md",
 			bg: "bg.subtle",
 		},
+		velocityToggle: {
+			alignItems: "center",
+			justifyContent: "flex-end",
+			gap: 2,
+			mb: 3,
+		},
+		velocityToggleLabel: {
+			fontSize: "2xs",
+			fontWeight: "semibold",
+			color: "fg.muted",
+		},
 		fieldGrid: {
 			display: "grid",
 			gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
@@ -319,6 +332,7 @@ export const priorDrawerRecipe = defineSlotRecipe({
 			px: 4,
 			py: 3,
 			justifyContent: "flex-start",
+			gap: 2,
 		},
 	},
 	variants: {

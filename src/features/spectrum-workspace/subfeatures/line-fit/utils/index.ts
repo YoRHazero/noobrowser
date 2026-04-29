@@ -2,6 +2,7 @@ export { countLineFitFittedParameters } from "./countLineFitFittedParameters";
 export { createDefaultGaussianFitModel } from "./createDefaultGaussianFitModel";
 export { createDefaultLinearFitModel } from "./createDefaultLinearFitModel";
 export { createDefaultLineFitPrior } from "./createDefaultLineFitPrior";
+export { createTwoGaussianFwhmAutoPriors } from "./createTwoGaussianFwhmAutoPriors";
 export { filterFiniteFitPoints } from "./filterFiniteFitPoints";
 export { formatLineFitNumber } from "./formatLineFitNumber";
 export { fromLineFitDisplayWavelength } from "./fromLineFitDisplayWavelength";

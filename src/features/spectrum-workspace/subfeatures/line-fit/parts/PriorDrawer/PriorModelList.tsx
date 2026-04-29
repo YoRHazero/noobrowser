@@ -1,5 +1,5 @@
 import { Badge, Box, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { LineFitPriorDrawerModelOptionModel } from "../../hooks/useLineFitPriorDrawer";
+import type { LineFitPriorDrawerModelOptionModel } from "../../hooks/lineFitPriorDrawerModels";
 import { priorDrawerRecipe } from "./PriorDrawer.recipe";
 
 export interface PriorModelListProps {
