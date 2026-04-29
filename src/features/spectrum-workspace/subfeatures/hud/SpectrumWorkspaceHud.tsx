@@ -1,4 +1,5 @@
 import { Box, Presence, useSlotRecipe } from "@chakra-ui/react";
+import { DarkMode } from "@/components/ui/color-mode";
 import { DisplayTab } from "./parts/DisplayTab";
 import { ExtractionTab } from "./parts/ExtractionTab";
 import { HudLauncher } from "./parts/HudLauncher";
@@ -38,13 +39,15 @@ export function SpectrumWorkspaceHud() {
 				animationDuration="180ms"
 				animationTimingFunction="cubic-bezier(0.22, 1, 0.36, 1)"
 			>
-				<HudPanel
-					activeTab={hud.activeTab}
-					onTabChange={hud.setActiveTab}
-					onClose={() => hud.setOpen(false)}
-					displayTab={<DisplayTab {...hud.displayTab} />}
-					extractionTab={<ExtractionTab {...hud.extractionTab} />}
-				/>
+				<DarkMode>
+					<HudPanel
+						activeTab={hud.activeTab}
+						onTabChange={hud.setActiveTab}
+						onClose={() => hud.setOpen(false)}
+						displayTab={<DisplayTab {...hud.displayTab} />}
+						extractionTab={<ExtractionTab {...hud.extractionTab} />}
+					/>
+				</DarkMode>
 			</Presence>
 		</Box>
 	);

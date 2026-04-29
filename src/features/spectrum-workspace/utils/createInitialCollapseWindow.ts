@@ -50,6 +50,6 @@ export function createInitialCollapseWindow({
 		waveMaxUm: waveBounds.max,
 		spatialMin: spatialWindow.spatialMin,
 		spatialMax: spatialWindow.spatialMax,
-		outlineVisible: false,
+		outlineVisible: true,
 	};
 }

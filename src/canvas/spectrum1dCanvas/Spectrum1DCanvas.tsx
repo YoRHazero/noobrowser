@@ -78,7 +78,6 @@ export default function Spectrum1DCanvas({
 						aria-label={view.labels.accessibilityLabel}
 						style={SVG_STYLE}
 					>
-						<title>{view.labels.accessibilityLabel}</title>
 						{view.visibility.overview ? (
 							<OverviewSpectrumLayer
 								points={view.points}

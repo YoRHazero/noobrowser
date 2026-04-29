@@ -14,7 +14,7 @@ export function HudLauncher({
 	onOpenChange,
 	transitionDelay,
 }: HudLauncherProps) {
-	const collapsedTransformX = "-28%";
+	const collapsedTransformX = "8%";
 	const recipe = useSlotRecipe({ recipe: hudLauncherRecipe });
 	const styles = recipe();
 

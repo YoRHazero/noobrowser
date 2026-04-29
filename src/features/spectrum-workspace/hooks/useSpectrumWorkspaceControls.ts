@@ -149,7 +149,7 @@ export function useSpectrumWorkspaceControls({
 						waveMaxUm: 0,
 						spatialMin: 0,
 						spatialMax: 0,
-						outlineVisible: false,
+						outlineVisible: true,
 					},
 		[extractedSpectrum, isReady, source],
 	);
