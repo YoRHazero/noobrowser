@@ -1,8 +1,8 @@
+import type { TargetHubExtractionDraft } from "../../../../../shared/types";
 import {
 	EDITOR_EXTRACTION_APERTURE_INVALID_REASON,
 	EDITOR_EXTRACTION_WAVE_RANGE_INVALID_REASON,
 } from "../shared/constants";
-import type { TargetHubExtractionDraft } from "../shared/types";
 
 export function getExtractionDraftValidationReason(
 	extractionDraft: TargetHubExtractionDraft,

@@ -4,8 +4,8 @@ import { useEffect } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useFitJobs } from "@/hooks/query/fit";
 import { FIT_JOB_LIST_LIMIT } from "../shared/constants";
-import type { FitJobListModel } from "../shared/types";
 import { useFitJobStore } from "../store";
+import type { FitJobListModel } from "./fitJobModels";
 
 function toMessage(error: unknown) {
 	return error instanceof Error ? error.message : String(error);

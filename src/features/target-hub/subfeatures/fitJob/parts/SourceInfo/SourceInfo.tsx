@@ -1,11 +1,11 @@
 "use client";
 
 import { Box, SimpleGrid, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { FitJobSummary } from "../../shared/types";
+import type { FitJobSummaryResponse } from "@/hooks/query/fit";
 import { sourceInfoRecipe } from "./SourceInfo.recipe";
 
 type SourceInfoProps = {
-	summary: FitJobSummary;
+	summary: FitJobSummaryResponse;
 };
 
 function formatNumber(value: number | null, digits: number) {

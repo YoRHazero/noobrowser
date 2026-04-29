@@ -1,5 +1,5 @@
 import { Box, useSlotRecipe } from "@chakra-ui/react";
-import type { EditorImagePositionModel } from "../../shared/types";
+import type { EditorImagePositionModel } from "../../hooks/editorModels";
 import { EditorField } from "../EditorField";
 import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { imagePositionSectionRecipe } from "./ImagePositionSection.recipe";

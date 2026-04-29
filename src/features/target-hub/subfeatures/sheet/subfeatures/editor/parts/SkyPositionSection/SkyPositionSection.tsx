@@ -1,5 +1,5 @@
 import { Box, NumberInput, useSlotRecipe } from "@chakra-ui/react";
-import type { EditorSkyPositionModel } from "../../shared/types";
+import type { EditorSkyPositionModel } from "../../hooks/editorModels";
 import { EditorField } from "../EditorField";
 import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { skyPositionSectionRecipe } from "./SkyPositionSection.recipe";

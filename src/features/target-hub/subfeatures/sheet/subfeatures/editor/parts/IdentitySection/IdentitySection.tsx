@@ -1,6 +1,6 @@
 import { Box, Input, useSlotRecipe } from "@chakra-ui/react";
+import type { EditorIdentityModel } from "../../hooks/editorModels";
 import { EDITOR_EMPTY_VALUE } from "../../shared/constants";
-import type { EditorIdentityModel } from "../../shared/types";
 import { EditorField } from "../EditorField";
 import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { identitySectionRecipe } from "./IdentitySection.recipe";

@@ -1,6 +1,6 @@
 import { Button, HStack, Text, useSlotRecipe } from "@chakra-ui/react";
 import { ArrowLeft, Plus } from "lucide-react";
-import type { EditorHeaderModel } from "../../shared/types";
+import type { EditorHeaderModel } from "../../hooks/editorModels";
 import { editorHeaderRecipe } from "./EditorHeader.recipe";
 
 interface EditorHeaderProps {

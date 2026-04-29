@@ -11,19 +11,19 @@ import {
 } from "@chakra-ui/react";
 import { CircleAlert, Info } from "lucide-react";
 import type {
-	FitJobPlotState,
-	FitJobRecord,
-	FitJobSummary,
-} from "../../shared/types";
+	FitJobStatusResponse,
+	FitJobSummaryResponse,
+} from "@/hooks/query/fit";
+import type { FitJobPlotState } from "../../hooks/fitJobModels";
 import JobVisualTabs from "../JobVisualTabs";
 import SourceInfo from "../SourceInfo";
 import SummaryPanel from "../SummaryPanel";
 import { jobDetailRecipe } from "./JobDetail.recipe";
 
 type JobDetailProps = {
-	selectedJob: FitJobRecord | null;
-	status: FitJobRecord["status"] | null;
-	summary: FitJobSummary | null;
+	selectedJob: FitJobStatusResponse | null;
+	status: FitJobStatusResponse["status"] | null;
+	summary: FitJobSummaryResponse | null;
 	summaryLoading: boolean;
 	summaryError: string | null;
 	selectedModelName: string | null;
@@ -31,7 +31,7 @@ type JobDetailProps = {
 	plots: FitJobPlotState[];
 };
 
-function getStatusPalette(status: FitJobRecord["status"] | null) {
+function getStatusPalette(status: FitJobStatusResponse["status"] | null) {
 	switch (status) {
 		case "completed":
 		case "saved":

@@ -1,5 +1,5 @@
 import { Button, HStack, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { EditorExtractionModel } from "../../shared/types";
+import type { EditorExtractionModel } from "../../hooks/editorModels";
 import { ExtractionDraftField } from "../ExtractionDraftField";
 import { extractionSettingsContentRecipe } from "./ExtractionSettingsContent.recipe";
 

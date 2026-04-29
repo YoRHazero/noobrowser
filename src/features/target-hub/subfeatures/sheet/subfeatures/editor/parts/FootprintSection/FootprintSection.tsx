@@ -12,7 +12,7 @@ import { Tooltip } from "@/components/ui/tooltip";
 import type {
 	EditorFootprintModel,
 	EditorImagePositionModel,
-} from "../../shared/types";
+} from "../../hooks/editorModels";
 import { EditorField } from "../EditorField";
 import { ReadonlyFieldValue } from "../ReadonlyFieldValue";
 import { footprintSectionRecipe } from "./FootprintSection.recipe";

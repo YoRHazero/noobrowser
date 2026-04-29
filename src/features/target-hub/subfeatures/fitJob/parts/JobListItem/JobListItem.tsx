@@ -2,16 +2,16 @@
 
 import { Badge, Box, HStack, Text, useSlotRecipe } from "@chakra-ui/react";
 import { Ban, CheckCircle2, CircleAlert, Clock3 } from "lucide-react";
-import type { FitJobRecord } from "../../shared/types";
+import type { FitJobStatusResponse } from "@/hooks/query/fit";
 import { jobListItemRecipe } from "./JobListItem.recipe";
 
 type JobListItemProps = {
-	job: FitJobRecord;
+	job: FitJobStatusResponse;
 	selected: boolean;
 	onSelectJob: (jobId: string) => void;
 };
 
-function getStatusMeta(status: FitJobRecord["status"]) {
+function getStatusMeta(status: FitJobStatusResponse["status"]) {
 	switch (status) {
 		case "completed":
 		case "saved":

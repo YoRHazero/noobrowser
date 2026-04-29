@@ -1,12 +1,12 @@
 "use client";
 
 import { HStack, Stack, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { FitJobRecord } from "../../shared/types";
+import type { FitJobStatusResponse } from "@/hooks/query/fit";
 import JobListItem from "../JobListItem";
 import { jobListRecipe } from "./JobList.recipe";
 
 type JobListProps = {
-	jobs: FitJobRecord[];
+	jobs: FitJobStatusResponse[];
 	selectedJobId: string | null;
 	isLoading: boolean;
 	error: string | null;

@@ -9,12 +9,12 @@ import {
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
-import type { FitJobStatus } from "../../shared/types";
+import type { JobStatus } from "@/hooks/query/fit";
 import { jobFooterActionsRecipe } from "./JobFooterActions.recipe";
 
 type JobFooterActionsProps = {
 	selectedJobId: string | null;
-	status: FitJobStatus | null;
+	status: JobStatus | null;
 	selectedTags: string[];
 	canSave: boolean;
 	canDelete: boolean;

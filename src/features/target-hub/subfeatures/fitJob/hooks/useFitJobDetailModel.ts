@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useFitJobSummary } from "@/hooks/query/fit";
-import type { FitJobDetailModel, FitJobListModel } from "../shared/types";
+import type { FitJobDetailModel, FitJobListModel } from "./fitJobModels";
 
 function toMessage(error: unknown) {
 	return error instanceof Error ? error.message : String(error);

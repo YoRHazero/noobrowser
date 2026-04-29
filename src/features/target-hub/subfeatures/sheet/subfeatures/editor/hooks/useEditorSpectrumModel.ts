@@ -9,16 +9,16 @@ import {
 	EDITOR_SOURCE_POSITION_INCOMPLETE_REASON,
 	EDITOR_SPECTRUM_FETCH_PENDING_REASON,
 } from "../shared/constants";
-import type {
-	EditorActionsModel,
-	EditorExtractionModel,
-	EditorSpectrumModel,
-} from "../shared/types";
 import {
 	createExtractionSettingsFormState,
 	getExtractionDraftValidationReason,
 	parseExtractionSettingValue,
 } from "../utils";
+import type {
+	EditorActionsModel,
+	EditorExtractionModel,
+	EditorSpectrumModel,
+} from "./editorModels";
 
 export function useEditorSpectrumModel(): {
 	extraction: EditorExtractionModel;

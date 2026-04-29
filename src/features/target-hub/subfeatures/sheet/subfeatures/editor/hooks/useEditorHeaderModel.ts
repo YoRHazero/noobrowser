@@ -3,8 +3,8 @@
 import { useShallow } from "zustand/react/shallow";
 import { useSourceStore } from "@/stores/source";
 import { useEditorStore } from "../../../store";
-import type { EditorHeaderModel } from "../shared/types";
 import { parseDraftCoordinate } from "../utils";
+import type { EditorHeaderModel } from "./editorModels";
 
 export function useEditorHeaderModel(): EditorHeaderModel {
 	const {

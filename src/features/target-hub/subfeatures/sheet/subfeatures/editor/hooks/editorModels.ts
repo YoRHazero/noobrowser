@@ -1,5 +1,3 @@
-export type { TargetHubExtractionDraft } from "../../../../../shared/types";
-
 export interface EditorHeaderModel {
 	isDetail: boolean;
 	canReturn: boolean;
@@ -86,9 +84,4 @@ export interface EditorModel {
 	extraction: EditorExtractionModel;
 	spectrum: EditorSpectrumModel;
 	actions: EditorActionsModel;
-}
-
-export interface TargetHubFootprintRecord {
-	id: string;
-	refBasename: string | null;
 }

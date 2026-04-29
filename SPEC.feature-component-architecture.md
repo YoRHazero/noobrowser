@@ -372,6 +372,7 @@ import { createNedSlice } from "../subfeatures/ned/store/nedSlice";
 禁止：
 
 - hook 输入输出类型。
+- `use<Unit>.ts` / `hooks/useXxx.ts` 组装出来并传给 parts 的 view model 类型。
 - component props。
 - query result 的包装类型。
 - 只服务一个 part / subfeature 的局部类型。
@@ -414,6 +415,30 @@ import { createNedSlice } from "../subfeatures/ned/store/nedSlice";
 - 只有当当前 Unit 明确向 child subfeature 提供 hook 时，才从 `hooks/index.ts` 导出。
 - child subfeature 的 `use<Child>.ts` 只能通过父 Unit 的 `hooks/index.ts` 调用父级公开 hook，不能 import 父级 `hooks/useXxx.ts` 私有文件。
 - 如果需要使用祖先 Unit 的 hook，优先由最近的父 Unit 通过自己的 `hooks/index.ts` 明确转发或包装，避免 child subfeature 越级依赖祖先内部结构。
+
+### hook view model 类型
+
+当 `use<Unit>.ts` 或 `hooks/useXxx.ts` 产出的 view model 类型需要被多个文件复用时，应放在当前 Unit hook layer 的局部类型文件中，而不是放进 `shared/types.ts`，也不要从 hook 实现文件大量 export 类型。
+
+推荐：
+
+```text
+<Unit>/
+  use<Unit>.ts
+  hooks/
+    <unit>Models.ts
+    use<Unit>HeaderModel.ts
+    use<Unit>ActionsModel.ts
+```
+
+规则：
+
+- `<unit>Models.ts` 只放当前 Unit hook composition 相关的 type / interface，不放 runtime 代码、不调用 hook、不读 store、不放 constants。
+- `use<Unit>.ts`、`hooks/useXxx.ts` 和当前 Unit 的 `parts/` 可以通过 `import type` 使用 `<unit>Models.ts` 中的类型。
+- `parts/` 不应从 `hooks/useXxx.ts` 这类 hook 实现文件 import 类型；如果 part 需要该类型，应先把类型移动到 `<unit>Models.ts`。
+- hook 实现文件可以保留只服务自身的局部类型；如果类型被 hook 之外的多个文件使用，应移动到 `<unit>Models.ts`。
+- `<unit>Models.ts` 默认是当前 Unit 内部类型文件，不从 `hooks/index.ts` 导出。只有当当前 Unit 明确把这些类型作为 child subfeature 的公开契约时，才可以通过 `hooks/index.ts` 导出 type。
+- 不要创建横跨多个 Unit 的 model type 桶文件；跨 Unit 共享的低耦合业务类型才属于最近共同父 Unit 的 `shared/types.ts`。
 
 ## `use<Unit>.ts`
 
@@ -514,6 +539,7 @@ src/features/<feature>/runtimes/
 - 可复用无业务 UI：放 `components/`。
 - recipe 跟随具体 UI owner；不要建 `recipes/` 目录。
 - 当前 Unit 的生命周期 / 行为拆分：放 `hooks/useXxx.ts`。
+- 当前 Unit hook 组装出的 view model 类型：放 `hooks/<unit>Models.ts`，不要放 `shared/types.ts`，也不要从 hook 实现文件到处 export。
 - 跨 subfeature 生命周期的无 UI 进程：放顶层 `runtimes/`。
 - runtime 默认自包含；不要为单个 runtime 拆 `useRuntime` hook。
 - `use<Unit>.ts` 只做 composition，不直接写 effect / timer / listener。
@@ -535,6 +561,9 @@ src/features/<feature>/runtimes/
 - `index.tsx` 是否调用了 `use<Unit>()` 或向 `<Unit />` 注入了 Unit model props？
 - `<Unit>.tsx` 是否直接 import 了 `hooks/`，而不是通过 `use<Unit>.ts`？
 - `<Unit>.tsx` 是否接收了由 `use<Unit>.ts` 生成的整体 model props，而不是自己调用 `use<Unit>()`？
+- hook view model 类型是否被错误放进 `shared/types.ts`？
+- parts 是否从 `hooks/useXxx.ts` 这类 hook 实现文件 import 类型，而不是从 `hooks/<unit>Models.ts` import type？
+- `hooks/<unit>Models.ts` 是否退化成跨 Unit 类型桶，或包含 runtime 代码 / store / constants？
 - 是否预先创建了没有实际 slice / selector 的空 `store/`？
 - 有 `store/` 的 Unit 是否都有 `store/index.ts`？
 - 嵌套 Unit 的 `store/index.ts` 是否错误创建了新 store？

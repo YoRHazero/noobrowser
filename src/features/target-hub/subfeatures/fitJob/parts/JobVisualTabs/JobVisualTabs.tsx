@@ -1,7 +1,7 @@
 "use client";
 
 import { Tabs, useSlotRecipe } from "@chakra-ui/react";
-import type { FitJobPlotState } from "../../shared/types";
+import type { FitJobPlotState } from "../../hooks/fitJobModels";
 import ResultImage from "../ResultImage";
 import { jobVisualTabsRecipe } from "./JobVisualTabs.recipe";
 

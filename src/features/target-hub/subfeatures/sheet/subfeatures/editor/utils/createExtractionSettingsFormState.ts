@@ -1,4 +1,4 @@
-import type { TargetHubExtractionDraft } from "../shared/types";
+import type { TargetHubExtractionDraft } from "../../../../../shared/types";
 
 export function createExtractionSettingsFormState(
 	extractionDraft: TargetHubExtractionDraft,

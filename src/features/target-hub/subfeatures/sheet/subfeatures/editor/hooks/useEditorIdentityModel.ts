@@ -8,7 +8,7 @@ import { EDITOR_EMPTY_VALUE } from "../shared/constants";
 import type {
 	EditorIdentityModel,
 	EditorSkyPositionModel,
-} from "../shared/types";
+} from "./editorModels";
 
 export function useEditorIdentityModel(): {
 	identity: EditorIdentityModel;

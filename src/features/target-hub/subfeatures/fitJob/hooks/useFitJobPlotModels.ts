@@ -1,5 +1,6 @@
 "use client";
 
+import type { FitJobSummaryResponse, JobStatus } from "@/hooks/query/fit";
 import {
 	usePlotCacheComparison,
 	usePlotCachePosterior,
@@ -7,11 +8,7 @@ import {
 	usePlotCacheTrace,
 } from "@/hooks/query/plot";
 import { FIT_JOB_PLOT_TITLES } from "../shared/constants";
-import type {
-	FitJobPlotState,
-	FitJobStatus,
-	FitJobSummary,
-} from "../shared/types";
+import type { FitJobPlotState } from "./fitJobModels";
 import { usePlotBlobUrls } from "./usePlotBlobUrls";
 
 function toMessage(error: unknown) {
@@ -20,8 +17,8 @@ function toMessage(error: unknown) {
 
 type UseFitJobPlotModelsParams = {
 	jobId: string | null;
-	status: FitJobStatus | null;
-	summary: FitJobSummary | null;
+	status: JobStatus | null;
+	summary: FitJobSummaryResponse | null;
 	selectedModelName: string | null;
 };
 

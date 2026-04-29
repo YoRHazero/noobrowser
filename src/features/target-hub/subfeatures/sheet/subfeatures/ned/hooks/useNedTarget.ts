@@ -2,7 +2,7 @@
 
 import { useShallow } from "zustand/react/shallow";
 import { useSourceStore } from "@/stores/source";
-import { useEditorStore } from "../../../store/useEditorStore";
+import { useEditorStore } from "../../../store";
 
 export function useNedTarget() {
 	const { editorMode } = useEditorStore(

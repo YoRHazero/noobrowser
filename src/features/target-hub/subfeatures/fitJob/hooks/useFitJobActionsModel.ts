@@ -3,8 +3,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { toaster } from "@/components/ui/toaster";
 import { useSaveFitResult } from "@/hooks/query/catalog";
-import { useDeleteFitJob } from "@/hooks/query/fit";
-import type { FitJobActionsModel, FitJobStatus } from "../shared/types";
+import { type JobStatus, useDeleteFitJob } from "@/hooks/query/fit";
+import type { FitJobActionsModel } from "./fitJobModels";
 
 function toMessage(error: unknown) {
 	return error instanceof Error ? error.message : String(error);
@@ -12,7 +12,7 @@ function toMessage(error: unknown) {
 
 type UseFitJobActionsModelParams = {
 	selectedJobId: string | null;
-	status: FitJobStatus | null;
+	status: JobStatus | null;
 	onClearSelectedJob: () => void;
 };
 

@@ -15,7 +15,7 @@ import type {
 	EditorExtractionModel,
 	EditorHeaderModel,
 	EditorSpectrumModel,
-} from "../../shared/types";
+} from "../../hooks/editorModels";
 import { ExtractionSettingsContent } from "../ExtractionSettingsContent";
 import { editorActionBarRecipe } from "./EditorActionBar.recipe";
 
@@ -62,19 +62,26 @@ export function EditorActionBar({
 								offset: { mainAxis: 10, crossAxis: 0 },
 							}}
 						>
-							<Popover.Trigger asChild>
-								<Tooltip content="Extraction settings" showArrow>
-									<IconButton
-										type="button"
-										aria-label="Spectrum Extraction Settings"
-										size="sm"
-										variant="ghost"
-										css={styles.chip}
-									>
-										<Settings2 size={ACTION_BAR_ICON_SIZE} />
-									</IconButton>
-								</Tooltip>
-							</Popover.Trigger>
+							<Popover.Anchor asChild>
+								<span>
+									<Tooltip content="Extraction settings" showArrow>
+										<IconButton
+											type="button"
+											aria-label="Spectrum Extraction Settings"
+											aria-expanded={extraction.isSettingsOpen}
+											aria-haspopup="dialog"
+											size="sm"
+											variant="ghost"
+											css={styles.chip}
+											onClick={() =>
+												extraction.onOpenChange(!extraction.isSettingsOpen)
+											}
+										>
+											<Settings2 size={ACTION_BAR_ICON_SIZE} />
+										</IconButton>
+									</Tooltip>
+								</span>
+							</Popover.Anchor>
 							<Portal>
 								<DarkMode>
 									<Popover.Positioner>

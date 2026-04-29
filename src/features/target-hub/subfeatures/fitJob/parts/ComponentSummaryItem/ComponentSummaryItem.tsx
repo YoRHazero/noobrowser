@@ -1,9 +1,12 @@
 "use client";
 
 import { Box, HStack, SimpleGrid, Text, useSlotRecipe } from "@chakra-ui/react";
-import type { FitJobComponentSummary } from "../../shared/types";
+import type { FitJobSummaryResponse } from "@/hooks/query/fit";
 import StatBadge from "../StatBadge";
 import { componentSummaryItemRecipe } from "./ComponentSummaryItem.recipe";
+
+type FitJobComponentSummary =
+	FitJobSummaryResponse["results"][number]["components"][number];
 
 type ComponentSummaryItemProps = {
 	component: FitJobComponentSummary;

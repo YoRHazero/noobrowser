@@ -10,13 +10,13 @@ import {
 	useSlotRecipe,
 } from "@chakra-ui/react";
 import { Star } from "lucide-react";
-import type { FitJobSummary } from "../../shared/types";
+import type { FitJobSummaryResponse } from "@/hooks/query/fit";
 import ComponentSummaryItem from "../ComponentSummaryItem";
 import StatBadge from "../StatBadge";
 import { summaryPanelRecipe } from "./SummaryPanel.recipe";
 
 type SummaryPanelProps = {
-	summary: FitJobSummary;
+	summary: FitJobSummaryResponse;
 	selectedModelName: string | null;
 	onSelectModelName: (modelName: string) => void;
 };

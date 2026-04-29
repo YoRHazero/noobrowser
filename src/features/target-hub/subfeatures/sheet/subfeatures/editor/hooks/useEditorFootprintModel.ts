@@ -5,11 +5,11 @@ import { useSourcePosition } from "@/hooks/query/source";
 import { useSourceStore } from "@/stores/source";
 import { useEditorStore } from "../../../store";
 import { formatPositionValue } from "../../../utils";
+import { parseDraftCoordinate } from "../utils";
 import type {
 	EditorFootprintModel,
 	EditorImagePositionModel,
-} from "../shared/types";
-import { parseDraftCoordinate } from "../utils";
+} from "./editorModels";
 import { useFootprints } from "./useFootprints";
 
 interface FootprintSelection {

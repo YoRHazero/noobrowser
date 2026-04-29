@@ -1,14 +1,12 @@
 "use client";
 
-import { useFitJobActions } from "../../../../hooks";
-import { useShellStore } from "../../../../store/useShellStore";
+import { useSheetActions } from "../../hooks";
 
 export function useHeader() {
-	const { openFitJob: onOpenFitJob } = useFitJobActions();
-	const onReturnToDock = useShellStore((state) => state.returnToDock);
+	const { openFitJob, returnToDock } = useSheetActions();
 
 	return {
-		onOpenFitJob,
-		onReturnToDock,
+		onOpenFitJob: openFitJob,
+		onReturnToDock: returnToDock,
 	};
 }

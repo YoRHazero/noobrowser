@@ -1,10 +1,10 @@
 "use client";
 
+import type { EditorModel } from "./hooks/editorModels";
 import { useEditorFootprintModel } from "./hooks/useEditorFootprintModel";
 import { useEditorHeaderModel } from "./hooks/useEditorHeaderModel";
 import { useEditorIdentityModel } from "./hooks/useEditorIdentityModel";
 import { useEditorSpectrumModel } from "./hooks/useEditorSpectrumModel";
-import type { EditorModel } from "./shared/types";
 
 export function useEditor(): EditorModel {
 	const header = useEditorHeaderModel();
