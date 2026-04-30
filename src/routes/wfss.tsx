@@ -2,6 +2,7 @@ import { VStack } from "@chakra-ui/react";
 import { createFileRoute } from "@tanstack/react-router";
 import Title from "@/components/layout/Title";
 import Analyzer from "@/features/analyzer/AnalyzerView";
+import ImageInspector from "@/features/image-inspector";
 import Inspector from "@/features/inspector/InspectorView";
 import OverviewFeature from "@/features/overview";
 import SpectrumWorkspace from "@/features/spectrum-workspace";
@@ -20,6 +21,7 @@ function RouteComponent() {
 			<SpectrumWorkspace />
 			{/*			<Counterpart /> */}
 			<Analyzer />
+			<ImageInspector />
 			<Inspector />
 		</VStack>
 	);
