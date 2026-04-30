@@ -16,6 +16,28 @@ export function generateColor(id: string): string {
 	return `hsl(${hue}, 85%, 60%)`;
 }
 
+export function normalizeSourceTag(tag: string): string | null {
+	const normalizedTag = tag.trim().toLowerCase();
+	return normalizedTag.length > 0 ? normalizedTag : null;
+}
+
+export function normalizeSourceTags(tags: readonly string[]): string[] {
+	const normalizedTags: string[] = [];
+	const seenTags = new Set<string>();
+
+	for (const tag of tags) {
+		const normalizedTag = normalizeSourceTag(tag);
+		if (normalizedTag === null || seenTags.has(normalizedTag)) {
+			continue;
+		}
+
+		seenTags.add(normalizedTag);
+		normalizedTags.push(normalizedTag);
+	}
+
+	return normalizedTags;
+}
+
 const RA_CENTISECONDS_PER_DEGREE = 24_000;
 const RA_CENTISECONDS_PER_DAY = 8_640_000;
 const DEC_TENTHS_ARCSECONDS_PER_DEGREE = 36_000;

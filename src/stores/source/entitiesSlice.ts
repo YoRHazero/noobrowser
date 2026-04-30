@@ -3,6 +3,7 @@ import type { SourceStore } from ".";
 import type {
 	Source,
 	SourceCreateInput,
+	SourceGroup,
 	SourceImageRef,
 	SourcePosition,
 	SourceSpectrumExtractionParams,
@@ -11,7 +12,7 @@ import type {
 	SourceVisibility,
 	SourceVisibilityKey,
 } from "./types";
-import { generateColor, generateSourceId } from "./utils";
+import { generateColor, generateSourceId, normalizeSourceTags } from "./utils";
 
 type SourceMutablePatch = {
 	label?: string;
@@ -71,6 +72,58 @@ const DEFAULT_SOURCE_SPECTRUM_STATE: SourceSpectrumState = {
 	extractionParams: null,
 };
 
+function createDefaultSourceGroup(tag: string): SourceGroup {
+	return {
+		tag,
+		overviewVisibility: true,
+		inspectorVisibility: true,
+	};
+}
+
+function ensureSourceGroups(
+	sourceGroups: SourceGroup[],
+	tags: readonly string[],
+): SourceGroup[] {
+	const existingTags = new Set(sourceGroups.map((group) => group.tag));
+	const nextGroups = [...sourceGroups];
+
+	for (const tag of tags) {
+		if (existingTags.has(tag)) {
+			continue;
+		}
+
+		existingTags.add(tag);
+		nextGroups.push(createDefaultSourceGroup(tag));
+	}
+
+	return nextGroups;
+}
+
+function applyGroupVisibilityToSourceVisibility(
+	visibility: SourceVisibility,
+	sourceGroups: SourceGroup[],
+	tags: readonly string[],
+): SourceVisibility {
+	const sourceGroupByTag = new Map(
+		sourceGroups.map((group) => [group.tag, group]),
+	);
+
+	return tags.reduce<SourceVisibility>(
+		(nextVisibility, tag) => {
+			const group = sourceGroupByTag.get(tag);
+			if (!group) {
+				return nextVisibility;
+			}
+
+			return {
+				overview: group.overviewVisibility,
+				inspector: group.inspectorVisibility,
+			};
+		},
+		{ ...visibility },
+	);
+}
+
 export interface SourceEntitiesSlice {
 	sources: Source[];
 	createSource: (input: SourceCreateInput) => Source;
@@ -105,7 +158,9 @@ export const createSourceEntitiesSlice: StateCreator<
 > = (set, get) => ({
 	sources: [],
 	createSource: (input) => {
-		const { sources } = get();
+		const { sources, sourceGroups } = get();
+		const tags = normalizeSourceTags(input.tags ?? []);
+		const nextSourceGroups = ensureSourceGroups(sourceGroups, tags);
 		const id = generateSourceId(
 			input.position.ra,
 			input.position.dec,
@@ -116,6 +171,7 @@ export const createSourceEntitiesSlice: StateCreator<
 			label: input.label?.trim() || undefined,
 			color: generateColor(id),
 			createdAt: new Date().toISOString(),
+			tags,
 			position: {
 				...input.position,
 			},
@@ -123,9 +179,11 @@ export const createSourceEntitiesSlice: StateCreator<
 				...input.imageRef,
 			},
 			z: null,
-			visibility: {
-				...input.visibility,
-			},
+			visibility: applyGroupVisibilityToSourceVisibility(
+				input.visibility,
+				nextSourceGroups,
+				tags,
+			),
 			spectrum: {
 				...DEFAULT_SOURCE_SPECTRUM_STATE,
 			},
@@ -133,6 +191,7 @@ export const createSourceEntitiesSlice: StateCreator<
 
 		set((state) => ({
 			sources: [...state.sources, nextSource],
+			sourceGroups: ensureSourceGroups(state.sourceGroups, tags),
 			activeSourceId: nextSource.id,
 		}));
 

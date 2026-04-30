@@ -2,6 +2,7 @@
 
 import { Shell } from "./parts/Shell";
 import Editor from "./subfeatures/editor";
+import Groups from "./subfeatures/groups";
 import Header from "./subfeatures/header";
 import Ned from "./subfeatures/ned";
 import Sources from "./subfeatures/sources";
@@ -14,6 +15,7 @@ export default function Sheet() {
 		<Shell>
 			<Header />
 			<Editor detailActionAddon={<Ned />} />
+			<Groups />
 			<Sources />
 		</Shell>
 	);

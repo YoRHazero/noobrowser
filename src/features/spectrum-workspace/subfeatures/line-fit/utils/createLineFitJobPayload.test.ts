@@ -46,6 +46,7 @@ function createSource(patch: Partial<Source> = {}): Source {
 		label: "Source 1",
 		color: "#ffffff",
 		createdAt: "2026-04-30T00:00:00.000Z",
+		tags: [],
 		position: {
 			ra: 10,
 			dec: 20,

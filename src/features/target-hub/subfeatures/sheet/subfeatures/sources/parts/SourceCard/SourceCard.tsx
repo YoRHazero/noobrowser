@@ -6,6 +6,7 @@ import {
 	Text,
 	useSlotRecipe,
 } from "@chakra-ui/react";
+import { ArrowDown, ArrowUp } from "lucide-react";
 import type { CSSProperties, KeyboardEvent } from "react";
 import { LuTrash2 } from "react-icons/lu";
 import { Tooltip } from "@/components/ui/tooltip";
@@ -21,6 +22,11 @@ interface SourceCardProps {
 	onToggleOverview: () => void;
 	onToggleInspector: () => void;
 	onDelete: () => void;
+	groupMembershipAction?: {
+		direction: "up" | "down";
+		label: string;
+		onClick: () => void;
+	};
 }
 
 export function SourceCard({
@@ -30,10 +36,13 @@ export function SourceCard({
 	onToggleOverview,
 	onToggleInspector,
 	onDelete,
+	groupMembershipAction,
 }: SourceCardProps) {
 	const recipe = useSlotRecipe({ recipe: sourceCardRecipe });
 	const styles = recipe({ isActive });
 	const displayName = getSourceDisplayName(source);
+	const MembershipIcon =
+		groupMembershipAction?.direction === "down" ? ArrowDown : ArrowUp;
 
 	const handleKeyDown = (event: KeyboardEvent<HTMLDivElement>) => {
 		if (event.key !== "Enter" && event.key !== " ") {
@@ -87,6 +96,20 @@ export function SourceCard({
 					onToggleOverview={onToggleOverview}
 					onToggleInspector={onToggleInspector}
 				/>
+				{groupMembershipAction ? (
+					<Tooltip content={groupMembershipAction.label} showArrow>
+						<IconButton
+							type="button"
+							aria-label={groupMembershipAction.label}
+							size="xs"
+							variant="ghost"
+							css={styles.chip}
+							onClick={groupMembershipAction.onClick}
+						>
+							<MembershipIcon size={14} />
+						</IconButton>
+					</Tooltip>
+				) : null}
 				<Tooltip content="Delete Source" showArrow>
 					<IconButton
 						type="button"

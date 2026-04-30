@@ -15,6 +15,12 @@ export interface SourceVisibility {
 	inspector: boolean;
 }
 
+export interface SourceGroup {
+	tag: string;
+	overviewVisibility: boolean;
+	inspectorVisibility: boolean;
+}
+
 export type SourceSpectrumStatus =
 	| "idle"
 	| "committed"
@@ -41,6 +47,7 @@ export interface Source {
 	label?: string;
 	color: string;
 	createdAt: string;
+	tags: string[];
 	position: SourcePosition;
 	imageRef: SourceImageRef;
 	z: number | null;
@@ -50,6 +57,7 @@ export interface Source {
 
 export interface SourceCreateInput {
 	label?: string;
+	tags?: readonly string[];
 	position: Omit<SourcePosition, "ra" | "dec"> & {
 		ra: number;
 		dec: number;
