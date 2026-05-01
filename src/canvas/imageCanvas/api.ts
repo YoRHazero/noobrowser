@@ -145,7 +145,7 @@ export interface ImagePointerEvent {
 	point: Point;
 
 	target:
-		| { kind: "image" }
+		| { kind: "hit-plane" }
 		| { kind: "source"; sourceId: string }
 		| { kind: "trace"; sourceId: string };
 

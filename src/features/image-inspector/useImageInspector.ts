@@ -3,9 +3,9 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { Actions, Model } from "@/canvas/imageCanvas";
-import { useSourceStore } from "@/stores/source";
 import { useImageInspectorBaseLayerHotkeys } from "./hooks/useImageInspectorBaseLayerHotkeys";
 import { useImageInspectorCanvasData } from "./hooks/useImageInspectorCanvasData";
+import { useImageInspectorPointerActions } from "./hooks/useImageInspectorPointerActions";
 import { useImageInspectorRoiHotkeys } from "./hooks/useImageInspectorRoiHotkeys";
 import { useImageInspectorSourceAnnotations } from "./hooks/useImageInspectorSourceAnnotations";
 import { useImageInspectorStore } from "./store";
@@ -19,9 +19,9 @@ export interface ImageInspectorViewModel {
 }
 
 export function useImageInspector(): ImageInspectorViewModel {
-	const setActiveSourceId = useSourceStore((state) => state.setActiveSourceId);
 	useImageInspectorBaseLayerHotkeys();
 	useImageInspectorRoiHotkeys();
+	const onImagePointer = useImageInspectorPointerActions();
 	const { referenceMode, referenceOpacity, roi, lockROI } =
 		useImageInspectorStore(
 			useShallow((state) => ({
@@ -62,13 +62,9 @@ export function useImageInspector(): ImageInspectorViewModel {
 
 	const actions = useMemo<Actions>(
 		() => ({
-			onImagePointer: (event) => {
-				if (event.phase === "click" && event.target.kind === "source") {
-					setActiveSourceId(event.target.sourceId);
-				}
-			},
+			onImagePointer,
 		}),
-		[setActiveSourceId],
+		[onImagePointer],
 	);
 
 	return {

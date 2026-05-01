@@ -23,7 +23,7 @@ export function AnnotationHitPlane({
 	);
 	const pointerHandlers = useImagePointerHandlers({
 		onImagePointer: view.onImagePointer,
-		target: { kind: "image" },
+		target: { kind: "hit-plane" },
 	});
 
 	if (!rect) {
