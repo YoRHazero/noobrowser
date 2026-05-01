@@ -1,4 +1,4 @@
-import type { Frame, Rect } from "../api";
+import type { Frame, Point, Rect } from "../api";
 import {
 	IMAGE_CANVAS_DEFAULT_COLLAPSE_WINDOW,
 	IMAGE_CANVAS_MIN_COLLAPSE_SIZE,
@@ -88,6 +88,15 @@ export function frameToRect(frame: Frame): Rect {
 		width: frame.width,
 		height: frame.height,
 	};
+}
+
+export function isPointInRect(point: Point, rect: Rect): boolean {
+	return (
+		point.x >= rect.x &&
+		point.x <= rect.x + rect.width &&
+		point.y >= rect.y &&
+		point.y <= rect.y + rect.height
+	);
 }
 
 export function getFrameUnionRect(

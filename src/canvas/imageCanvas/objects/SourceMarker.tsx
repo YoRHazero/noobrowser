@@ -42,20 +42,25 @@ export function SourceMarker({
 		<group
 			ref={groupRef}
 			position={[source.x, source.y, z]}
+			renderOrder={z}
 			{...pointerHandlers}
 		>
-			<Circle args={[0.64, 32]} position={[0, 0, -0.001]}>
+			<Circle args={[0.64, 32]} position={[0, 0, -0.001]} renderOrder={z}>
 				<meshBasicMaterial
 					color={IMAGE_CANVAS_SOURCE_BORDER_COLOR}
+					depthTest={false}
 					depthWrite={false}
 					toneMapped={false}
+					transparent
 				/>
 			</Circle>
-			<Circle args={[0.5, 32]}>
+			<Circle args={[0.5, 32]} renderOrder={z}>
 				<meshBasicMaterial
 					color={color}
+					depthTest={false}
 					depthWrite={false}
 					toneMapped={false}
+					transparent
 				/>
 			</Circle>
 		</group>

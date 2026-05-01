@@ -20,10 +20,11 @@ export function useAnnotationLayer(): AnnotationLayerViewModel {
 			activeSourceId: state.activeSourceId,
 		})),
 	);
-	const { roi, lockROI, setLockROI } = useImageInspectorStore(
+	const { roi, lockROI, sourceCount, setLockROI } = useImageInspectorStore(
 		useShallow((state) => ({
 			roi: state.annotationLayerRoi,
 			lockROI: state.lockROI,
+			sourceCount: state.annotationLayerSources.length,
 			setLockROI: state.setLockROI,
 		})),
 	);
@@ -31,7 +32,7 @@ export function useAnnotationLayer(): AnnotationLayerViewModel {
 		sources.find((source) => source.id === activeSourceId) ?? null;
 
 	return {
-		sourceCount: sources.filter((source) => source.visibility.inspector).length,
+		sourceCount,
 		activeSourceLabel: activeSource?.label ?? activeSource?.id ?? "—",
 		roiLabel: `ROI: (${roi.x}, ${roi.y}), ${roi.width} x ${roi.height} px`,
 		collapseWindowLabel: `Lock ROI camera: ${lockROI ? "On" : "Off"}`,

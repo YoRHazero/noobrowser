@@ -7,6 +7,7 @@ import {
 	getActiveFrame,
 	getModelRetainTextureKeys,
 	getTextureCacheKey,
+	isPointInRect,
 	isScalarArrayValid,
 	resolveCollapseWindow,
 	roiLocalRectToWorldRect,
@@ -61,6 +62,15 @@ describe("imageCanvas rect utilities", () => {
 				{ x: 4, y: 5, width: 12, height: 3 },
 			),
 		).toEqual({ x: 14, y: 25, width: 12, height: 3 });
+	});
+
+	it("checks whether a point is inside a rect", () => {
+		const rect: Rect = { x: 10, y: 20, width: 30, height: 40 };
+
+		expect(isPointInRect({ x: 10, y: 20 }, rect)).toBe(true);
+		expect(isPointInRect({ x: 40, y: 60 }, rect)).toBe(true);
+		expect(isPointInRect({ x: 9.9, y: 20 }, rect)).toBe(false);
+		expect(isPointInRect({ x: 10, y: 60.1 }, rect)).toBe(false);
 	});
 });
 

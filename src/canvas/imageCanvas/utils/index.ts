@@ -19,6 +19,7 @@ export {
 	createDefaultCollapseWindow,
 	frameToRect,
 	getFrameUnionRect,
+	isPointInRect,
 	normalizeRect,
 	resizeRoiLocalRect,
 	resolveCollapseWindow,

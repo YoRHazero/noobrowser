@@ -1,7 +1,7 @@
 "use client";
 
 import type { StateCreator } from "zustand";
-import type { Rect } from "@/canvas/imageCanvas";
+import type { Rect, SourceAnnotation } from "@/canvas/imageCanvas";
 import {
 	IMAGE_INSPECTOR_DEFAULT_ROI_POSITION,
 	IMAGE_INSPECTOR_ROI_SIZE,
@@ -20,7 +20,11 @@ interface RoiPositionPatch {
 
 export interface AnnotationLayerSlice {
 	annotationLayerRoi: Rect;
+	annotationLayerSources: SourceAnnotation[];
 	lockROI: boolean;
+	upsertAnnotationLayerSource: (source: SourceAnnotation) => void;
+	removeAnnotationLayerSource: (sourceId: string) => void;
+	clearAnnotationLayerSources: () => void;
 	setAnnotationLayerRoiPosition: (patch: RoiPositionPatch) => void;
 	moveAnnotationLayerRoiBy: (delta: RoiDelta) => void;
 	setLockROI: (lockROI: boolean) => void;
@@ -52,7 +56,46 @@ export const createAnnotationLayerSlice: StateCreator<
 		IMAGE_INSPECTOR_DEFAULT_ROI_POSITION.x,
 		IMAGE_INSPECTOR_DEFAULT_ROI_POSITION.y,
 	),
+	annotationLayerSources: [],
 	lockROI: false,
+	upsertAnnotationLayerSource: (source) =>
+		set((state) => {
+			const sourceIndex = state.annotationLayerSources.findIndex(
+				(item) => item.id === source.id,
+			);
+
+			if (sourceIndex === -1) {
+				return {
+					annotationLayerSources: [...state.annotationLayerSources, source],
+				};
+			}
+
+			const nextSources = [...state.annotationLayerSources];
+			nextSources[sourceIndex] = source;
+			return {
+				annotationLayerSources: nextSources,
+			};
+		}),
+	removeAnnotationLayerSource: (sourceId) =>
+		set((state) => {
+			if (
+				!state.annotationLayerSources.some((source) => source.id === sourceId)
+			) {
+				return {};
+			}
+
+			return {
+				annotationLayerSources: state.annotationLayerSources.filter(
+					(source) => source.id !== sourceId,
+				),
+			};
+		}),
+	clearAnnotationLayerSources: () =>
+		set((state) =>
+			state.annotationLayerSources.length === 0
+				? {}
+				: { annotationLayerSources: [] },
+		),
 	setAnnotationLayerRoiPosition: (patch) =>
 		set((state) => ({
 			annotationLayerRoi: createAnnotationLayerRoi(
