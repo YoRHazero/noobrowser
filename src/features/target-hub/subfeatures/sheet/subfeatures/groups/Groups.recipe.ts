@@ -1,4 +1,5 @@
 import { defineSlotRecipe } from "@chakra-ui/react";
+import { TARGET_HUB_Z_INDEX } from "../../../../shared/constants";
 
 export const groupsRecipe = defineSlotRecipe({
 	className: "target-hub-sheet-groups",
@@ -87,6 +88,7 @@ export const groupsRecipe = defineSlotRecipe({
 			},
 		},
 		selectContent: {
+			zIndex: TARGET_HUB_Z_INDEX + 4,
 			borderColor: "whiteAlpha.180",
 			bg: "rgba(9, 15, 28, 0.98)",
 			boxShadow: "0 18px 42px rgba(2, 8, 23, 0.48)",

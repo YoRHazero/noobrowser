@@ -23,6 +23,10 @@ import { groupsRecipe } from "./Groups.recipe";
 import { ALL_GROUPS_VALUE, useGroups } from "./useGroups";
 
 const GROUP_ACTION_ICON_SIZE = 14;
+const ALL_GROUP_OPTION = {
+	label: "All",
+	value: ALL_GROUPS_VALUE,
+};
 
 interface GroupTagPopoverProps {
 	title: string;
@@ -159,13 +163,15 @@ export default function Groups() {
 	const groupCollection = useMemo(
 		() =>
 			createListCollection({
-				items: model.groupOptions.map((option) => ({
-					label:
-						option.value === ALL_GROUPS_VALUE
-							? option.label
-							: `${option.label} (${option.memberCount})`,
-					value: option.value,
-				})),
+				items: [
+					ALL_GROUP_OPTION,
+					...model.groupOptions
+						.filter((option) => option.value !== ALL_GROUPS_VALUE)
+						.map((option) => ({
+							label: `${option.label} (${option.memberCount})`,
+							value: option.value,
+						})),
+				],
 			}),
 		[model.groupOptions],
 	);

@@ -24,15 +24,21 @@ export function useEditorHeaderModel(): EditorHeaderModel {
 			resetCreateDraft: state.resetCreateDraft,
 		})),
 	);
-	const { activeSourceId, sources, clearActiveSource, createSource } =
-		useSourceStore(
-			useShallow((state) => ({
-				activeSourceId: state.activeSourceId,
-				sources: state.sources,
-				clearActiveSource: state.clearActiveSource,
-				createSource: state.createSource,
-			})),
-		);
+	const {
+		activeSourceId,
+		selectedGroup,
+		sources,
+		clearActiveSource,
+		createSource,
+	} = useSourceStore(
+		useShallow((state) => ({
+			activeSourceId: state.activeSourceId,
+			selectedGroup: state.selectedGroup,
+			sources: state.sources,
+			clearActiveSource: state.clearActiveSource,
+			createSource: state.createSource,
+		})),
+	);
 
 	const activeSource =
 		sources.find((source) => source.id === activeSourceId) ?? null;
@@ -59,6 +65,7 @@ export function useEditorHeaderModel(): EditorHeaderModel {
 
 			createSource({
 				label: createDraft.label.trim() || undefined,
+				tags: selectedGroup ? [selectedGroup] : [],
 				position: {
 					ra: Number(createDraft.position.ra),
 					dec: Number(createDraft.position.dec),
