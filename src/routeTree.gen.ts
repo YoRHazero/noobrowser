@@ -10,7 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as WfssRouteImport } from './routes/wfss'
-import { Route as TestRouteImport } from './routes/test'
+import { Route as SedRouteImport } from './routes/sed'
 import { Route as CatalogRouteImport } from './routes/catalog'
 import { Route as IndexRouteImport } from './routes/index'
 
@@ -19,9 +19,9 @@ const WfssRoute = WfssRouteImport.update({
   path: '/wfss',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TestRoute = TestRouteImport.update({
-  id: '/test',
-  path: '/test',
+const SedRoute = SedRouteImport.update({
+  id: '/sed',
+  path: '/sed',
   getParentRoute: () => rootRouteImport,
 } as any)
 const CatalogRoute = CatalogRouteImport.update({
@@ -38,34 +38,34 @@ const IndexRoute = IndexRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/test': typeof TestRoute
+  '/sed': typeof SedRoute
   '/wfss': typeof WfssRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/test': typeof TestRoute
+  '/sed': typeof SedRoute
   '/wfss': typeof WfssRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/catalog': typeof CatalogRoute
-  '/test': typeof TestRoute
+  '/sed': typeof SedRoute
   '/wfss': typeof WfssRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/catalog' | '/test' | '/wfss'
+  fullPaths: '/' | '/catalog' | '/sed' | '/wfss'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/catalog' | '/test' | '/wfss'
-  id: '__root__' | '/' | '/catalog' | '/test' | '/wfss'
+  to: '/' | '/catalog' | '/sed' | '/wfss'
+  id: '__root__' | '/' | '/catalog' | '/sed' | '/wfss'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   CatalogRoute: typeof CatalogRoute
-  TestRoute: typeof TestRoute
+  SedRoute: typeof SedRoute
   WfssRoute: typeof WfssRoute
 }
 
@@ -78,11 +78,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof WfssRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/test': {
-      id: '/test'
-      path: '/test'
-      fullPath: '/test'
-      preLoaderRoute: typeof TestRouteImport
+    '/sed': {
+      id: '/sed'
+      path: '/sed'
+      fullPath: '/sed'
+      preLoaderRoute: typeof SedRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/catalog': {
@@ -105,7 +105,7 @@ declare module '@tanstack/react-router' {
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   CatalogRoute: CatalogRoute,
-  TestRoute: TestRoute,
+  SedRoute: SedRoute,
   WfssRoute: WfssRoute,
 }
 export const routeTree = rootRouteImport

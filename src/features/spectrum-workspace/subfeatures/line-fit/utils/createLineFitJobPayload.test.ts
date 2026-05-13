@@ -182,7 +182,7 @@ describe("line fit job payload", () => {
 		).toEqual([3, 2]);
 	});
 
-	it("builds the fit body from source metadata and extraction params", () => {
+	it("builds the fit body from source metadata and MCMC job defaults", () => {
 		const fit = createLineFitJobConfigurations(
 			[
 				{
@@ -202,10 +202,8 @@ describe("line fit job payload", () => {
 			extraction: {
 				extraction_config: {
 					aperture_size: 5,
-					wavelength_range: {
-						min: 1,
-						max: 4,
-					},
+					offset: 0,
+					extract_mode: "GRISMR",
 				},
 				source_meta: {
 					source_id: "src-1",
@@ -222,28 +220,56 @@ describe("line fit job payload", () => {
 		});
 	});
 
-	it("does not build a body without extraction params or fit configurations", () => {
+	it("allows MCMC job settings to override extraction defaults", () => {
+		const fit = createLineFitJobConfigurations(
+			[
+				{
+					id: "config-1",
+					name: "single gaussian",
+					models: [createGaussianModel()],
+				},
+			],
+			["config-1"],
+		);
+		const body = createLineFitJobBody({
+			source: createSource(),
+			fit,
+			jobSettings: {
+				apertureSize: 7,
+				offset: -2,
+				extractMode: "GRISMC",
+			},
+		});
+
+		expect(body?.extraction.extraction_config).toMatchObject({
+			aperture_size: 7,
+			offset: -2,
+			extract_mode: "GRISMC",
+		});
+	});
+
+	it("does not build a body without fit configurations or valid job settings", () => {
 		expect(
 			createLineFitJobBody({
-				source: createSource({
-					spectrum: {
-						status: "idle",
-						extractionParams: null,
-					},
-				}),
-				fit: [
-					{
-						model_name: "single gaussian",
-						models: [],
-					},
-				],
+				source: createSource(),
+				fit: [],
 			}),
 		).toBeNull();
 
 		expect(
 			createLineFitJobBody({
 				source: createSource(),
-				fit: [],
+				fit: [
+					{
+						model_name: "single gaussian",
+						models: [],
+					},
+				],
+				jobSettings: {
+					apertureSize: 0,
+					offset: 0,
+					extractMode: "GRISMR",
+				},
 			}),
 		).toBeNull();
 	});

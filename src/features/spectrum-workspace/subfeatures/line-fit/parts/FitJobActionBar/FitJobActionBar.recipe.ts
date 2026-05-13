@@ -8,8 +8,19 @@ export const fitJobActionBarRecipe = defineSlotRecipe({
 		"badge",
 		"statusText",
 		"detailText",
+		"actionGroup",
 		"submitWrap",
-		"submitButton",
+		"iconButton",
+		"popoverContent",
+		"popoverHeader",
+		"popoverTitle",
+		"popoverBody",
+		"fieldGrid",
+		"fieldRoot",
+		"modeFieldRoot",
+		"fieldLabel",
+		"modeGroup",
+		"resetButton",
 	],
 	base: {
 		root: {
@@ -46,12 +57,71 @@ export const fitJobActionBarRecipe = defineSlotRecipe({
 			color: "fg.muted",
 			lineClamp: 1,
 		},
+		actionGroup: {
+			display: "inline-flex",
+			alignItems: "center",
+			gap: 1,
+			flex: "0 0 auto",
+		},
 		submitWrap: {
 			display: "inline-flex",
 			flex: "0 0 auto",
 		},
-		submitButton: {
-			minW: "5.25rem",
+		iconButton: {
+			w: 7,
+			h: 7,
+			minW: 7,
+			flex: "0 0 auto",
+		},
+		popoverContent: {
+			w: "18rem",
+			maxW: "calc(100vw - 2rem)",
+			borderRadius: "md",
+			boxShadow: "lg",
+		},
+		popoverHeader: {
+			display: "flex",
+			alignItems: "center",
+			justifyContent: "space-between",
+			gap: 3,
+			px: 3,
+			py: 2,
+			borderBottomWidth: "1px",
+			borderColor: "border.muted",
+		},
+		popoverTitle: {
+			fontSize: "xs",
+			fontWeight: "semibold",
+			color: "fg",
+		},
+		popoverBody: {
+			px: 3,
+			py: 3,
+		},
+		fieldGrid: {
+			display: "grid",
+			gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+			gap: 3,
+		},
+		fieldRoot: {
+			gap: 1,
+		},
+		modeFieldRoot: {
+			gap: 1,
+			gridColumn: "1 / -1",
+		},
+		fieldLabel: {
+			fontSize: "2xs",
+			fontWeight: "medium",
+			color: "fg.muted",
+		},
+		modeGroup: {
+			display: "grid",
+			gridTemplateColumns: "repeat(2, minmax(0, 1fr))",
+			gap: 1,
+		},
+		resetButton: {
+			alignSelf: "flex-end",
 		},
 	},
 	variants: {

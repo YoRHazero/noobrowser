@@ -11,8 +11,8 @@ export interface EditorIdentityModel {
 	isDetail: boolean;
 	labelValue: string;
 	idValue: string;
-	draftLabel: string;
 	onLabelChange: (value: string) => void;
+	onLabelBlur: () => void;
 }
 
 export interface EditorSkyPositionModel {

@@ -17,9 +17,8 @@ export default function Header() {
 					<CLink asChild fontWeight="semibold">
 						<RouterLink to="/catalog">Catalog</RouterLink>
 					</CLink>
-
 					<CLink asChild fontWeight="semibold">
-						<RouterLink to="/test">Test</RouterLink>
+						<RouterLink to="/sed">Sed</RouterLink>
 					</CLink>
 				</HStack>
 				<ColorModeButton />

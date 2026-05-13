@@ -1,5 +1,6 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useSourceStore } from "@/stores/source";
 import { useEditorStore } from "../../../store";
@@ -21,24 +22,62 @@ export function useEditorIdentityModel(): {
 			setCreateDraftField: state.setCreateDraftField,
 		})),
 	);
-	const { activeSourceId, sources } = useSourceStore(
+	const { activeSourceId, sources, setSourceLabel } = useSourceStore(
 		useShallow((state) => ({
 			activeSourceId: state.activeSourceId,
 			sources: state.sources,
+			setSourceLabel: state.setSourceLabel,
 		})),
 	);
 
 	const activeSource =
 		sources.find((source) => source.id === activeSourceId) ?? null;
 	const isDetail = editorMode === "detail" && activeSource !== null;
+	const activeSourceLabel = activeSource?.label ?? "";
+	const activeSourceDraftKey = activeSource
+		? `${activeSource.id}:${activeSourceLabel}`
+		: "";
+	const [detailLabelDraft, setDetailLabelDraft] = useState(activeSourceLabel);
+
+	useEffect(() => {
+		if (!activeSourceDraftKey) {
+			setDetailLabelDraft("");
+			return;
+		}
+
+		setDetailLabelDraft(activeSourceLabel);
+	}, [activeSourceDraftKey, activeSourceLabel]);
+
+	const handleLabelChange = (value: string) => {
+		if (isDetail) {
+			setDetailLabelDraft(value);
+			return;
+		}
+
+		setCreateDraftField("label", value);
+	};
+
+	const handleLabelBlur = () => {
+		if (!isDetail || !activeSource) {
+			return;
+		}
+
+		const nextLabel = detailLabelDraft.trim() || undefined;
+		if (nextLabel === activeSource.label) {
+			return;
+		}
+
+		setDetailLabelDraft(nextLabel ?? "");
+		setSourceLabel(activeSource.id, nextLabel);
+	};
 
 	return {
 		identity: {
 			isDetail,
-			labelValue: isDetail ? (activeSource.label ?? "") : createDraft.label,
+			labelValue: isDetail ? detailLabelDraft : createDraft.label,
 			idValue: isDetail ? activeSource.id : "Auto",
-			draftLabel: createDraft.label,
-			onLabelChange: (value: string) => setCreateDraftField("label", value),
+			onLabelChange: handleLabelChange,
+			onLabelBlur: handleLabelBlur,
 		},
 		skyPosition: {
 			isDetail,

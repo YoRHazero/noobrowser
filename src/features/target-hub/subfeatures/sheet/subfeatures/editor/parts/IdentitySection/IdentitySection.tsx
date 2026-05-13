@@ -22,20 +22,14 @@ export function IdentitySection({ identity }: IdentitySectionProps) {
 				/>
 			</EditorField>
 			<EditorField label="Label">
-				{identity.isDetail ? (
-					<ReadonlyFieldValue
-						value={identity.labelValue || EDITOR_EMPTY_VALUE}
-						tone="default"
-					/>
-				) : (
-					<Input
-						aria-label="Source label"
-						value={identity.draftLabel}
-						placeholder="Optional"
-						css={styles.editableField}
-						onChange={(event) => identity.onLabelChange(event.target.value)}
-					/>
-				)}
+				<Input
+					aria-label="Source label"
+					value={identity.labelValue}
+					placeholder={EDITOR_EMPTY_VALUE}
+					css={styles.editableField}
+					onChange={(event) => identity.onLabelChange(event.target.value)}
+					onBlur={identity.onLabelBlur}
+				/>
 			</EditorField>
 		</Box>
 	);

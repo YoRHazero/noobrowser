@@ -16,9 +16,14 @@ function resolveGroupId(value: string | null | undefined): number | null {
 	return Number.isFinite(parsedValue) ? parsedValue : null;
 }
 
+const DEFAULT_MCMC_APERTURE_SIZE = 5;
+const DEFAULT_MCMC_OFFSET = 0;
+const DEFAULT_MCMC_EXTRACT_MODE = "GRISMR";
+
 export function createLineFitJobBody({
 	source,
 	fit,
+	jobSettings,
 }: {
 	source: {
 		id: string;
@@ -33,26 +38,25 @@ export function createLineFitJobBody({
 			footprintId: string | null;
 		};
 		z: number | null;
-		spectrum: {
-			extractionParams: {
-				apertureSize: number;
-				waveMinUm: number;
-				waveMaxUm: number;
-			} | null;
-		};
 	};
 	fit: FitConfiguration[];
+	jobSettings?: {
+		apertureSize?: number;
+		offset?: number;
+		extractMode?: "GRISMR" | "GRISMC";
+	};
 }): FitBodyRequest | null {
-	const extractionParams = source.spectrum.extractionParams;
-	if (!extractionParams || fit.length === 0) {
+	if (fit.length === 0) {
 		return null;
 	}
 
-	const { apertureSize, waveMinUm, waveMaxUm } = extractionParams;
+	const apertureSize = jobSettings?.apertureSize ?? DEFAULT_MCMC_APERTURE_SIZE;
+	const offset = jobSettings?.offset ?? DEFAULT_MCMC_OFFSET;
+	const extractMode = jobSettings?.extractMode ?? DEFAULT_MCMC_EXTRACT_MODE;
 	if (
 		!Number.isFinite(apertureSize) ||
-		!Number.isFinite(waveMinUm) ||
-		!Number.isFinite(waveMaxUm)
+		apertureSize <= 0 ||
+		!Number.isFinite(offset)
 	) {
 		return null;
 	}
@@ -61,10 +65,8 @@ export function createLineFitJobBody({
 		extraction: {
 			extraction_config: {
 				aperture_size: apertureSize,
-				wavelength_range: {
-					min: Math.min(waveMinUm, waveMaxUm),
-					max: Math.max(waveMinUm, waveMaxUm),
-				},
+				offset,
+				extract_mode: extractMode,
 			},
 			source_meta: {
 				source_id: source.id,

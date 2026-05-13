@@ -49,6 +49,23 @@ export interface FitJobActionBarModel {
 	isSubmitting: boolean;
 	tooltip: string;
 	onSubmit: () => void;
+	jobSettings: FitJobSettingsModel;
+}
+
+export type FitJobExtractMode = "GRISMR" | "GRISMC";
+
+export interface FitJobSettingsModel {
+	offsetValue: string;
+	apertureSizeValue: string;
+	extractMode: FitJobExtractMode;
+	offsetInvalid: boolean;
+	apertureSizeInvalid: boolean;
+	onOffsetChange: (value: string) => void;
+	onOffsetBlur: () => void;
+	onApertureSizeChange: (value: string) => void;
+	onApertureSizeBlur: () => void;
+	onExtractModeChange: (mode: FitJobExtractMode) => void;
+	onReset: () => void;
 }
 
 export interface FitModelListModel {

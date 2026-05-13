@@ -4,8 +4,13 @@ import { useCallback } from "react";
 import type { ImagePointerEvent, Point } from "@/canvas/imageCanvas";
 import { useSourcePositionFetcher } from "@/hooks/query/source/useSourcePosition";
 import { useGrismStore } from "@/stores/grism";
-import type { Source } from "@/stores/source";
+import type { Source, SourceVisibility } from "@/stores/source";
 import { useSourceStore } from "@/stores/source";
+
+const DEFAULT_SOURCE_VISIBILITY: SourceVisibility = {
+	overview: true,
+	inspector: true,
+};
 
 function isRightButtonContextMenu(event: ImagePointerEvent) {
 	return event.phase === "contextmenu" && event.button === 2;
@@ -21,7 +26,7 @@ async function createSourceAtPoint({
 	selectedFootprintId,
 	fetchSourcePosition,
 }: {
-	activeSource: Source;
+	activeSource: Source | null;
 	point: Point;
 	selectedFootprintId: string;
 	fetchSourcePosition: ReturnType<typeof useSourcePositionFetcher>;
@@ -40,7 +45,7 @@ async function createSourceAtPoint({
 	}
 
 	return useSourceStore.getState().createSource({
-		tags: activeSource.tags,
+		tags: activeSource?.tags ?? [],
 		position: {
 			x: sourcePosition.x,
 			y: sourcePosition.y,
@@ -52,7 +57,7 @@ async function createSourceAtPoint({
 			footprintId: sourcePosition.group_id ?? selectedFootprintId,
 		},
 		visibility: {
-			...activeSource.visibility,
+			...(activeSource?.visibility ?? DEFAULT_SOURCE_VISIBILITY),
 			inspector: true,
 		},
 	});
@@ -89,13 +94,15 @@ export function useImageInspectorPointerActions() {
 				return;
 			}
 
-			if (
-				event.target.kind !== "hit-plane" ||
-				!activeSource ||
-				selectedFootprintId === null
-			) {
+			if (event.target.kind !== "hit-plane" || selectedFootprintId === null) {
 				return;
 			}
+
+			if (!event.shiftKey && !activeSource) {
+				return;
+			}
+
+			const sourceIdToDelete = event.shiftKey ? null : activeSource?.id;
 
 			void createSourceAtPoint({
 				activeSource,
@@ -104,11 +111,16 @@ export function useImageInspectorPointerActions() {
 				fetchSourcePosition,
 			})
 				.then((createdSource) => {
-					if (!createdSource || event.shiftKey) {
+					if (!createdSource) {
 						return;
 					}
 
-					useSourceStore.getState().deleteSource(activeSource.id);
+					const latestSourceStore = useSourceStore.getState();
+					latestSourceStore.setActiveSourceId(createdSource.id);
+
+					if (sourceIdToDelete) {
+						latestSourceStore.deleteSource(sourceIdToDelete);
+					}
 				})
 				.catch((error: unknown) => {
 					console.error("Failed to create image-inspector source", error);

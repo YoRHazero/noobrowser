@@ -5,7 +5,6 @@ import { ColorModeButton } from "@/components/ui/color-mode";
 const navItems = [
 	{ label: "Home", to: "/" },
 	{ label: "Inspector", to: "/inspector" },
-	{ label: "Test", to: "/test" },
 ];
 
 export default function Header() {
