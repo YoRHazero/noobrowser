@@ -1,8 +1,8 @@
 import type { StateCreator } from "zustand";
-import type { RGBSet, NormParams } from "@/types/common";
-import type { CutoutParams, CounterpartPosition } from "./types";
-import { clamp } from "@/utils/projection";
+import type { NormParams, RGBSet } from "@/types/common";
 import type { InspectorState } from "./index";
+import type { CounterpartPosition, CutoutParams } from "./types";
+import { clamp } from "./utils";
 
 export interface CounterpartSlice {
 	availableFilters: string[];

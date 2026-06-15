@@ -4,7 +4,7 @@ import { useDrag } from "@use-gesture/react";
 import { memo, useEffect, useLayoutEffect, useMemo, useState } from "react";
 import type { OrthographicCamera } from "three";
 import { useShallow } from "zustand/react/shallow";
-import { useGrismStore } from "@/stores/image";
+import { useInspectorStore } from "@/stores/inspector";
 
 const RoiIndicator = memo(function RoiIndicator({
 	x,
@@ -96,13 +96,14 @@ function CollapseRegionIndicator({
 	dashed?: boolean;
 }) {
 	const { camera, size } = useThree();
-	const { roiState, roiCollapseWindow, setRoiCollapseWindow } = useGrismStore(
-		useShallow((state) => ({
-			roiState: state.roiState,
-			roiCollapseWindow: state.roiCollapseWindow,
-			setRoiCollapseWindow: state.setRoiCollapseWindow,
-		})),
-	);
+	const { roiState, roiCollapseWindow, setRoiCollapseWindow } =
+		useInspectorStore(
+			useShallow((state) => ({
+				roiState: state.roiState,
+				roiCollapseWindow: state.roiCollapseWindow,
+				setRoiCollapseWindow: state.setRoiCollapseWindow,
+			})),
+		);
 
 	const geometryData = useMemo(() => {
 		const { waveMin, waveMax, spatialMin, spatialMax } = roiCollapseWindow;
