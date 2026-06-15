@@ -74,8 +74,8 @@ export function SourceCard({
 				<Text css={styles.sourceTitle}>{displayName}</Text>
 				<Text css={styles.helperText}>ID: {source.id}</Text>
 				<Text css={styles.helperText}>
-					RA/Dec: {formatPositionValue(source.position.ra, 5)} /{" "}
-					{formatPositionValue(source.position.dec, 5)}
+					RA/Dec: {formatPositionValue(source.position.ra, 6)} /{" "}
+					{formatPositionValue(source.position.dec, 6)}
 				</Text>
 				<Text css={styles.helperText}>
 					X/Y: {formatPositionValue(source.position.x, 1)} /{" "}

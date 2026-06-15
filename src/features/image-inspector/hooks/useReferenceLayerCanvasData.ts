@@ -2,8 +2,10 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { LayerModel, RasterStyle } from "@/canvas/imageCanvas";
-import type { CounterpartFootprint } from "@/hooks/query/image/schemas";
-import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
+import {
+	useCounterpartFootprint,
+	useCounterpartImage,
+} from "@/hooks/query/image";
 import { IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS } from "../shared/constants";
 import type { ReferenceLayerFilterRgb } from "../shared/types";
 import { useImageInspectorStore } from "../store";
@@ -41,34 +43,16 @@ export function useReferenceLayerCanvasData(): ReferenceLayerCanvasData {
 		(state) => state.referenceCounterpartFetchRequest,
 	);
 	const filterRgb = referenceRequest?.filterRgb ?? EMPTY_FILTER_RGB;
-	const counterpartImageQuery = useQueryAxiosGet<Blob>({
-		queryKey: [
-			"image-inspector",
-			"counterpart-image",
-			referenceRequest?.footprintId ?? null,
-			filterRgb,
-			IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS,
-		],
-		path: `/image/counterpart_image/${referenceRequest?.footprintId ?? ""}`,
-		axiosGetParams: {
-			params: {
-				...filterRgb,
-				...IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS,
-			},
-			responseType: "blob",
-		},
+	const counterpartImageQuery = useCounterpartImage({
+		selectedFootprintId: referenceRequest?.footprintId ?? null,
+		r: filterRgb.r,
+		g: filterRgb.g,
+		b: filterRgb.b,
+		normParams: IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS,
 		enabled: false,
-		queryOptions: {
-			gcTime: 1000 * 60,
-		},
 	});
-	const counterpartFootprintQuery = useQueryAxiosGet<CounterpartFootprint>({
-		queryKey: [
-			"image-inspector",
-			"counterpart-footprint",
-			referenceRequest?.footprintId ?? null,
-		],
-		path: `/image/counterpart_footprint/${referenceRequest?.footprintId ?? ""}`,
+	const counterpartFootprintQuery = useCounterpartFootprint({
+		selectedFootprintId: referenceRequest?.footprintId ?? null,
 		enabled: Boolean(referenceRequest?.footprintId),
 	});
 	const [bitmapState, setBitmapState] = useState<BitmapState | null>(null);

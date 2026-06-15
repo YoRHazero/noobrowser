@@ -3,7 +3,7 @@
 import { useEffect, useRef } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { toaster } from "@/components/ui/toaster";
-import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
+import { useCounterpartImage } from "@/hooks/query/image";
 import { IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS } from "../shared/constants";
 import type { ReferenceLayerFilterRgb } from "../shared/types";
 import { useImageInspectorStore } from "../store";
@@ -31,26 +31,13 @@ export default function CounterpartImageRuntime() {
 	);
 	const handledRequestIdRef = useRef<number | null>(null);
 	const filterRgb = request?.filterRgb ?? EMPTY_FILTER_RGB;
-	const counterpartImageQuery = useQueryAxiosGet<Blob>({
-		queryKey: [
-			"image-inspector",
-			"counterpart-image",
-			request?.footprintId ?? null,
-			filterRgb,
-			IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS,
-		],
-		path: `/image/counterpart_image/${request?.footprintId ?? ""}`,
-		axiosGetParams: {
-			params: {
-				...filterRgb,
-				...IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS,
-			},
-			responseType: "blob",
-		},
+	const counterpartImageQuery = useCounterpartImage({
+		selectedFootprintId: request?.footprintId ?? null,
+		r: filterRgb.r,
+		g: filterRgb.g,
+		b: filterRgb.b,
+		normParams: IMAGE_INSPECTOR_COUNTERPART_NORM_PARAMS,
 		enabled: false,
-		queryOptions: {
-			gcTime: 1000 * 60,
-		},
 	});
 
 	useEffect(() => {

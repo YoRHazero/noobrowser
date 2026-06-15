@@ -82,10 +82,10 @@ export function useEditorIdentityModel(): {
 		skyPosition: {
 			isDetail,
 			raValue: isDetail
-				? formatPositionValue(activeSource.position.ra, 5)
+				? formatPositionValue(activeSource.position.ra, 6)
 				: createDraft.position.ra || EDITOR_EMPTY_VALUE,
 			decValue: isDetail
-				? formatPositionValue(activeSource.position.dec, 5)
+				? formatPositionValue(activeSource.position.dec, 6)
 				: createDraft.position.dec || EDITOR_EMPTY_VALUE,
 			draftRa: createDraft.position.ra,
 			draftDec: createDraft.position.dec,

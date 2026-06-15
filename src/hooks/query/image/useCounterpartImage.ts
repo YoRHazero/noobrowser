@@ -1,41 +1,34 @@
-import { useCounterpartStore } from "@/stores/image";
 import { useOverviewStore } from "@/stores/overview";
 import { useQueryAxiosGet } from "../useQueryAxiosGet";
 
 export function useCounterpartImage({
-	selectedFootprintId = null,
-	r = null,
-	g = null,
-	b = null,
+	selectedFootprintId,
+	r,
+	g,
+	b,
 	normParams,
 	enabled = false,
 }: {
 	selectedFootprintId?: string | null;
-	r?: string | null;
-	g?: string | null;
-	b?: string | null;
-	normParams?: Record<string, number> | undefined;
+	r: string;
+	g: string;
+	b: string;
+	normParams: Record<string, number>;
 	enabled?: boolean;
 }) {
 	const overviewSelectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const ZustandFilterRGB = useCounterpartStore((state) => state.filterRGB);
-	const ZustandCounterpartNorm = useCounterpartStore(
-		(state) => state.counterpartNorm,
-	);
-	const queryNormParams = normParams ?? ZustandCounterpartNorm;
-	const group_id = selectedFootprintId ?? overviewSelectedFootprintId;
-	const filterRGB = {
-		r: r ?? ZustandFilterRGB.r,
-		g: g ?? ZustandFilterRGB.g,
-		b: b ?? ZustandFilterRGB.b,
-	};
+	const group_id =
+		selectedFootprintId === undefined
+			? overviewSelectedFootprintId
+			: selectedFootprintId;
+	const filterRGB = { r, g, b };
 	const query = useQueryAxiosGet<Blob>({
-		queryKey: ["counterpart_image", group_id, filterRGB, queryNormParams],
+		queryKey: ["counterpart_image", group_id, filterRGB, normParams],
 		path: `/image/counterpart_image/${group_id}`,
 		axiosGetParams: {
-			params: { ...filterRGB, ...queryNormParams },
+			params: { ...filterRGB, ...normParams },
 			responseType: "blob",
 		},
 		enabled: enabled,

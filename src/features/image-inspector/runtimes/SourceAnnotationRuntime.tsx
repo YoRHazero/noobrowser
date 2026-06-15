@@ -5,7 +5,11 @@ import { useEffect, useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import type { Point, Rect, SourceAnnotation } from "@/canvas/imageCanvas";
 import { isPointInRect, normalizeRect } from "@/canvas/imageCanvas/utils/rect";
-import { useGrismData, useGrismOffsets } from "@/hooks/query/image";
+import {
+	useCounterpartFootprint,
+	useGrismData,
+	useGrismOffsets,
+} from "@/hooks/query/image";
 import type {
 	CounterpartFootprint,
 	GrismData,
@@ -15,7 +19,6 @@ import { useGrismFootprints } from "@/hooks/query/overview";
 import type { DispersionTrace } from "@/hooks/query/source/schemas";
 import { useDispersionTrace } from "@/hooks/query/source/useDispersionTrace";
 import { useSourcePosition } from "@/hooks/query/source/useSourcePosition";
-import { useQueryAxiosGet } from "@/hooks/query/useQueryAxiosGet";
 import { useGrismStore } from "@/stores/grism";
 import type { Source } from "@/stores/source";
 import { useSourceStore } from "@/stores/source";
@@ -193,9 +196,8 @@ export default function SourceAnnotationRuntime() {
 		basenameList,
 		enabled: false,
 	});
-	const footprintQuery = useQueryAxiosGet<CounterpartFootprint>({
-		queryKey: ["image-inspector", "counterpart-footprint", selectedFootprintId],
-		path: `/image/counterpart_footprint/${selectedFootprintId ?? ""}`,
+	const footprintQuery = useCounterpartFootprint({
+		selectedFootprintId,
 		enabled: hasCurrentReferenceImage,
 	});
 	const referenceFrameRects = useMemo(
