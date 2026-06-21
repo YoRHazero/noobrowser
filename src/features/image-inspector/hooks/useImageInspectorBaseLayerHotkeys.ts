@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useHotkeys } from "react-hotkeys-hook";
 import { useGrismFootprints } from "@/hooks/query/overview";
-import { useGrismStore } from "@/stores/grism";
+import { useOverviewStore } from "@/stores/overview";
 import { useImageInspectorStore } from "../store";
 import { getIncludedFiles } from "../utils/imageInspectorDataUtils";
 
@@ -36,7 +36,7 @@ function getNextBasename({
 }
 
 export function useImageInspectorBaseLayerHotkeys() {
-	const selectedFootprintId = useGrismStore(
+	const selectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
 	const setActiveBasename = useImageInspectorStore(

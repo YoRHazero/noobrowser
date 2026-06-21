@@ -6,10 +6,9 @@ import type {
 	MapCanvasModel,
 	MapCanvasSourceModel,
 } from "@/canvas/mapCanvas";
-import { useGrismStore } from "@/stores/grism";
 import { type Source, useSourceStore } from "@/stores/source";
 import type { OverviewFootprintRecord } from "../shared/types";
-import { useOverviewUiStore } from "../store";
+import { useOverviewStore, useOverviewUiStore } from "../store";
 import { useOverviewFootprints } from "./useOverviewFootprints";
 
 function isFiniteCoordinate(value: number | null): value is number {
@@ -72,7 +71,7 @@ export function useOverviewMapCanvas(): UseOverviewMapCanvasResult {
 		selectedFootprintId,
 		setSelectedFootprintId,
 		clearFootprintSelection,
-	} = useGrismStore(
+	} = useOverviewStore(
 		useShallow((state) => ({
 			selectedFootprintId: state.selectedFootprintId,
 			setSelectedFootprintId: state.setSelectedFootprintId,

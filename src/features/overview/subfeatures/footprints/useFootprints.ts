@@ -1,8 +1,7 @@
 import { useMemo } from "react";
-import { useGrismStore } from "@/stores/grism";
 import { useOverviewFootprints } from "../../hooks";
 import type { OverviewFootprintRecord } from "../../shared/types";
-import { useOverviewUiStore } from "../../store";
+import { useOverviewStore, useOverviewUiStore } from "../../store";
 
 export interface FootprintsStatePanelViewModel {
 	title: string;
@@ -25,13 +24,13 @@ export interface UseFootprintsResult {
 
 export function useFootprints(): UseFootprintsResult {
 	const { footprints, isLoading, isError, error } = useOverviewFootprints();
-	const selectedFootprintId = useGrismStore(
+	const selectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
-	const setSelectedFootprintId = useGrismStore(
+	const setSelectedFootprintId = useOverviewStore(
 		(state) => state.setSelectedFootprintId,
 	);
-	const clearFootprintSelection = useGrismStore(
+	const clearFootprintSelection = useOverviewStore(
 		(state) => state.clearFootprintSelection,
 	);
 	const precision = useOverviewUiStore(

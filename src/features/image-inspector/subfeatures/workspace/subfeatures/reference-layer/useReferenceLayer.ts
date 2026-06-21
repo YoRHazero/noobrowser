@@ -2,7 +2,7 @@
 
 import { useShallow } from "zustand/react/shallow";
 import { useClearImageFilters } from "@/hooks/query/overview";
-import { useGrismStore } from "@/stores/grism";
+import { useOverviewStore } from "@/stores/overview";
 import type {
 	ReferenceLayerMode,
 	ReferenceLayerRgbChannel,
@@ -29,7 +29,7 @@ export interface ReferenceLayerViewModel {
 }
 
 export function useReferenceLayer(): ReferenceLayerViewModel {
-	const footprintId = useGrismStore((state) => state.selectedFootprintId);
+	const footprintId = useOverviewStore((state) => state.selectedFootprintId);
 	const {
 		filterRgb,
 		mode,

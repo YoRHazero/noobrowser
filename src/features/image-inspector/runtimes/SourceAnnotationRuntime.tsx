@@ -19,7 +19,7 @@ import { useGrismFootprints } from "@/hooks/query/overview";
 import type { DispersionTrace } from "@/hooks/query/source/schemas";
 import { useDispersionTrace } from "@/hooks/query/source/useDispersionTrace";
 import { useSourcePosition } from "@/hooks/query/source/useSourcePosition";
-import { useGrismStore } from "@/stores/grism";
+import { useOverviewStore } from "@/stores/overview";
 import type { Source } from "@/stores/source";
 import { useSourceStore } from "@/stores/source";
 import { useImageInspectorStore } from "../store";
@@ -149,7 +149,7 @@ function createTracePoints(
 }
 
 export default function SourceAnnotationRuntime() {
-	const selectedFootprintId = useGrismStore(
+	const selectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
 	const { sources, activeSourceId } = useSourceStore(

@@ -9,7 +9,7 @@ import {
 	useGrismOffsets,
 } from "@/hooks/query/image";
 import { useGrismFootprints } from "@/hooks/query/overview";
-import { useGrismStore } from "@/stores/grism";
+import { useOverviewStore } from "@/stores/overview";
 import { useImageInspectorStore } from "../store";
 import {
 	getErrorMessage,
@@ -25,7 +25,7 @@ export interface BaseLayerCanvasData {
 }
 
 export function useBaseLayerCanvasData(): BaseLayerCanvasData {
-	const selectedFootprintId = useGrismStore(
+	const selectedFootprintId = useOverviewStore(
 		(state) => state.selectedFootprintId,
 	);
 	const { activeBasenameDraft, baseColorMap, baseNorm } =

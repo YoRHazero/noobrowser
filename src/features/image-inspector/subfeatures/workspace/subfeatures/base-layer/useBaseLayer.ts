@@ -3,7 +3,7 @@
 import { useMemo } from "react";
 import { useShallow } from "zustand/react/shallow";
 import { useGrismFootprints } from "@/hooks/query/overview";
-import { useGrismStore } from "@/stores/grism";
+import { useOverviewStore } from "@/stores/overview";
 import type {
 	BaseLayerColorMap,
 	BaseLayerNormRangeMode,
@@ -59,7 +59,7 @@ export interface BaseLayerViewModel {
 }
 
 export function useBaseLayer(): BaseLayerViewModel {
-	const footprintId = useGrismStore((state) => state.selectedFootprintId);
+	const footprintId = useOverviewStore((state) => state.selectedFootprintId);
 	const {
 		activeBasenameDraft,
 		mainColorMap,

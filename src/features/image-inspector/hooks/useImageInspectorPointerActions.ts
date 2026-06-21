@@ -3,7 +3,7 @@
 import { useCallback } from "react";
 import type { ImagePointerEvent, Point } from "@/canvas/imageCanvas";
 import { useSourcePositionFetcher } from "@/hooks/query/source/useSourcePosition";
-import { useGrismStore } from "@/stores/grism";
+import { useOverviewStore } from "@/stores/overview";
 import type { Source, SourceVisibility } from "@/stores/source";
 import { useSourceStore } from "@/stores/source";
 
@@ -73,7 +73,8 @@ export function useImageInspectorPointerActions() {
 			}
 
 			const sourceStore = useSourceStore.getState();
-			const selectedFootprintId = useGrismStore.getState().selectedFootprintId;
+			const selectedFootprintId =
+				useOverviewStore.getState().selectedFootprintId;
 			const activeSource =
 				sourceStore.sources.find(
 					(source) => source.id === sourceStore.activeSourceId,
