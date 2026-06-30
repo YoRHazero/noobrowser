@@ -372,6 +372,7 @@ Allowed:
 Forbidden:
 
 - hook input / output types
+- view model types assembled by `use<Unit>.ts` / `hooks/useXxx.ts` and passed to parts
 - component props
 - wrapped query result types
 - local types that only serve one part / subfeature
@@ -414,6 +415,30 @@ Export rules:
 - Export from `hooks/index.ts` only when the current Unit intentionally provides a hook for child subfeatures.
 - A child subfeature `use<Child>.ts` may call parent public hooks only through the parent Unit's `hooks/index.ts`; it must not import parent private `hooks/useXxx.ts` files.
 - If a child needs an ancestor Unit hook, prefer re-exporting or wrapping it through the nearest parent Unit's own `hooks/index.ts` to avoid coupling the child to ancestor internals.
+
+### hook view model types
+
+When a view model type produced by `use<Unit>.ts` or `hooks/useXxx.ts` needs to be reused by multiple files, it should live in a local type file in the current Unit's hook layer, not in `shared/types.ts`, and you should not export many types from the hook implementation files.
+
+Recommended:
+
+```text
+<Unit>/
+  use<Unit>.ts
+  hooks/
+    <unit>Models.ts
+    use<Unit>HeaderModel.ts
+    use<Unit>ActionsModel.ts
+```
+
+Rules:
+
+- `<unit>Models.ts` only holds type / interface definitions related to the current Unit's hook composition. It contains no runtime code, calls no hooks, reads no store, and holds no constants.
+- `use<Unit>.ts`, `hooks/useXxx.ts`, and the current Unit's `parts/` may consume types from `<unit>Models.ts` via `import type`.
+- `parts/` should not import types from hook implementation files such as `hooks/useXxx.ts`; if a part needs such a type, move the type into `<unit>Models.ts` first.
+- A hook implementation file may keep local types that only serve itself; if a type is used by multiple files outside the hook, move it to `<unit>Models.ts`.
+- `<unit>Models.ts` is an internal type file of the current Unit by default and is not exported from `hooks/index.ts`. Only export types through `hooks/index.ts` when the current Unit intentionally exposes them as a public contract for child subfeatures.
+- Do not create model-type barrel files spanning multiple Units; low-coupling business types shared across Units belong in the nearest common parent Unit's `shared/types.ts`.
 
 ## `use<Unit>.ts`
 
@@ -514,6 +539,7 @@ Good store-owned data:
 - Reusable non-business UI: `components/`.
 - Recipes follow concrete UI owners; do not create `recipes/` directories.
 - Current Unit lifecycle / behavior split: `hooks/useXxx.ts`.
+- View model types assembled by the current Unit's hooks: `hooks/<unit>Models.ts`, not `shared/types.ts`, and do not export them everywhere from hook implementation files.
 - Non-UI process with a lifecycle across subfeatures: top-level `runtimes/`.
 - Runtimes are self-contained by default; do not split `useRuntime` hooks for a single runtime.
 - `use<Unit>.ts` only composes; it must not directly own effects / timers / listeners.
@@ -535,6 +561,9 @@ Good store-owned data:
 - Does `index.tsx` call `use<Unit>()` or inject Unit model props into `<Unit />`?
 - Does `<Unit>.tsx` directly import `hooks/` instead of going through `use<Unit>.ts`?
 - Does `<Unit>.tsx` receive a whole model produced by `use<Unit>.ts` instead of calling `use<Unit>()` itself?
+- Were hook view model types incorrectly placed in `shared/types.ts`?
+- Do `parts/` import types from hook implementation files such as `hooks/useXxx.ts` instead of `import type` from `hooks/<unit>Models.ts`?
+- Has `hooks/<unit>Models.ts` degenerated into a cross-Unit type barrel, or does it contain runtime code / store / constants?
 - Was an empty `store/` created preemptively without actual slices / selectors?
 - Does every Unit with `store/` have `store/index.ts`?
 - Did a nested Unit `store/index.ts` incorrectly create a new store?

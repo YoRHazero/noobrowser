@@ -2,9 +2,13 @@
 
 ## Purpose
 
-This document defines the architecture rules for reusable canvas / WebGL / Three.js visualization units under `src/canvas/*`.
+This document defines the architecture rules for reusable interactive visualization units under `src/canvas/*`.
 
-Canvas rendering has its own structure: scene infrastructure, layers, renderable objects, camera behavior, pointer resolution, and hit testing. These concepts should not be forced into the normal `parts/` / `components/` model used by feature components.
+Here `Canvas` is an architecture concept. It is not the same as the HTML `<canvas>` element, and not the same as `@react-three/fiber`'s `<Canvas>` component.
+
+A Canvas Unit represents a visualization surface that owns its own coordinate system, render layers, interaction resolution, and overlays. Its renderer may be SVG, Canvas 2D, Pixi, WebGL, Three.js, or any other rendering technology suited to the current visualization task.
+
+Interactive visualization rendering has its own internal structure: scene infrastructure, layers, renderable objects, coordinate / scale / viewport / camera behavior, pointer resolution, brush, hover, and hit testing. These concepts should not be forced into the normal `parts/` / `components/` model used by feature components.
 
 A Canvas Unit owns rendering mechanics. A parent feature owns business data composition.
 
@@ -30,11 +34,13 @@ Do not put reusable Canvas Units under:
 src/features/canvas/
 ```
 
-`canvas` is a rendering layer, not a business feature.
+`canvas` is an interactive visualization rendering layer, not a business feature.
 
 ## Naming
 
 Canvas Unit directories and root components should end with `Canvas`.
+
+The `Canvas` suffix signals that this unit follows Canvas Unit architecture rules. It does not mean the unit must use an HTML `<canvas>` internally. For example, an SVG / VisX implementation named `Spectrum1DCanvas` is still valid naming.
 
 Example:
 
@@ -42,9 +48,13 @@ Example:
 src/canvas/mapCanvas/
   MapCanvas.tsx
   useMapCanvas.ts
+
+src/canvas/spectrum1dCanvas/
+  Spectrum1DCanvas.tsx
+  useSpectrum1DCanvas.ts
 ```
 
-The suffix is intentional. It signals that this unit follows Canvas Unit rules, not Feature Component rules.
+If a unit is not an independent interactive visualization surface, but only a normal business panel or display fragment, it should not be placed in `src/canvas` just for reuse.
 
 ## Standard Structure
 
@@ -97,6 +107,8 @@ src/canvas/<canvasUnit>/
     index.ts
     interactionSlice.ts
 ```
+
+The file names above are only a structural example. For SVG / VisX spectrum-style units, you may use more semantic names such as `SpectrumLineLayer.tsx`, `BrushLayer.tsx`, `FitHandleLayer.tsx`, or `SpectrumTooltip.tsx`; they still follow the same `model` / `actions`, layer, object, overlay, and hook boundaries.
 
 Required files:
 
@@ -274,7 +286,7 @@ src/features/overview/useOverview.ts
   -> passes them to <MapCanvas model={model} actions={actions} />
 ```
 
-The Canvas Unit owns rendering behavior only.
+The Canvas Unit owns rendering behavior only, not the business data source.
 
 ## Private Store
 
@@ -381,19 +393,19 @@ Rules:
 
 ## `hooks/`
 
-`hooks/` contains Canvas Unit internal hooks that do not depend on the active Canvas renderer context.
+`hooks/` contains Canvas Unit internal hooks that do not depend on the current renderer context.
 
 Allowed:
 
 - overlay state hooks
 - tooltip view-model hooks
-- renderer-context-free derived state hooks
-- pure React lifecycle hooks that can safely run outside `<Canvas>`
+- renderer-context-free derived state hooks, for example scale / layout / slice / tooltip model derivation
+- pure React lifecycle hooks that can safely run outside the renderer root
 
 Forbidden:
 
-- any hook that requires the active Canvas renderer context, including renderer-specific hooks such as R3F's `useThree`, `useFrame`, `useLoader`, or `useGraph`
-- importing renderer context hooks, for example R3F context hooks from `@react-three/fiber`
+- calling any hook that requires the current renderer context, including R3F's `useThree`, `useFrame`, `useLoader`, or `useGraph`, Pixi renderer context hooks, or renderer-specific hooks bound to an SVG brush / pointer lifecycle
+- importing renderer context hooks, for example R3F context hooks from `@react-three/fiber`, or Pixi context hooks from `@pixi/react`
 - external business store reads
 - query hooks
 - mutation hooks
@@ -405,28 +417,31 @@ Hooks may read the Canvas Unit private store.
 
 Hooks may receive scene model slices as parameters from `use<CanvasUnit>.ts`.
 
-If a hook can only work when a component is mounted under `<Canvas>`, it must not live in `hooks/`; put it in `canvasHooks/`.
+If a hook can only work when a component is mounted under the current renderer root, or is semantically bound to the current renderer's interaction lifecycle, it must not live in `hooks/`; put it in `canvasHooks/`.
 
 ## `canvasHooks/`
 
-`canvasHooks/` contains hooks that require the active Canvas renderer context or are semantically tied to the Canvas render lifecycle.
+`canvasHooks/` contains hooks that require the current renderer context or are semantically tied to the Canvas Unit render / interaction lifecycle.
+
+Here `canvasHooks` uses the Canvas Unit architecture semantics; it does not mean the hook must depend on an HTML `<canvas>`. Renderer-bound logic such as SVG / VisX brushes, pointer capture, a Pixi application, or R3F camera / frame all belong in this directory.
 
 Allowed:
 
-- camera lifecycle hooks that need Canvas context
+- camera lifecycle hooks that need renderer context
 - pointer event hooks that read `gl.domElement`, camera, viewport, or renderer state
 - hit testing hooks that use renderer camera / viewport / frame lifecycle
-- projection / viewport hooks that need React or renderer lifecycle
+- hooks bound to SVG brush / pointer capture / hover resolution
+- projection / viewport / scale hooks that need React or renderer lifecycle
 - RAF loop hooks
-- internal animation state hooks tied to the Canvas render loop
+- internal animation state hooks tied to the Canvas Unit render loop
 
 Rules:
 
-- `canvasHooks/` is the only place where Canvas Unit code may define hooks that call renderer Canvas-context hooks, for example R3F's `useThree`, `useFrame`, `useLoader`, or `useGraph`.
-- `canvasHooks/` hooks may only be called by components mounted inside `<Canvas>` or by hooks in the same Canvas-internal call chain.
-- `<CanvasUnit>.tsx` must not call `canvasHooks/` hooks when it executes outside `<Canvas>`.
-- `use<CanvasUnit>.ts` must not call `canvasHooks/` hooks when it executes outside `<Canvas>`.
-- If Canvas-internal state must be shown by an overlay outside `<Canvas>`, a Canvas-internal component should publish that state through callbacks or the Canvas Unit private store.
+- `canvasHooks/` is the only place where Canvas Unit code may define renderer-context hooks, for example R3F's `useThree`, `useFrame`, `useLoader`, or `useGraph`, Pixi's `useApplication`, or brush / pointer hooks that only run safely inside an SVG interactive layer.
+- `canvasHooks/` hooks may only be called by components mounted inside the renderer root or by hooks in the same Canvas Unit internal call chain.
+- `<CanvasUnit>.tsx` must not call `canvasHooks/` hooks when it executes outside the renderer root.
+- `use<CanvasUnit>.ts` must not call `canvasHooks/` hooks when it executes outside the renderer root.
+- If Canvas-internal state must be shown by an overlay outside the renderer root, a Canvas-internal component should publish that state through callbacks or the Canvas Unit private store.
 - Shared state types used by both outer overlay hooks and `canvasHooks/` must live in `shared/types.ts`, not inside `canvasHooks/`.
 
 Forbidden:
@@ -501,12 +516,12 @@ Rules:
 - Objects must not import parent feature code.
 - Objects may import Canvas Unit public API types, shared types/constants, and utils.
 - Objects may call `canvasHooks/` hooks only when the effect is intrinsic to the object's rendering behavior.
-- Objects must not define or import renderer Canvas-context hooks directly, for example R3F's `useThree` / `useFrame`; context-bound hook logic belongs in `canvasHooks/`.
-- Objects should stay reusable within the Canvas Unit.
+- Objects must not define or import renderer-context hooks directly, for example R3F's `useThree` / `useFrame`, Pixi's `useApplication`, or SVG brush / pointer lifecycle hooks; context-bound hook logic belongs in `canvasHooks/`.
+- Objects should stay reusable as low-level renderable objects within the Canvas Unit.
 
 ## `overlays/`
 
-`overlays/` contains Canvas-owned DOM UI that is rendered above or around the canvas surface.
+`overlays/` contains Canvas-owned DOM UI that is rendered above or around the visualization surface.
 
 Allowed examples:
 
@@ -526,7 +541,7 @@ Rules:
 - DOM measurement needed by overlays, such as container rect reads, belongs in `hooks/`, not inline in `<CanvasUnit>.tsx`.
 - Overlays must not read external business stores or query hooks.
 - Overlays must not import parent feature internals.
-- Overlays must not call `canvasHooks/` or any renderer Canvas-context hook.
+- Overlays must not call `canvasHooks/` or any renderer-context hook.
 - If an overlay needs static DOM/CSS styling beyond the root recipe, it may own a sibling recipe file using the same recipe rules.
 
 ## `<CanvasUnit>.tsx`
@@ -536,7 +551,7 @@ Rules:
 Allowed:
 
 - call `use<CanvasUnit>()`
-- render the canvas root
+- render the visualization root
 - assemble `core/`, `layers/`, and `overlays/`
 - pass scene model slices and actions to layers / core components
 - use `<CanvasUnit>.recipe.ts` for directly owned root layout styles
@@ -566,8 +581,8 @@ Allowed:
 
 Forbidden:
 
-- calling `canvasHooks/` hooks when `use<CanvasUnit>.ts` executes outside `<Canvas>`
-- directly or indirectly calling renderer Canvas-context hooks outside `<Canvas>`, for example R3F's `useThree` / `useFrame`
+- calling `canvasHooks/` hooks when `use<CanvasUnit>.ts` executes outside the renderer root
+- directly or indirectly calling renderer-context hooks outside the renderer root, for example R3F's `useThree` / `useFrame`, Pixi's `useApplication`, or SVG brush / pointer lifecycle hooks
 - direct external business store reads
 - query hooks / mutation hooks
 - copying query results into Canvas Unit store
@@ -581,9 +596,9 @@ Canvas Units follow the same recipe rules as Feature Units.
 Rules:
 
 - Do not create a `recipes/` directory.
-- `<CanvasUnit>.tsx` may use sibling `<CanvasUnit>.recipe.ts`.
+- `<CanvasUnit>.tsx` may use a sibling `<CanvasUnit>.recipe.ts`.
 - A layer or object may own a sibling recipe only when it has significant static DOM/CSS styling.
-- Pure Three.js material / geometry values do not need recipe files.
+- Pure renderer values do not need recipe files, for example Three.js material / geometry, Pixi texture parameters, SVG path geometry, or scale domain / range.
 - TSX may pass runtime values such as coordinates, transforms, material colors, or CSS variables inline when they are rendering data.
 - Static DOM/CSS visual rules should live in recipes.
 
@@ -624,6 +639,8 @@ Examples:
 
 - Is the unit under `src/canvas/<canvasUnit>/`, not `src/features/canvas/`?
 - Does the directory and root component end with `Canvas`?
+- Is the unit an independent interactive visualization surface, not a normal business panel / part?
+- Do the docs and naming avoid misreading a Canvas Unit as requiring an HTML `<canvas>`?
 - Does `index.tsx` only expose the public entry and re-export API types?
 - Are public model/action types defined in `api.ts`?
 - Are business data and callbacks grouped into `model` and `actions` props?
@@ -631,9 +648,9 @@ Examples:
 - Is any Canvas Unit store private and limited to rendering / interaction state?
 - Are constants and internal types in `shared/`, not `utils/`?
 - Are public contract types in `api.ts`, not only in `shared/types.ts`?
-- Are renderer Canvas-context hooks isolated under `canvasHooks/`?
-- Does `hooks/` avoid renderer Canvas-context hooks, including R3F hooks such as `useThree`, `useFrame`, `useLoader`, and `useGraph`?
-- Does outer `use<CanvasUnit>.ts` avoid calling `canvasHooks/` when it runs outside `<Canvas>`?
+- Are renderer-context hooks isolated under `canvasHooks/`?
+- Does `hooks/` avoid renderer-context hooks, including R3F's `useThree`, `useFrame`, `useLoader`, and `useGraph`, Pixi's `useApplication`, and SVG brush / pointer lifecycle hooks?
+- Does outer `use<CanvasUnit>.ts` avoid calling `canvasHooks/` when it runs outside the renderer root?
 - Are utilities pure and exported through `utils/index.ts`?
 - Are scene infrastructure files in `core/`?
 - Are scene-level compositions in `layers/`?

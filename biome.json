@@ -38,5 +38,93 @@
 		"formatter": {
 			"quoteStyle": "double"
 		}
-	}
+	},
+	"overrides": [
+		{
+			"includes": ["**/utils/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": [
+											"react",
+											"react-dom",
+											"zustand",
+											"@tanstack/react-query",
+											"@tanstack/react-router"
+										],
+										"message": "utils/ must stay pure: no React, hooks, stores, or query at runtime. Move impure logic into a hook. (type-only domain imports are allowed)"
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/src/canvas/**"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@/features/**", "@/stores/**", "@tanstack/react-query"],
+										"message": "Canvas Units must not read external business stores, features, or query. Receive data through model/actions props."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/api.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@/features/**", "@/stores/**", "@tanstack/react-query"],
+										"message": "api.ts is a pure public contract: no feature, store, or query imports."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		},
+		{
+			"includes": ["**/*.recipe.ts"],
+			"linter": {
+				"rules": {
+					"style": {
+						"noRestrictedImports": {
+							"level": "error",
+							"options": {
+								"patterns": [
+									{
+										"group": ["@/stores/**", "@/hooks/**", "@tanstack/react-query"],
+										"message": "Recipes hold static style only: no stores, hooks, or query."
+									}
+								]
+							}
+						}
+					}
+				}
+			}
+		}
+	]
 }
